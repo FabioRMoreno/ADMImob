@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ADMImob</title>
+
+  <!-- Leaflet (cdnjs — CDN travado do projeto) -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+  <!-- Turf.js (área em hectares) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js"></script>
+
+  <style>
+    :root {
+      --primaria: #1b6e4b;
+      --secundaria: #0f4d33;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    #app { display: flex; flex-direction: column; height: 100%; }
+
+    header {
+      background: var(--primaria);
+      color: #fff;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 1000;
+      box-shadow: 0 2px 6px rgba(0,0,0,.2);
+    }
+    header .marca { font-weight: 700; font-size: 1.05rem; line-height: 1.1; }
+    header .corretor { font-size: .72rem; opacity: .85; font-weight: 400; }
+    header button.filtros-toggle {
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.4);
+      color: #fff; border-radius: 8px; padding: 8px 12px;
+      font-size: .85rem; cursor: pointer;
+    }
+
+    #conteudo { flex: 1; position: relative; min-height: 0; }
+    #map { position: absolute; inset: 0; }
+
+    /* Painel de filtros */
+    #filtros {
+      position: absolute; top: 10px; left: 10px; z-index: 900;
+      background: #fff; border-radius: 12px; padding: 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.25);
+      width: 260px; max-width: calc(100vw - 20px);
+      display: none;
+    }
+    #filtros.aberto { display: block; }
+    #filtros h3 { margin: 0 0 10px; font-size: .95rem; }
+    #filtros label { display: block; font-size: .78rem; color: #444; margin: 8px 0 3px; }
+    #filtros input, #filtros select {
+      width: 100%; padding: 7px 8px; border: 1px solid #ccc; border-radius: 7px; font-size: .85rem;
+    }
+    #filtros .linha { display: flex; gap: 8px; }
+    #filtros .linha > div { flex: 1; }
+    #filtros .acoes { display: flex; gap: 8px; margin-top: 12px; }
+    #filtros .acoes button { flex: 1; padding: 8px; border-radius: 8px; border: none; cursor: pointer; font-size: .85rem; }
+    #btn-aplicar { background: var(--primaria); color: #fff; }
+    #btn-limpar  { background: #eee; color: #333; }
+    .contador { font-size: .72rem; color: #666; margin-top: 8px; text-align: center; }
+
+    /* Ficha do imóvel */
+    #ficha {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 950;
+      background: #fff; border-radius: 16px 16px 0 0;
+      box-shadow: 0 -4px 20px rgba(0,0,0,.25);
+      max-height: 70%; overflow-y: auto;
+      transform: translateY(100%); transition: transform .25s ease;
+    }
+    #ficha.aberta { transform: translateY(0); }
+    #ficha .foto { width: 100%; height: 200px; object-fit: cover; display: block; background: #eee; }
+    #ficha .corpo { padding: 14px 16px 20px; }
+    #ficha .fechar {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(0,0,0,.55); color: #fff; border: none;
+      width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; cursor: pointer;
+    }
+    #ficha h2 { margin: 0 0 4px; font-size: 1.15rem; }
+    #ficha .preco { color: var(--primaria); font-weight: 700; font-size: 1.25rem; margin: 6px 0; }
+    #ficha .endereco { color: #555; font-size: .85rem; margin-bottom: 10px; }
+    #ficha .badge {
+      display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 20px;
+      background: #eef4f0; color: var(--secundaria); margin-right: 6px; text-transform: uppercase; letter-spacing: .03em;
+    }
+    #ficha .specs { list-style: none; padding: 0; margin: 12px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+    #ficha .specs li { font-size: .82rem; color: #333; border-bottom: 1px solid #f0f0f0; padding-bottom: 4px; }
+    #ficha .specs li span { color: #888; display: block; font-size: .68rem; text-transform: uppercase; }
+
+    .contatos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .contatos a {
+      flex: 1 1 45%; text-align: center; text-decoration: none; padding: 10px;
+      border-radius: 10px; font-size: .85rem; font-weight: 600; color: #fff;
+    }
+    .c-whats { background: #25d366; }
+    .c-tel   { background: var(--secundaria); }
+    .c-email { background: #555; }
+    .c-insta { background: #d6336c; }
+    .rota-btn {
+      display: block; width: 100%; margin-top: 10px; padding: 11px;
+      background: var(--primaria); color: #fff; border: none; border-radius: 10px;
+      font-size: .9rem; font-weight: 600; cursor: pointer;
+    }
+
+    .leaflet-popup-content { font-size: .85rem; }
+    .erro-carga {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      background: #fff; padding: 16px 20px; border-radius: 10px; z-index: 1200;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3); max-width: 300px; text-align: center; font-size: .9rem; color: #b00;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div>
+        <div class="marca" id="hdr-marca">ADMImob</div>
+        <div class="corretor" id="hdr-corretor"></div>
+      </div>
+      <button class="filtros-toggle" id="toggle-filtros">Filtros</button>
+    </header>
+
+    <div id="conteudo">
+      <div id="map"></div>
+
+      <div id="filtros">
+        <h3>Filtrar imóveis</h3>
+        <div class="linha">
+          <div>
+            <label>Preço mín. (R$)</label>
+            <input type="number" id="f-preco-min" placeholder="0" min="0" />
+          </div>
+          <div>
+            <label>Preço máx. (R$)</label>
+            <input type="number" id="f-preco-max" placeholder="qualquer" min="0" />
+          </div>
+        </div>
+        <label>Quartos (mínimo)</label>
+        <select id="f-quartos">
+          <option value="0">Qualquer</option>
+          <option value="1">1+</option>
+          <option value="2">2+</option>
+          <option value="3">3+</option>
+          <option value="4">4+</option>
+        </select>
+        <div class="linha">
+          <div>
+            <label>Tipo</label>
+            <select id="f-tipo">
+              <option value="">Todos</option>
+              <option value="casa">Casa / lote</option>
+              <option value="fazenda">Fazenda / sítio</option>
+            </select>
+          </div>
+          <div>
+            <label>Negócio</label>
+            <select id="f-negocio">
+              <option value="">Todos</option>
+              <option value="venda">Venda</option>
+              <option value="aluguel">Aluguel</option>
+            </select>
+          </div>
+        </div>
+        <div class="acoes">
+          <button id="btn-limpar">Limpar</button>
+          <button id="btn-aplicar">Aplicar</button>
+        </div>
+        <div class="contador" id="contador"></div>
+      </div>
+
+      <div id="ficha">
+        <button class="fechar" id="ficha-fechar" aria-label="Fechar">×</button>
+        <img class="foto" id="ficha-foto" alt="" />
+        <div class="corpo" id="ficha-corpo"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    // ---- 1. Descobrir qual corretor carregar (?cliente=slug) ----
+    const params = new URLSearchParams(location.search);
+    const slug = params.get("cliente") || CLIENTE_PADRAO;
+    const cliente = CLIENTES[slug];
+
+    if (!cliente) {
+      document.body.innerHTML =
+        '<div class="erro-carga">Corretor "' + slug + '" não encontrado. ' +
+        'Verifique o link ou o config.js.</div>';
+      return;
+    }
+
+    // ---- 2. Aplicar marca / cores / título ----
+    document.documentElement.style.setProperty("--primaria", cliente.corPrimaria || "#1b6e4b");
+    document.documentElement.style.setProperty("--secundaria", cliente.corSecundaria || "#0f4d33");
+    document.title = cliente.marca || "ADMImob";
+    document.getElementById("hdr-marca").textContent = cliente.marca || "ADMImob";
+    document.getElementById("hdr-corretor").textContent =
+      [cliente.corretor, cliente.creci].filter(Boolean).join(" · ");
+
+    // ---- 3. Mapa base (satélite Esri, uso livre) ----
+    const map = L.map("map", { zoomControl: true })
+      .setView(cliente.centro || [-19.11, -51.73], cliente.zoom || 13);
+
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 19,
+        attribution: "Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics"
+      }
+    ).addTo(map);
+
+    // ---- 4. Estado ----
+    let todasFeatures = [];
+    const layerImoveis = L.layerGroup().addTo(map);
+    let rotaLayer = null;
+    let posUsuario = null;
+
+    const fmtBRL = function (v) {
+      return (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+    };
+
+    // ---- 5. Carregar GeoJSON do corretor ----
+    fetch(cliente.dados)
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (gj) {
+        todasFeatures = (gj.features || []);
+        aplicarFiltros();
+      })
+      .catch(function (e) {
+        const div = document.createElement("div");
+        div.className = "erro-carga";
+        div.textContent = "Não foi possível carregar os imóveis (" + e.message +
+          "). Se estiver abrindo o arquivo direto do PC, publique no GitHub Pages — fetch não funciona em file://";
+        document.getElementById("conteudo").appendChild(div);
+      });
+
+    // ---- 6. Renderizar features no mapa ----
+    function render(features) {
+      layerImoveis.clearLayers();
+
+      features.forEach(function (f) {
+        const p = f.properties || {};
+        const g = f.geometry || {};
+
+        if (g.type === "Point") {
+          const ll = [g.coordinates[1], g.coordinates[0]];
+          const m = L.marker(ll).addTo(layerImoveis);
+          m.bindPopup("<b>" + (p.titulo || "Imóvel") + "</b><br>" + fmtBRL(p.preco));
+          m.on("click", function () { abrirFicha(f); });
+        } else if (g.type === "Polygon" || g.type === "MultiPolygon") {
+          const poly = L.geoJSON(f, {
+            style: {
+              color: cliente.corPrimaria || "#1b6e4b",
+              weight: 2, fillOpacity: 0.25
+            }
+          }).addTo(layerImoveis);
+          const ha = areaHectares(f);
+          poly.bindPopup("<b>" + (p.titulo || "Área") + "</b><br>" +
+            fmtBRL(p.preco) + "<br>" + ha.toFixed(1) + " ha");
+          poly.on("click", function () { abrirFicha(f, ha); });
+        }
+      });
+    }
+
+    function areaHectares(f) {
+      try {
+        return turf.area(f) / 10000; // m² → ha
+      } catch (e) {
+        return 0;
+      }
+    }
+
+    // ---- 7. Filtros ----
+    function aplicarFiltros() {
+      const precoMin = parseFloat(document.getElementById("f-preco-min").value) || 0;
+      const precoMaxRaw = document.getElementById("f-preco-max").value;
+      const precoMax = precoMaxRaw === "" ? Infinity : parseFloat(precoMaxRaw);
+      const quartosMin = parseInt(document.getElementById("f-quartos").value, 10) || 0;
+      const tipo = document.getElementById("f-tipo").value;
+      const negocio = document.getElementById("f-negocio").value;
+
+      const filtradas = todasFeatures.filter(function (f) {
+        const p = f.properties || {};
+        const preco = Number(p.preco) || 0;
+        if (preco < precoMin || preco > precoMax) return false;
+        if ((Number(p.quartos) || 0) < quartosMin) return false;
+        if (tipo && p.tipo !== tipo) return false;
+        if (negocio && p.negocio !== negocio) return false;
+        return true;
+      });
+
+      render(filtradas);
+      document.getElementById("contador").textContent =
+        filtradas.length + " de " + todasFeatures.length + " imóveis";
+    }
+
+    document.getElementById("btn-aplicar").addEventListener("click", aplicarFiltros);
+    document.getElementById("btn-limpar").addEventListener("click", function () {
+      document.getElementById("f-preco-min").value = "";
+      document.getElementById("f-preco-max").value = "";
+      document.getElementById("f-quartos").value = "0";
+      document.getElementById("f-tipo").value = "";
+      document.getElementById("f-negocio").value = "";
+      aplicarFiltros();
+    });
+    document.getElementById("toggle-filtros").addEventListener("click", function () {
+      document.getElementById("filtros").classList.toggle("aberto");
+    });
+
+    // ---- 8. Ficha do imóvel ----
+    const ficha = document.getElementById("ficha");
+
+    function abrirFicha(f, ha) {
+      const p = f.properties || {};
+      const foto = document.getElementById("ficha-foto");
+      foto.src = p.foto || "https://placehold.co/600x400?text=Sem+foto";
+      foto.alt = p.titulo || "";
+
+      const specs = Object.keys(p)
+        .filter(function (k) { return k.indexOf("spec_") === 0 && p[k]; })
+        .map(function (k) {
+          const rotulo = k.replace("spec_", "").replace(/_/g, " ");
+          return '<li><span>' + rotulo + '</span>' + p[k] + '</li>';
+        });
+
+      if (ha) {
+        specs.unshift('<li><span>área</span>' + ha.toFixed(1) + ' ha</li>');
+      }
+
+      const c = cliente.contatos || {};
+      const contatos = [];
+      if (c.whatsapp) {
+        const msg = encodeURIComponent("Olá! Tenho interesse no imóvel: " + (p.titulo || ""));
+        contatos.push('<a class="c-whats" href="https://wa.me/' + c.whatsapp + '?text=' + msg + '" target="_blank" rel="noopener">WhatsApp</a>');
+      }
+      if (c.telefone) contatos.push('<a class="c-tel" href="tel:' + c.telefone.replace(/[^\d+]/g, "") + '">Ligar</a>');
+      if (c.email) contatos.push('<a class="c-email" href="mailto:' + c.email + '?subject=' + encodeURIComponent("Imóvel: " + (p.titulo || "")) + '">E-mail</a>');
+      if (c.instagram) contatos.push('<a class="c-insta" href="https://instagram.com/' + c.instagram + '" target="_blank" rel="noopener">Instagram</a>');
+
+      document.getElementById("ficha-corpo").innerHTML =
+        '<h2>' + (p.titulo || "Imóvel") + '</h2>' +
+        '<div>' +
+          '<span class="badge">' + (p.tipo || "imóvel") + '</span>' +
+          '<span class="badge">' + (p.negocio || "") + '</span>' +
+        '</div>' +
+        '<div class="preco">' + fmtBRL(p.preco) +
+          (p.negocio === "aluguel" ? " /mês" : "") + '</div>' +
+        '<div class="endereco">' + (p.endereco || "") + '</div>' +
+        (specs.length ? '<ul class="specs">' + specs.join("") + '</ul>' : '') +
+        '<div class="contatos">' + contatos.join("") + '</div>' +
+        '<button class="rota-btn" id="btn-rota">Como chegar</button>';
+
+      document.getElementById("btn-rota").addEventListener("click", function () {
+        tracarRota(f);
+      });
+
+      ficha.classList.add("aberta");
+    }
+
+    document.getElementById("ficha-fechar").addEventListener("click", function () {
+      ficha.classList.remove("aberta");
+    });
+
+    // ---- 9. Rota real por estrada (OSRM público, fallback linha reta) ----
+    function destinoDaFeature(f) {
+      const g = f.geometry || {};
+      if (g.type === "Point") return [g.coordinates[1], g.coordinates[0]];
+      // polígono → centróide
+      try {
+        const c = turf.centroid(f).geometry.coordinates;
+        return [c[1], c[0]];
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function tracarRota(f) {
+      const destino = destinoDaFeature(f);
+      if (!destino) return;
+
+      function desenhar(coords, cor) {
+        if (rotaLayer) map.removeLayer(rotaLayer);
+        rotaLayer = L.polyline(coords, { color: cor, weight: 4, opacity: .8 }).addTo(map);
+        map.fitBounds(rotaLayer.getBounds(), { padding: [40, 40] });
+      }
+
+      function comOrigem(origem) {
+        posUsuario = origem;
+        const url = "https://router.project-osrm.org/route/v1/driving/" +
+          origem[1] + "," + origem[0] + ";" + destino[1] + "," + destino[0] +
+          "?overview=full&geometries=geojson";
+        fetch(url)
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.routes && data.routes[0]) {
+              const linha = data.routes[0].geometry.coordinates.map(function (c) { return [c[1], c[0]]; });
+              desenhar(linha, cliente.corPrimaria || "#1b6e4b");
+            } else {
+              desenhar([origem, destino], "#888"); // fallback linha reta
+            }
+          })
+          .catch(function () {
+            desenhar([origem, destino], "#888");
+          });
+      }
+
+      if (posUsuario) {
+        comOrigem(posUsuario);
+      } else if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          function (pos) { comOrigem([pos.coords.latitude, pos.coords.longitude]); },
+          function () {
+            alert("Não consegui pegar sua localização. Ative o GPS e permita o acesso (funciona só em https).");
+          }
+        );
+      } else {
+        alert("Seu navegador não suporta geolocalização.");
+      }
+    }
+
+  })();
+  </script>
+</body>
+</html>

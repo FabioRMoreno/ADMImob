@@ -1,0 +1,64 @@
+{
+  "type": "FeatureCollection",
+  "name": "adriel",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "titulo": "Casa 3 quartos no Centro",
+        "tipo": "casa",
+        "negocio": "venda",
+        "preco": 350000,
+        "quartos": 3,
+        "endereco": "Rua das Flores, 123 — Centro, Cassilândia-MS",
+        "foto": "https://placehold.co/600x400?text=Casa+Centro",
+        "spec_area_construida": "180 m²",
+        "spec_terreno": "300 m²",
+        "spec_vagas": "2 vagas",
+        "spec_suites": "1 suíte"
+      },
+      "geometry": { "type": "Point", "coordinates": [-51.7350, -19.1125] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "titulo": "Casa 2 quartos para alugar",
+        "tipo": "casa",
+        "negocio": "aluguel",
+        "preco": 1200,
+        "quartos": 2,
+        "endereco": "Av. Brasil, 456 — Jardim América, Cassilândia-MS",
+        "foto": "https://placehold.co/600x400?text=Casa+Aluguel",
+        "spec_area_construida": "90 m²",
+        "spec_vagas": "1 vaga"
+      },
+      "geometry": { "type": "Point", "coordinates": [-51.7290, -19.1180] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "titulo": "Fazenda 120 ha — pecuária",
+        "tipo": "fazenda",
+        "negocio": "venda",
+        "preco": 4800000,
+        "quartos": 0,
+        "endereco": "Zona rural, a 25 km de Cassilândia-MS",
+        "foto": "https://placehold.co/600x400?text=Fazenda",
+        "spec_pastagem": "formada",
+        "spec_agua": "córrego + 2 açudes",
+        "spec_benfeitorias": "sede + curral"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-51.800, -19.060],
+          [-51.760, -19.060],
+          [-51.760, -19.030],
+          [-51.800, -19.030],
+          [-51.800, -19.060]
+        ]]
+      }
+    }
+  ]
+}
