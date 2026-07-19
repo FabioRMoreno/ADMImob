@@ -109,6 +109,34 @@
       font-size: .9rem; font-weight: 600; cursor: pointer;
     }
 
+    /* Ferramenta de medição (distância / área) */
+    #medir-tools {
+      position: absolute; right: 10px; top: 90px; z-index: 900;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    #medir-tools button {
+      width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
+      background: rgba(30,30,30,.85); color: #fff; font-size: 1.1rem;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.35); line-height: 1;
+    }
+    #medir-tools button span { font-size: .58rem; margin-top: 2px; letter-spacing: .02em; }
+    #medir-tools button.ativo { background: var(--primaria); }
+
+    #med-readout {
+      position: absolute; top: 90px; left: 50%; transform: translateX(-50%);
+      z-index: 910; background: #fff; border-radius: 12px; padding: 10px 14px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.25); display: none;
+      max-width: calc(100vw - 100px); text-align: center;
+    }
+    #med-readout-txt { font-size: .95rem; font-weight: 700; color: var(--secundaria); }
+    #med-readout .med-acoes { display: flex; gap: 8px; margin-top: 8px; justify-content: center; }
+    #med-readout .med-acoes button {
+      border: none; border-radius: 8px; padding: 6px 12px; font-size: .78rem; cursor: pointer;
+    }
+    #med-desfazer { background: #eee; color: #333; }
+    #med-fechar { background: var(--primaria); color: #fff; }
+
     .leaflet-popup-content { font-size: .85rem; }
     .erro-carga {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
@@ -175,6 +203,19 @@
         <div class="contador" id="contador"></div>
       </div>
 
+      <div id="medir-tools">
+        <button id="med-dist" title="Medir distância">📏<span>Dist.</span></button>
+        <button id="med-area" title="Medir área">△<span>Área</span></button>
+      </div>
+
+      <div id="med-readout">
+        <span id="med-readout-txt"></span>
+        <div class="med-acoes">
+          <button id="med-desfazer">Desfazer</button>
+          <button id="med-fechar">Fechar</button>
+        </div>
+      </div>
+
       <div id="ficha">
         <button class="fechar" id="ficha-fechar" aria-label="Fechar">×</button>
         <img class="foto" id="ficha-foto" alt="" />
@@ -225,6 +266,7 @@
     const layerImoveis = L.layerGroup().addTo(map);
     let rotaLayer = null;
     let posUsuario = null;
+    let modoMedicao = null; // null | "distancia" | "area"
 
     const fmtBRL = function (v) {
       return (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
@@ -325,6 +367,7 @@
     const ficha = document.getElementById("ficha");
 
     function abrirFicha(f, ha) {
+      if (modoMedicao) return; // medindo: não abrir ficha
       const p = f.properties || {};
       const foto = document.getElementById("ficha-foto");
       foto.src = p.foto || "https://placehold.co/600x400?text=Sem+foto";
@@ -431,6 +474,98 @@
         alert("Seu navegador não suporta geolocalização.");
       }
     }
+
+    // ---- 10. Medição (distância / área) via Turf ----
+    const medLayer = L.layerGroup().addTo(map);
+    let medPontos = []; // array de L.latLng
+
+    function entrarModo(modo) {
+      if (modoMedicao === modo) { sairMedicao(); return; }
+      ficha.classList.remove("aberta");
+      document.getElementById("filtros").classList.remove("aberto");
+      modoMedicao = modo;
+      medPontos = [];
+      document.getElementById("med-dist").classList.toggle("ativo", modo === "distancia");
+      document.getElementById("med-area").classList.toggle("ativo", modo === "area");
+      document.getElementById("med-readout").style.display = "block";
+      map.getContainer().style.cursor = "crosshair";
+      atualizarMedicao();
+    }
+
+    function sairMedicao() {
+      modoMedicao = null;
+      medPontos = [];
+      medLayer.clearLayers();
+      document.getElementById("med-dist").classList.remove("ativo");
+      document.getElementById("med-area").classList.remove("ativo");
+      document.getElementById("med-readout").style.display = "none";
+      map.getContainer().style.cursor = "";
+    }
+
+    map.on("click", function (e) {
+      if (!modoMedicao) return;
+      medPontos.push(e.latlng);
+      atualizarMedicao();
+    });
+
+    function atualizarMedicao() {
+      medLayer.clearLayers();
+      const cor = cliente.corPrimaria || "#1b6e4b";
+
+      medPontos.forEach(function (ll) {
+        L.circleMarker(ll, {
+          radius: 5, color: "#fff", weight: 2, fillColor: cor, fillOpacity: 1
+        }).addTo(medLayer);
+      });
+
+      const txt = document.getElementById("med-readout-txt");
+
+      if (modoMedicao === "distancia") {
+        if (medPontos.length >= 2) {
+          L.polyline(medPontos, { color: cor, weight: 3, dashArray: "6,6" }).addTo(medLayer);
+          const coords = medPontos.map(function (ll) { return [ll.lng, ll.lat]; });
+          const metros = turf.length(turf.lineString(coords), { units: "kilometers" }) * 1000;
+          txt.textContent = "Distância: " + fmtMetros(metros);
+        } else {
+          txt.textContent = "Toque em 2+ pontos no mapa";
+        }
+      } else if (modoMedicao === "area") {
+        if (medPontos.length >= 3) {
+          L.polygon(medPontos, { color: cor, weight: 2, fillOpacity: 0.2, dashArray: "6,6" }).addTo(medLayer);
+          const coords = medPontos.map(function (ll) { return [ll.lng, ll.lat]; });
+          coords.push(coords[0]); // fecha o anel
+          const m2 = turf.area(turf.polygon([coords]));
+          txt.textContent = "Área: " + fmtArea(m2);
+        } else {
+          txt.textContent = "Toque em 3+ pontos no mapa";
+        }
+      }
+    }
+
+    function fmtMetros(m) {
+      if (m >= 1000) {
+        return (m / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 2 }) +
+          " km (" + Math.round(m).toLocaleString("pt-BR") + " m)";
+      }
+      return Math.round(m).toLocaleString("pt-BR") + " m";
+    }
+
+    function fmtArea(m2) {
+      const ha = m2 / 10000;
+      if (m2 >= 10000) {
+        return ha.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) +
+          " ha (" + Math.round(m2).toLocaleString("pt-BR") + " m²)";
+      }
+      return Math.round(m2).toLocaleString("pt-BR") + " m²";
+    }
+
+    document.getElementById("med-dist").addEventListener("click", function () { entrarModo("distancia"); });
+    document.getElementById("med-area").addEventListener("click", function () { entrarModo("area"); });
+    document.getElementById("med-fechar").addEventListener("click", sairMedicao);
+    document.getElementById("med-desfazer").addEventListener("click", function () {
+      medPontos.pop();
+      atualizarMedicao();
+    });
 
   })();
   </script>

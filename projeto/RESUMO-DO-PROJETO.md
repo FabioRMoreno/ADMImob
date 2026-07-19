@@ -27,6 +27,8 @@ contato funcionam, e os filtros (tipo/negócio/preço/quartos) filtram certo.
 - Ficha do imóvel: foto, preço formatado, endereço, specs livres, botões de
   contato (WhatsApp, Ligar, E-mail, Instagram).
 - "Como chegar": rota real por estrada via OSRM (fallback linha reta).
+- **Medição no mapa** (inspirada no CopaNav): botões "Dist." e "Área" — toca
+  pontos e o Turf calcula distância (m/km) e área (m²/ha). Com Desfazer e Fechar.
 
 ## Pendências para virar negócio pagante
 
