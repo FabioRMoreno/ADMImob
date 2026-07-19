@@ -29,8 +29,9 @@ carrega `CLIENTE_PADRAO`.
 
 - `Point` → casa/lote (marcador). `Polygon`/`MultiPolygon` → fazenda/sítio
   (área em ha calculada por Turf).
-- Propriedades: `titulo`, `tipo` (`casa`|`fazenda`), `negocio` (`venda`|`aluguel`),
-  `preco` (número), `quartos` (número), `endereco`, `foto` (URL).
+- Propriedades: `codigo` (ID único `ADMImob_<CORRETOR>_<NNN>`), `titulo`,
+  `tipo` (`casa`|`fazenda`), `negocio` (`venda`|`aluguel`), `preco` (número),
+  `quartos` (número), `endereco`, `foto` (URL).
 - Campos `spec_*` viram linhas livres na ficha do imóvel.
 
 Detalhes de exportação: `GUIA-QGIS.md`.

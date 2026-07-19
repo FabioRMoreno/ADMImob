@@ -28,6 +28,7 @@ Crie estas colunas na camada. Nomes exatos (minúsculos):
 
 | Campo       | Tipo    | Obrigatório | Exemplo                              |
 |-------------|---------|-------------|--------------------------------------|
+| `codigo`    | texto   | sim         | ADMImob_ADRIEL_001                   |
 | `titulo`    | texto   | sim         | Casa 3 quartos no Centro             |
 | `tipo`      | texto   | sim         | `casa` ou `fazenda`                  |
 | `negocio`   | texto   | sim         | `venda` ou `aluguel`                 |
@@ -37,6 +38,23 @@ Crie estas colunas na camada. Nomes exatos (minúsculos):
 | `foto`      | texto   | não         | URL da foto (Cloudinary), não o arquivo |
 
 \* `quartos` é usado no filtro; em fazenda deixe `0`.
+
+### Código do imóvel (`codigo`)
+
+Cada imóvel tem um código único, no padrão:
+
+```
+ADMImob_<CORRETOR>_<NNN>
+```
+
+- `ADMImob` — nome do app (fixo).
+- `<CORRETOR>` — o slug do corretor em MAIÚSCULAS (ex.: `ADRIEL`).
+- `<NNN>` — número sequencial de 3 dígitos (`001`, `002`, …).
+
+Regras: o número **nunca é reaproveitado** — se um imóvel for vendido e sair do
+mapa, o próximo cadastro segue a numeração (não volta a usar o número livre).
+Assim o código sempre identifica o mesmo imóvel de forma estável. Serve como
+referência entre você, o corretor e o comprador ("me fala do ADMImob_ADRIEL_003").
 
 ## 4. Campos livres: padrão `spec_*`
 

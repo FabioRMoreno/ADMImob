@@ -6,6 +6,7 @@
     {
       "type": "Feature",
       "properties": {
+        "codigo": "ADMImob_ADRIEL_001",
         "titulo": "Casa 3 quartos no Centro",
         "tipo": "casa",
         "negocio": "venda",
@@ -23,6 +24,7 @@
     {
       "type": "Feature",
       "properties": {
+        "codigo": "ADMImob_ADRIEL_002",
         "titulo": "Casa 2 quartos para alugar",
         "tipo": "casa",
         "negocio": "aluguel",
@@ -38,6 +40,7 @@
     {
       "type": "Feature",
       "properties": {
+        "codigo": "ADMImob_ADRIEL_003",
         "titulo": "Fazenda 120 ha — pecuária",
         "tipo": "fazenda",
         "negocio": "venda",

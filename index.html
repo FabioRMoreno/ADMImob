@@ -86,6 +86,10 @@
     #ficha h2 { margin: 0 0 4px; font-size: 1.15rem; }
     #ficha .preco { color: var(--primaria); font-weight: 700; font-size: 1.25rem; margin: 6px 0; }
     #ficha .endereco { color: #555; font-size: .85rem; margin-bottom: 10px; }
+    #ficha .ref {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: .72rem; color: #888; margin: 8px 0 2px; letter-spacing: .02em;
+    }
     #ficha .badge {
       display: inline-block; font-size: .7rem; padding: 2px 8px; border-radius: 20px;
       background: #eef4f0; color: var(--secundaria); margin-right: 6px; text-transform: uppercase; letter-spacing: .03em;
@@ -273,6 +277,13 @@
       return (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
     };
 
+    // linha do código do imóvel no popup (só se houver)
+    const refPopup = function (p) {
+      return p.codigo
+        ? '<br><span style="font-family:monospace;font-size:.68rem;color:#888">' + p.codigo + '</span>'
+        : '';
+    };
+
     // ---- 5. Carregar GeoJSON do corretor ----
     fetch(cliente.dados)
       .then(function (r) {
@@ -302,7 +313,7 @@
         if (g.type === "Point") {
           const ll = [g.coordinates[1], g.coordinates[0]];
           const m = L.marker(ll).addTo(layerImoveis);
-          m.bindPopup("<b>" + (p.titulo || "Imóvel") + "</b><br>" + fmtBRL(p.preco));
+          m.bindPopup("<b>" + (p.titulo || "Imóvel") + "</b><br>" + fmtBRL(p.preco) + refPopup(p));
           m.on("click", function () { abrirFicha(f); });
         } else if (g.type === "Polygon" || g.type === "MultiPolygon") {
           const poly = L.geoJSON(f, {
@@ -313,7 +324,7 @@
           }).addTo(layerImoveis);
           const ha = areaHectares(f);
           poly.bindPopup("<b>" + (p.titulo || "Área") + "</b><br>" +
-            fmtBRL(p.preco) + "<br>" + ha.toFixed(1) + " ha");
+            fmtBRL(p.preco) + "<br>" + ha.toFixed(1) + " ha" + refPopup(p));
           poly.on("click", function () { abrirFicha(f, ha); });
         }
       });
@@ -397,6 +408,7 @@
 
       document.getElementById("ficha-corpo").innerHTML =
         '<h2>' + (p.titulo || "Imóvel") + '</h2>' +
+        (p.codigo ? '<div class="ref">Cód. ' + p.codigo + '</div>' : '') +
         '<div>' +
           '<span class="badge">' + (p.tipo || "imóvel") + '</span>' +
           '<span class="badge">' + (p.negocio || "") + '</span>' +
