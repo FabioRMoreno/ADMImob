@@ -133,6 +133,31 @@
       font-size: .9rem; font-weight: 600; cursor: pointer;
     }
 
+    /* Controle de camadas (satélite / híbrido / ruas) */
+    #camadas { position: absolute; left: 10px; bottom: 28px; z-index: 900; }
+    #camadas-btn {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(30,30,30,.85); color: #fff; border: none; cursor: pointer;
+      padding: 9px 14px; border-radius: 22px; font-size: .82rem; font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,.35);
+    }
+    #camadas-btn .cam-ico { font-size: 1rem; line-height: 1; }
+    #camadas-menu {
+      display: none; position: absolute; left: 0; bottom: calc(100% + 8px);
+      background: #fff; border-radius: 12px; overflow: hidden; min-width: 172px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.28);
+    }
+    #camadas.aberto #camadas-menu { display: block; }
+    .cam-op {
+      display: block; width: 100%; text-align: left; border: none; background: #fff;
+      padding: 11px 14px; font-size: .86rem; cursor: pointer; color: #333;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .cam-op:last-child { border-bottom: none; }
+    .cam-op:hover { background: #f4f7f2; }
+    .cam-op.ativa { background: var(--primaria); color: #fff; font-weight: 600; }
+    #camadas-btn:focus-visible, .cam-op:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
     /* Ferramenta de medição (distância / área) */
     #medir-tools {
       position: absolute; right: 10px; top: 90px; z-index: 900;
@@ -227,6 +252,17 @@
         <div class="contador" id="contador"></div>
       </div>
 
+      <div id="camadas">
+        <button id="camadas-btn" type="button" aria-expanded="false" aria-haspopup="true">
+          <span class="cam-ico">▤</span><span>Camadas</span>
+        </button>
+        <div id="camadas-menu" role="menu">
+          <button type="button" class="cam-op" data-modo="satelite" role="menuitem">Satélite</button>
+          <button type="button" class="cam-op" data-modo="hibrido" role="menuitem">Satélite + Ruas</button>
+          <button type="button" class="cam-op" data-modo="ruas" role="menuitem">Somente Ruas</button>
+        </div>
+      </div>
+
       <div id="medir-tools">
         <button id="med-dist" title="Medir distância">📏<span>Dist.</span></button>
         <button id="med-area" title="Medir área">△<span>Área</span></button>
@@ -289,14 +325,51 @@
     const map = L.map("map", { zoomControl: true })
       .setView(cliente.centro || [-19.11, -51.73], cliente.zoom || 13);
 
-    L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      {
-        maxZoom: 19,          // até onde o usuário pode dar zoom
-        maxNativeZoom: 17,    // até onde o Esri tem imagem real; acima disso, amplia a do 17
-        attribution: "Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics"
+    const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
+    const attrEsri = "Tiles © Esri";
+
+    // Satélite (imagem só tem até zoom 17 nesta região; acima disso amplia a do 17)
+    const baseSatelite = L.tileLayer(ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, maxNativeZoom: 17, attribution: attrEsri + " — Maxar, Earthstar Geographics" });
+    // Somente ruas
+    const baseRuas = L.tileLayer(ESRI + "World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, attribution: attrEsri + ", HERE, Garmin, OpenStreetMap" });
+    // Overlay transparente (ruas + nomes) para o modo híbrido
+    const refRuas = L.layerGroup([
+      L.tileLayer(ESRI + "Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, maxNativeZoom: 17 }),
+      L.tileLayer(ESRI + "Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, maxNativeZoom: 17 })
+    ]);
+
+    function trocarCamada(modo) {
+      map.removeLayer(baseSatelite);
+      map.removeLayer(baseRuas);
+      map.removeLayer(refRuas);
+      if (modo === "ruas") {
+        baseRuas.addTo(map);
+      } else {
+        baseSatelite.addTo(map);
+        if (modo === "hibrido") refRuas.addTo(map);
       }
-    ).addTo(map);
+      document.querySelectorAll(".cam-op").forEach(function (b) {
+        b.classList.toggle("ativa", b.dataset.modo === modo);
+      });
+    }
+    trocarCamada("satelite"); // camada inicial
+
+    // controle de camadas (botão + menu)
+    const camadasEl = document.getElementById("camadas");
+    const camadasBtn = document.getElementById("camadas-btn");
+    camadasBtn.addEventListener("click", function () {
+      const aberto = camadasEl.classList.toggle("aberto");
+      camadasBtn.setAttribute("aria-expanded", aberto ? "true" : "false");
+    });
+    document.querySelectorAll(".cam-op").forEach(function (b) {
+      b.addEventListener("click", function () {
+        trocarCamada(b.dataset.modo);
+        camadasEl.classList.remove("aberto");
+        camadasBtn.setAttribute("aria-expanded", "false");
+      });
+    });
 
     // ---- 4. Estado ----
     let todasFeatures = [];

@@ -14,7 +14,7 @@ ficam guardadas pra não se perder. Pegar uma de cada vez, só quando fizer sent
 
 - [ ] Busca por texto (nome/endereço) além dos filtros.
 - [ ] Compartilhar imóvel específico via link (`?cliente=x&imovel=id`).
-- [ ] Alternar camada satélite ↔ mapa de ruas.
+- [x] Alternar camada satélite ↔ mapa de ruas. ✅ Feito (Satélite / Satélite+Ruas / Somente Ruas).
 
 ## Operacional
 
