@@ -33,6 +33,15 @@
       z-index: 1000;
       box-shadow: 0 2px 6px rgba(0,0,0,.2);
     }
+    .hdr-esq { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .hdr-logo-wrap {
+      display: none; /* aparece só quando o logo carrega */
+      flex: none; width: 44px; height: 44px; border-radius: 10px;
+      background: #fff; padding: 3px; box-sizing: border-box;
+      align-items: center; justify-content: center;
+    }
+    .hdr-logo-wrap.tem-logo { display: flex; }
+    .hdr-logo { max-width: 100%; max-height: 100%; display: block; }
     header .marca { font-weight: 700; font-size: 1.05rem; line-height: 1.1; }
     header .corretor { font-size: .72rem; opacity: .85; font-weight: 400; }
     header button.filtros-toggle {
@@ -197,9 +206,14 @@
 <body>
   <div id="app">
     <header>
-      <div>
-        <div class="marca" id="hdr-marca">ADMImob</div>
-        <div class="corretor" id="hdr-corretor"></div>
+      <div class="hdr-esq">
+        <span class="hdr-logo-wrap" id="hdr-logo-wrap">
+          <img class="hdr-logo" id="hdr-logo" alt="" />
+        </span>
+        <div class="hdr-textos">
+          <div class="marca" id="hdr-marca">ADMImob</div>
+          <div class="corretor" id="hdr-corretor"></div>
+        </div>
       </div>
       <button class="filtros-toggle" id="toggle-filtros">Filtros</button>
     </header>
@@ -320,6 +334,16 @@
     document.getElementById("hdr-marca").textContent = cliente.marca || "ADMImob";
     document.getElementById("hdr-corretor").textContent =
       [cliente.corretor, cliente.creci].filter(Boolean).join(" · ");
+
+    // Logo do cabeçalho: só aparece se o arquivo carregar
+    if (cliente.logo) {
+      const logoImg = document.getElementById("hdr-logo");
+      const logoWrap = document.getElementById("hdr-logo-wrap");
+      logoImg.alt = cliente.marca || "Logo";
+      logoImg.onload = function () { logoWrap.classList.add("tem-logo"); };
+      logoImg.onerror = function () { logoWrap.classList.remove("tem-logo"); };
+      logoImg.src = cliente.logo;
+    }
 
     // ---- 3. Mapa base (satélite Esri, uso livre) ----
     const map = L.map("map", { zoomControl: true })

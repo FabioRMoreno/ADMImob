@@ -19,6 +19,8 @@ const CLIENTES = {
     marca: "ADMImob — Adriel Imóveis",
     corretor: "Adriel Andrade",
     creci: "CRECI-MS 10101",
+    // Logo do cabeçalho (caminho da imagem). Deixe "" para não mostrar.
+    logo: "img/logo.png",
     // Cores da interface (cabeçalho, botões, destaques)
     corPrimaria: "#1b6e4b",   // verde
     corSecundaria: "#0f4d33",
