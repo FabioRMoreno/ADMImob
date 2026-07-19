@@ -1,0 +1,9 @@
+# Configurações locais do Claude Code (pessoais — não versionar)
+.claude/settings.local.json
+
+# Fotos de imóveis nunca vão pro repo (usar Cloudinary)
+# (o logo em img/ é exceção: é a marca, pode versionar)
+
+# Lixo de sistema
+Thumbs.db
+.DS_Store
