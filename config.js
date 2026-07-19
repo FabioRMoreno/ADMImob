@@ -20,7 +20,8 @@ const CLIENTES = {
     corretor: "Adriel Andrade",
     creci: "CRECI-MS 10101",
     // Logo do cabeçalho (caminho da imagem). Deixe "" para não mostrar.
-    logo: "img/logo.png",
+    // O ?v=1 fura o cache do navegador; aumente pra v=2, v=3... ao trocar o logo.
+    logo: "img/logo.png?v=1",
     // Cores da interface (cabeçalho, botões, destaques)
     corPrimaria: "#1b6e4b",   // verde
     corSecundaria: "#0f4d33",
