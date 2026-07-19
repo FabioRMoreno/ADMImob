@@ -256,7 +256,8 @@
     L.tileLayer(
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       {
-        maxZoom: 19,
+        maxZoom: 19,          // até onde o usuário pode dar zoom
+        maxNativeZoom: 17,    // até onde o Esri tem imagem real; acima disso, amplia a do 17
         attribution: "Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics"
       }
     ).addTo(map);
