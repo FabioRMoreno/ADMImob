@@ -30,14 +30,18 @@ Crie estas colunas na camada. Nomes exatos (minúsculos):
 |-------------|---------|-------------|--------------------------------------|
 | `codigo`    | texto   | sim         | ADMImob_ADRIEL_001                   |
 | `titulo`    | texto   | sim         | Casa 3 quartos no Centro             |
-| `tipo`      | texto   | sim         | `casa` ou `fazenda`                  |
+| `tipo`      | texto   | sim         | ver lista abaixo                     |
 | `negocio`   | texto   | sim         | `venda` ou `aluguel`                 |
 | `preco`     | inteiro | sim         | 350000                               |
-| `quartos`   | inteiro | sim*        | 3   (use 0 em fazenda)               |
 | `endereco`  | texto   | sim         | Rua das Flores, 123 — Centro         |
 | `foto`      | texto   | não         | URL da foto (Cloudinary), não o arquivo |
 
-\* `quartos` é usado no filtro; em fazenda deixe `0`.
+### Valores de `tipo` (usados nos filtros do app)
+
+Um destes, em minúsculas: `casa`, `comercial`, `terreno`, `fazenda`, `chacara`.
+
+O app filtra por esses tipos; o número de quartos (e outras infos) vai em campos
+`spec_*` (ex.: `spec_quartos`), que aparecem na ficha mas não são filtro.
 
 ### Código do imóvel (`codigo`)
 

@@ -30,9 +30,13 @@ carrega `CLIENTE_PADRAO`.
 - `Point` → casa/lote (marcador). `Polygon`/`MultiPolygon` → fazenda/sítio
   (área em ha calculada por Turf).
 - Propriedades: `codigo` (ID único `ADMImob_<CORRETOR>_<NNN>`), `titulo`,
-  `tipo` (`casa`|`fazenda`), `negocio` (`venda`|`aluguel`), `preco` (número),
-  `quartos` (número), `endereco`, `foto` (URL).
-- Campos `spec_*` viram linhas livres na ficha do imóvel.
+  `tipo` (`casa`|`comercial`|`terreno`|`fazenda`|`chacara`),
+  `negocio` (`venda`|`aluguel`), `preco` (número), `endereco`, `foto` (URL).
+- Campos `spec_*` viram linhas livres na ficha do imóvel (ex.: `spec_quartos`).
+- Filtros do app: chips de **Negócio** (venda/aluguel) e **Tipo** (os 5 acima),
+  toque para filtrar na hora. "Todos" mostra tudo.
+- O GeoJSON é buscado com `cache: "no-cache"` — atualização do catálogo aparece
+  na hora, sem depender do cache do navegador.
 
 Detalhes de exportação: `GUIA-QGIS.md`.
 

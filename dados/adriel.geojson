@@ -11,13 +11,12 @@
         "tipo": "casa",
         "negocio": "venda",
         "preco": 350000,
-        "quartos": 3,
         "endereco": "Rua das Flores, 123 — Centro, Cassilândia-MS",
-        "foto": "https://placehold.co/600x400?text=Casa+Centro",
+        "foto": "",
+        "spec_quartos": "3",
         "spec_area_construida": "180 m²",
         "spec_terreno": "300 m²",
-        "spec_vagas": "2 vagas",
-        "spec_suites": "1 suíte"
+        "spec_vagas": "2 vagas"
       },
       "geometry": { "type": "Point", "coordinates": [-51.7350, -19.1125] }
     },
@@ -29,9 +28,9 @@
         "tipo": "casa",
         "negocio": "aluguel",
         "preco": 1200,
-        "quartos": 2,
         "endereco": "Av. Brasil, 456 — Jardim América, Cassilândia-MS",
-        "foto": "https://placehold.co/600x400?text=Casa+Aluguel",
+        "foto": "",
+        "spec_quartos": "2",
         "spec_area_construida": "90 m²",
         "spec_vagas": "1 vaga"
       },
@@ -41,13 +40,68 @@
       "type": "Feature",
       "properties": {
         "codigo": "ADMImob_ADRIEL_003",
-        "titulo": "Fazenda 120 ha — pecuária",
+        "titulo": "Sala comercial na avenida",
+        "tipo": "comercial",
+        "negocio": "aluguel",
+        "preco": 2500,
+        "endereco": "Av. Pref. Zith Botelho, 800 — Centro, Cassilândia-MS",
+        "foto": "",
+        "spec_area": "120 m²",
+        "spec_banheiros": "2",
+        "spec_uso": "loja / escritório"
+      },
+      "geometry": { "type": "Point", "coordinates": [-51.7332, -19.1148] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "codigo": "ADMImob_ADRIEL_004",
+        "titulo": "Terreno 360 m² em esquina",
+        "tipo": "terreno",
+        "negocio": "venda",
+        "preco": 120000,
+        "endereco": "Rua Goiás, esquina — Jardim Bela Vista, Cassilândia-MS",
+        "foto": "",
+        "spec_area": "360 m²",
+        "spec_frente": "12 m",
+        "spec_situacao": "murado"
+      },
+      "geometry": { "type": "Point", "coordinates": [-51.7405, -19.1160] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "codigo": "ADMImob_ADRIEL_005",
+        "titulo": "Chácara com casa sede e pomar",
+        "tipo": "chacara",
+        "negocio": "venda",
+        "preco": 480000,
+        "endereco": "Estrada do Aeroporto, km 3 — Cassilândia-MS",
+        "foto": "",
+        "spec_agua": "poço artesiano",
+        "spec_benfeitorias": "sede + pomar"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-51.7480, -19.1250],
+          [-51.7455, -19.1250],
+          [-51.7455, -19.1232],
+          [-51.7480, -19.1232],
+          [-51.7480, -19.1250]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "codigo": "ADMImob_ADRIEL_006",
+        "titulo": "Fazenda para pecuária",
         "tipo": "fazenda",
         "negocio": "venda",
         "preco": 4800000,
-        "quartos": 0,
         "endereco": "Zona rural, a 25 km de Cassilândia-MS",
-        "foto": "https://placehold.co/600x400?text=Fazenda",
+        "foto": "",
         "spec_pastagem": "formada",
         "spec_agua": "córrego + 2 açudes",
         "spec_benfeitorias": "sede + curral"

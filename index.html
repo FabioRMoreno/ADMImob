@@ -109,18 +109,18 @@
       letter-spacing: .07em; color: var(--secundaria);
     }
 
-    /* Filtros (dentro do painel) */
-    #filtros label { display: block; font-size: .78rem; color: #444; margin: 8px 0 3px; }
-    #filtros input, #filtros select {
-      width: 100%; padding: 7px 8px; border: 1px solid #ccc; border-radius: 7px; font-size: .85rem;
+    /* Filtros por chips (dentro do painel) */
+    .chip-grupo { margin-bottom: 16px; }
+    .chip-rot { font-size: .78rem; color: #666; font-weight: 600; margin-bottom: 8px; }
+    .chips-filtro { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip-f {
+      border: 1px solid #d8ddd6; background: #fff; color: #333;
+      border-radius: 20px; padding: 7px 14px; font-size: .84rem; cursor: pointer;
     }
-    #filtros .linha { display: flex; gap: 8px; }
-    #filtros .linha > div { flex: 1; }
-    #filtros .acoes { display: flex; gap: 8px; margin-top: 12px; }
-    #filtros .acoes button { flex: 1; padding: 8px; border-radius: 8px; border: none; cursor: pointer; font-size: .85rem; }
-    #btn-aplicar { background: var(--primaria); color: #fff; }
-    #btn-limpar  { background: #eee; color: #333; }
-    .contador { font-size: .72rem; color: #666; margin-top: 8px; text-align: center; }
+    .chip-f:hover { background: #f4f7f2; }
+    .chip-f.ativa { background: var(--primaria); color: #fff; border-color: var(--primaria); font-weight: 600; }
+    .chip-f:focus-visible { outline: 2px solid var(--primaria); outline-offset: 2px; }
+    .contador { font-size: .78rem; color: #555; margin-top: 4px; text-align: center; font-weight: 600; }
 
     /* Ficha do imóvel */
     #ficha {
@@ -266,45 +266,24 @@
         <div class="painel-sec">
           <h3>Filtrar imóveis</h3>
           <div id="filtros">
-            <div class="linha">
-              <div>
-                <label>Preço mín. (R$)</label>
-                <input type="number" id="f-preco-min" placeholder="0" min="0" />
-              </div>
-              <div>
-                <label>Preço máx. (R$)</label>
-                <input type="number" id="f-preco-max" placeholder="qualquer" min="0" />
+            <div class="chip-grupo">
+              <div class="chip-rot">Negócio</div>
+              <div class="chips-filtro" id="filtro-negocio">
+                <button type="button" class="chip-f ativa" data-val="">Todos</button>
+                <button type="button" class="chip-f" data-val="venda">Venda</button>
+                <button type="button" class="chip-f" data-val="aluguel">Aluguel</button>
               </div>
             </div>
-            <label>Quartos (mínimo)</label>
-            <select id="f-quartos">
-              <option value="0">Qualquer</option>
-              <option value="1">1+</option>
-              <option value="2">2+</option>
-              <option value="3">3+</option>
-              <option value="4">4+</option>
-            </select>
-            <div class="linha">
-              <div>
-                <label>Tipo</label>
-                <select id="f-tipo">
-                  <option value="">Todos</option>
-                  <option value="casa">Casa / lote</option>
-                  <option value="fazenda">Fazenda / sítio</option>
-                </select>
+            <div class="chip-grupo">
+              <div class="chip-rot">Tipo</div>
+              <div class="chips-filtro" id="filtro-tipo">
+                <button type="button" class="chip-f ativa" data-val="">Todos</button>
+                <button type="button" class="chip-f" data-val="casa">Casa</button>
+                <button type="button" class="chip-f" data-val="comercial">Comercial</button>
+                <button type="button" class="chip-f" data-val="terreno">Terreno</button>
+                <button type="button" class="chip-f" data-val="fazenda">Fazenda</button>
+                <button type="button" class="chip-f" data-val="chacara">Chácara</button>
               </div>
-              <div>
-                <label>Negócio</label>
-                <select id="f-negocio">
-                  <option value="">Todos</option>
-                  <option value="venda">Venda</option>
-                  <option value="aluguel">Aluguel</option>
-                </select>
-              </div>
-            </div>
-            <div class="acoes">
-              <button id="btn-limpar">Limpar</button>
-              <button id="btn-aplicar">Aplicar</button>
             </div>
             <div class="contador" id="contador"></div>
           </div>
@@ -444,6 +423,15 @@
     let posUsuario = null;
     let modoMedicao = null; // null | "distancia" | "area"
 
+    const TIPO_LABEL = {
+      casa: "Casa", comercial: "Comercial", terreno: "Terreno",
+      fazenda: "Fazenda", chacara: "Chácara"
+    };
+    const rotuloTipo = function (t) { return TIPO_LABEL[t] || t || "imóvel"; };
+    const rotuloNegocio = function (n) {
+      return n === "venda" ? "Venda" : n === "aluguel" ? "Aluguel" : (n || "");
+    };
+
     const fmtBRL = function (v) {
       return (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
     };
@@ -456,7 +444,7 @@
     };
 
     // ---- 5. Carregar GeoJSON do corretor ----
-    fetch(cliente.dados)
+    fetch(cliente.dados, { cache: "no-cache" }) // revalida sempre: catálogo atualizado aparece na hora
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
@@ -509,22 +497,20 @@
       }
     }
 
-    // ---- 7. Filtros ----
+    // ---- 7. Filtros por chips (Negócio / Tipo) ----
+    function filtroAtivo(grupoId) {
+      const el = document.querySelector("#" + grupoId + " .chip-f.ativa");
+      return el ? el.dataset.val : "";
+    }
+
     function aplicarFiltros() {
-      const precoMin = parseFloat(document.getElementById("f-preco-min").value) || 0;
-      const precoMaxRaw = document.getElementById("f-preco-max").value;
-      const precoMax = precoMaxRaw === "" ? Infinity : parseFloat(precoMaxRaw);
-      const quartosMin = parseInt(document.getElementById("f-quartos").value, 10) || 0;
-      const tipo = document.getElementById("f-tipo").value;
-      const negocio = document.getElementById("f-negocio").value;
+      const negocio = filtroAtivo("filtro-negocio");
+      const tipo = filtroAtivo("filtro-tipo");
 
       const filtradas = todasFeatures.filter(function (f) {
         const p = f.properties || {};
-        const preco = Number(p.preco) || 0;
-        if (preco < precoMin || preco > precoMax) return false;
-        if ((Number(p.quartos) || 0) < quartosMin) return false;
-        if (tipo && p.tipo !== tipo) return false;
         if (negocio && p.negocio !== negocio) return false;
+        if (tipo && p.tipo !== tipo) return false;
         return true;
       });
 
@@ -533,14 +519,15 @@
         filtradas.length + " de " + todasFeatures.length + " imóveis";
     }
 
-    document.getElementById("btn-aplicar").addEventListener("click", aplicarFiltros);
-    document.getElementById("btn-limpar").addEventListener("click", function () {
-      document.getElementById("f-preco-min").value = "";
-      document.getElementById("f-preco-max").value = "";
-      document.getElementById("f-quartos").value = "0";
-      document.getElementById("f-tipo").value = "";
-      document.getElementById("f-negocio").value = "";
-      aplicarFiltros();
+    // tocar num chip: seleciona (um por grupo) e filtra na hora
+    document.querySelectorAll(".chips-filtro").forEach(function (grupo) {
+      grupo.querySelectorAll(".chip-f").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          grupo.querySelectorAll(".chip-f").forEach(function (c) { c.classList.remove("ativa"); });
+          chip.classList.add("ativa");
+          aplicarFiltros();
+        });
+      });
     });
     // ---- Painel lateral (abrir/fechar) ----
     const painel = document.getElementById("painel");
@@ -559,8 +546,6 @@
     menuToggle.addEventListener("click", abrirPainel);
     painelOverlay.addEventListener("click", fecharPainel);
     document.getElementById("painel-fechar").addEventListener("click", fecharPainel);
-    // aplicar filtro fecha o painel (deixa ver o mapa)
-    document.getElementById("btn-aplicar").addEventListener("click", fecharPainel);
 
     // ---- 8. Ficha do imóvel ----
     const ficha = document.getElementById("ficha");
@@ -593,8 +578,8 @@
 
       document.getElementById("ficha-corpo").innerHTML =
         '<div class="badges">' +
-          '<span class="badge">' + (p.tipo || "imóvel") + '</span>' +
-          '<span class="badge">' + (p.negocio || "") + '</span>' +
+          '<span class="badge">' + rotuloTipo(p.tipo) + '</span>' +
+          '<span class="badge">' + rotuloNegocio(p.negocio) + '</span>' +
         '</div>' +
         '<div class="endereco">' + (p.endereco || "") + '</div>' +
         (specs.length ? '<ul class="specs">' + specs.join("") + '</ul>' : '');
