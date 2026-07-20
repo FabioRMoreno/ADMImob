@@ -33,7 +33,14 @@
       z-index: 1000;
       box-shadow: 0 2px 6px rgba(0,0,0,.2);
     }
+    .hdr-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .hdr-esq { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .menu-toggle {
+      flex: none; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.4);
+      color: #fff; width: 42px; height: 42px; border-radius: 10px; font-size: 1.3rem;
+      cursor: pointer; line-height: 1;
+    }
+    .menu-toggle:hover { background: rgba(255,255,255,.28); }
     .hdr-logo-wrap {
       display: none; /* aparece só quando o logo carrega */
       flex: none; width: 56px; height: 56px; border-radius: 12px;
@@ -42,28 +49,67 @@
     }
     .hdr-logo-wrap.tem-logo { display: flex; }
     .hdr-logo { max-width: 100%; max-height: 100%; display: block; }
-    header .marca { font-weight: 700; font-size: 1.15rem; line-height: 1.15; }
+    header .marca { font-weight: 700; font-size: 1.15rem; line-height: 1.15;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     header .corretor { font-size: .76rem; opacity: .85; font-weight: 400; }
-    header button.filtros-toggle {
-      background: rgba(255,255,255,.15);
-      border: 1px solid rgba(255,255,255,.4);
-      color: #fff; border-radius: 8px; padding: 8px 12px;
-      font-size: .85rem; cursor: pointer;
+
+    /* Quadro de usuário logado */
+    #user-badge {
+      flex: none; display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.28);
+      border-radius: 12px; padding: 6px 12px 6px 7px;
+    }
+    #user-badge .avatar {
+      flex: none; width: 38px; height: 38px; border-radius: 50%;
+      background: #fff; color: var(--secundaria); font-weight: 800; font-size: .9rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #user-badge .u-nome { font-weight: 700; font-size: .9rem; line-height: 1.1; white-space: nowrap; }
+    #user-badge .u-status { display: flex; align-items: center; gap: 6px; font-size: .72rem; margin-top: 2px; }
+    #user-badge .u-status .dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #38d66b;
+      box-shadow: 0 0 0 3px rgba(56,214,107,.28);
+    }
+    @media (max-width: 620px) {
+      #user-badge .u-info { display: none; }
+      #user-badge { padding: 5px; }
+      header .corretor { display: none; }
     }
 
     #conteudo { flex: 1; position: relative; min-height: 0; }
     #map { position: absolute; inset: 0; }
 
-    /* Painel de filtros */
-    #filtros {
-      position: absolute; top: 10px; left: 10px; z-index: 900;
-      background: #fff; border-radius: 12px; padding: 14px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.25);
-      width: 260px; max-width: calc(100vw - 20px);
-      display: none;
+    /* Painel lateral esquerdo (drawer) */
+    #painel-overlay {
+      position: absolute; inset: 0; z-index: 1000; background: rgba(0,0,0,.35);
+      opacity: 0; pointer-events: none; transition: opacity .25s;
     }
-    #filtros.aberto { display: block; }
-    #filtros h3 { margin: 0 0 10px; font-size: .95rem; }
+    #painel-overlay.aberto { opacity: 1; pointer-events: auto; }
+    #painel {
+      position: absolute; top: 0; left: 0; bottom: 0; z-index: 1001;
+      width: 300px; max-width: 86vw; background: #fff;
+      transform: translateX(-100%); transition: transform .28s ease;
+      box-shadow: 2px 0 20px rgba(0,0,0,.28);
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    #painel.aberto { transform: translateX(0); }
+    .painel-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 15px 16px; background: var(--primaria); color: #fff;
+      position: sticky; top: 0; z-index: 1;
+    }
+    .painel-head h2 { margin: 0; font-size: 1.05rem; }
+    .painel-head .fechar {
+      background: rgba(255,255,255,.2); border: none; color: #fff;
+      width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
+    }
+    .painel-sec { padding: 16px; border-bottom: 1px solid #eef0ec; }
+    .painel-sec > h3 {
+      margin: 0 0 12px; font-size: .74rem; text-transform: uppercase;
+      letter-spacing: .07em; color: var(--secundaria);
+    }
+
+    /* Filtros (dentro do painel) */
     #filtros label { display: block; font-size: .78rem; color: #444; margin: 8px 0 3px; }
     #filtros input, #filtros select {
       width: 100%; padding: 7px 8px; border: 1px solid #ccc; border-radius: 7px; font-size: .85rem;
@@ -142,44 +188,26 @@
       font-size: .9rem; font-weight: 600; cursor: pointer;
     }
 
-    /* Controle de camadas (satélite / híbrido / ruas) */
-    #camadas { position: absolute; left: 10px; bottom: 28px; z-index: 900; }
-    #camadas-btn {
-      display: flex; align-items: center; gap: 7px;
-      background: rgba(30,30,30,.85); color: #fff; border: none; cursor: pointer;
-      padding: 9px 14px; border-radius: 22px; font-size: .82rem; font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,0,0,.35);
-    }
-    #camadas-btn .cam-ico { font-size: 1rem; line-height: 1; }
-    #camadas-menu {
-      display: none; position: absolute; left: 0; bottom: calc(100% + 8px);
-      background: #fff; border-radius: 12px; overflow: hidden; min-width: 172px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.28);
-    }
-    #camadas.aberto #camadas-menu { display: block; }
+    /* Camadas (lista dentro do painel) */
+    .cam-lista { display: flex; flex-direction: column; gap: 7px; }
     .cam-op {
-      display: block; width: 100%; text-align: left; border: none; background: #fff;
-      padding: 11px 14px; font-size: .86rem; cursor: pointer; color: #333;
-      border-bottom: 1px solid #f0f0f0;
+      display: block; width: 100%; text-align: left; cursor: pointer;
+      background: #f4f7f2; border: 1px solid #e2e8e2; border-radius: 9px;
+      padding: 11px 13px; font-size: .88rem; color: #333;
     }
-    .cam-op:last-child { border-bottom: none; }
-    .cam-op:hover { background: #f4f7f2; }
-    .cam-op.ativa { background: var(--primaria); color: #fff; font-weight: 600; }
-    #camadas-btn:focus-visible, .cam-op:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .cam-op:hover { background: #eaf0ea; }
+    .cam-op.ativa { background: var(--primaria); color: #fff; font-weight: 600; border-color: var(--primaria); }
+    .cam-op:focus-visible { outline: 2px solid var(--primaria); outline-offset: 2px; }
 
-    /* Ferramenta de medição (distância / área) */
-    #medir-tools {
-      position: absolute; right: 10px; top: 90px; z-index: 900;
-      display: flex; flex-direction: column; gap: 8px;
-    }
+    /* Medição (botões dentro do painel) */
+    #medir-tools { display: flex; flex-direction: column; gap: 8px; }
     #medir-tools button {
-      width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
-      background: rgba(30,30,30,.85); color: #fff; font-size: 1.1rem;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,.35); line-height: 1;
+      width: 100%; text-align: left; cursor: pointer;
+      background: #f4f7f2; border: 1px solid #e2e8e2; border-radius: 9px;
+      padding: 11px 13px; font-size: .88rem; color: #333;
     }
-    #medir-tools button span { font-size: .58rem; margin-top: 2px; letter-spacing: .02em; }
-    #medir-tools button.ativo { background: var(--primaria); }
+    #medir-tools button:hover { background: #eaf0ea; }
+    #medir-tools button.ativo { background: var(--primaria); color: #fff; font-weight: 600; border-color: var(--primaria); }
 
     #med-readout {
       position: absolute; top: 90px; left: 50%; transform: translateX(-50%);
@@ -206,7 +234,8 @@
 <body>
   <div id="app">
     <header>
-      <div class="hdr-esq">
+      <div class="hdr-left">
+        <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
         <span class="hdr-logo-wrap" id="hdr-logo-wrap">
           <img class="hdr-logo" id="hdr-logo" alt="" />
         </span>
@@ -215,72 +244,89 @@
           <div class="corretor" id="hdr-corretor"></div>
         </div>
       </div>
-      <button class="filtros-toggle" id="toggle-filtros">Filtros</button>
+      <div id="user-badge" title="Usuário logado">
+        <span class="avatar" id="user-avatar">?</span>
+        <div class="u-info">
+          <div class="u-nome" id="user-nome">Usuário</div>
+          <div class="u-status"><span class="dot"></span>Logado</div>
+        </div>
+      </div>
     </header>
 
     <div id="conteudo">
       <div id="map"></div>
 
-      <div id="filtros">
-        <h3>Filtrar imóveis</h3>
-        <div class="linha">
-          <div>
-            <label>Preço mín. (R$)</label>
-            <input type="number" id="f-preco-min" placeholder="0" min="0" />
-          </div>
-          <div>
-            <label>Preço máx. (R$)</label>
-            <input type="number" id="f-preco-max" placeholder="qualquer" min="0" />
-          </div>
+      <div id="painel-overlay"></div>
+      <aside id="painel" aria-label="Menu de funcionalidades">
+        <div class="painel-head">
+          <h2>Menu</h2>
+          <button class="fechar" id="painel-fechar" aria-label="Fechar menu">×</button>
         </div>
-        <label>Quartos (mínimo)</label>
-        <select id="f-quartos">
-          <option value="0">Qualquer</option>
-          <option value="1">1+</option>
-          <option value="2">2+</option>
-          <option value="3">3+</option>
-          <option value="4">4+</option>
-        </select>
-        <div class="linha">
-          <div>
-            <label>Tipo</label>
-            <select id="f-tipo">
-              <option value="">Todos</option>
-              <option value="casa">Casa / lote</option>
-              <option value="fazenda">Fazenda / sítio</option>
-            </select>
-          </div>
-          <div>
-            <label>Negócio</label>
-            <select id="f-negocio">
-              <option value="">Todos</option>
-              <option value="venda">Venda</option>
-              <option value="aluguel">Aluguel</option>
-            </select>
-          </div>
-        </div>
-        <div class="acoes">
-          <button id="btn-limpar">Limpar</button>
-          <button id="btn-aplicar">Aplicar</button>
-        </div>
-        <div class="contador" id="contador"></div>
-      </div>
 
-      <div id="camadas">
-        <button id="camadas-btn" type="button" aria-expanded="false" aria-haspopup="true">
-          <span class="cam-ico">▤</span><span>Camadas</span>
-        </button>
-        <div id="camadas-menu" role="menu">
-          <button type="button" class="cam-op" data-modo="satelite" role="menuitem">Satélite</button>
-          <button type="button" class="cam-op" data-modo="hibrido" role="menuitem">Satélite + Ruas</button>
-          <button type="button" class="cam-op" data-modo="ruas" role="menuitem">Somente Ruas</button>
+        <div class="painel-sec">
+          <h3>Filtrar imóveis</h3>
+          <div id="filtros">
+            <div class="linha">
+              <div>
+                <label>Preço mín. (R$)</label>
+                <input type="number" id="f-preco-min" placeholder="0" min="0" />
+              </div>
+              <div>
+                <label>Preço máx. (R$)</label>
+                <input type="number" id="f-preco-max" placeholder="qualquer" min="0" />
+              </div>
+            </div>
+            <label>Quartos (mínimo)</label>
+            <select id="f-quartos">
+              <option value="0">Qualquer</option>
+              <option value="1">1+</option>
+              <option value="2">2+</option>
+              <option value="3">3+</option>
+              <option value="4">4+</option>
+            </select>
+            <div class="linha">
+              <div>
+                <label>Tipo</label>
+                <select id="f-tipo">
+                  <option value="">Todos</option>
+                  <option value="casa">Casa / lote</option>
+                  <option value="fazenda">Fazenda / sítio</option>
+                </select>
+              </div>
+              <div>
+                <label>Negócio</label>
+                <select id="f-negocio">
+                  <option value="">Todos</option>
+                  <option value="venda">Venda</option>
+                  <option value="aluguel">Aluguel</option>
+                </select>
+              </div>
+            </div>
+            <div class="acoes">
+              <button id="btn-limpar">Limpar</button>
+              <button id="btn-aplicar">Aplicar</button>
+            </div>
+            <div class="contador" id="contador"></div>
+          </div>
         </div>
-      </div>
 
-      <div id="medir-tools">
-        <button id="med-dist" title="Medir distância">📏<span>Dist.</span></button>
-        <button id="med-area" title="Medir área">△<span>Área</span></button>
-      </div>
+        <div class="painel-sec">
+          <h3>Camadas do mapa</h3>
+          <div class="cam-lista">
+            <button type="button" class="cam-op" data-modo="satelite">Satélite</button>
+            <button type="button" class="cam-op" data-modo="hibrido">Satélite + Ruas</button>
+            <button type="button" class="cam-op" data-modo="ruas">Somente Ruas</button>
+          </div>
+        </div>
+
+        <div class="painel-sec">
+          <h3>Medição no mapa</h3>
+          <div id="medir-tools">
+            <button id="med-dist" type="button">📏 Medir distância</button>
+            <button id="med-area" type="button">△ Medir área</button>
+          </div>
+        </div>
+      </aside>
 
       <div id="med-readout">
         <span id="med-readout-txt"></span>
@@ -332,8 +378,14 @@
     document.documentElement.style.setProperty("--secundaria", cliente.corSecundaria || "#0f4d33");
     document.title = cliente.marca || "ADMImob";
     document.getElementById("hdr-marca").textContent = cliente.marca || "ADMImob";
-    document.getElementById("hdr-corretor").textContent =
-      [cliente.corretor, cliente.creci].filter(Boolean).join(" · ");
+    document.getElementById("hdr-corretor").textContent = cliente.creci || "";
+
+    // Quadro de usuário logado (nome + iniciais do corretor)
+    const nomeUsuario = cliente.corretor || "Usuário";
+    document.getElementById("user-nome").textContent = nomeUsuario;
+    const iniciais = nomeUsuario.trim().split(/\s+/).map(function (p) { return p[0]; })
+      .slice(0, 2).join("").toUpperCase();
+    document.getElementById("user-avatar").textContent = iniciais || "?";
 
     // Logo do cabeçalho: só aparece se o arquivo carregar
     if (cliente.logo) {
@@ -380,19 +432,9 @@
     }
     trocarCamada("satelite"); // camada inicial
 
-    // controle de camadas (botão + menu)
-    const camadasEl = document.getElementById("camadas");
-    const camadasBtn = document.getElementById("camadas-btn");
-    camadasBtn.addEventListener("click", function () {
-      const aberto = camadasEl.classList.toggle("aberto");
-      camadasBtn.setAttribute("aria-expanded", aberto ? "true" : "false");
-    });
+    // troca de camada pelos botões do painel
     document.querySelectorAll(".cam-op").forEach(function (b) {
-      b.addEventListener("click", function () {
-        trocarCamada(b.dataset.modo);
-        camadasEl.classList.remove("aberto");
-        camadasBtn.setAttribute("aria-expanded", "false");
-      });
+      b.addEventListener("click", function () { trocarCamada(b.dataset.modo); });
     });
 
     // ---- 4. Estado ----
@@ -500,9 +542,25 @@
       document.getElementById("f-negocio").value = "";
       aplicarFiltros();
     });
-    document.getElementById("toggle-filtros").addEventListener("click", function () {
-      document.getElementById("filtros").classList.toggle("aberto");
-    });
+    // ---- Painel lateral (abrir/fechar) ----
+    const painel = document.getElementById("painel");
+    const painelOverlay = document.getElementById("painel-overlay");
+    const menuToggle = document.getElementById("menu-toggle");
+    function abrirPainel() {
+      painel.classList.add("aberto");
+      painelOverlay.classList.add("aberto");
+      menuToggle.setAttribute("aria-expanded", "true");
+    }
+    function fecharPainel() {
+      painel.classList.remove("aberto");
+      painelOverlay.classList.remove("aberto");
+      menuToggle.setAttribute("aria-expanded", "false");
+    }
+    menuToggle.addEventListener("click", abrirPainel);
+    painelOverlay.addEventListener("click", fecharPainel);
+    document.getElementById("painel-fechar").addEventListener("click", fecharPainel);
+    // aplicar filtro fecha o painel (deixa ver o mapa)
+    document.getElementById("btn-aplicar").addEventListener("click", fecharPainel);
 
     // ---- 8. Ficha do imóvel ----
     const ficha = document.getElementById("ficha");
@@ -629,7 +687,7 @@
     function entrarModo(modo) {
       if (modoMedicao === modo) { sairMedicao(); return; }
       ficha.classList.remove("aberta");
-      document.getElementById("filtros").classList.remove("aberto");
+      fecharPainel(); // fecha o painel pra liberar o clique no mapa
       modoMedicao = modo;
       medPontos = [];
       document.getElementById("med-dist").classList.toggle("ativo", modo === "distancia");
