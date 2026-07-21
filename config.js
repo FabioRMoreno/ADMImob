@@ -28,7 +28,7 @@ const CLIENTES = {
     corSecundaria: "#2b2f33", // cinza chumbo: títulos e textos de apoio
 
     // Logo do corretor (aparece no quadro de usuário). "" = usa as iniciais.
-    logoUsuario: "img/adriel.png?v=1",
+    logoUsuario: "img/adriel.jpg?v=1",
 
     // --- Onde o mapa abre (lat, lng) e zoom inicial ---
     // Cassilândia-MS por padrão. Ajuste para a cidade do corretor.
