@@ -29,6 +29,9 @@ contato funcionam, e os filtros (tipo/negócio/preço/quartos) filtram certo.
 - "Como chegar": rota real por estrada via OSRM (fallback linha reta).
 - **Medição no mapa** (inspirada no CopaNav): botões "Dist." e "Área" — toca
   pontos e o Turf calcula distância (m/km) e área (m²/ha). Com Desfazer e Fechar.
+- **Exportar dados (backup)**: atalho "Dados" no cabeçalho gera **CSV** (abre no
+  Excel, com BOM e separador `;`) e **KML** (Google Earth / QGIS). Sem biblioteca
+  extra — o arquivo é montado no próprio navegador.
 - **Alternador de camadas** (botão "Camadas"): Satélite / Satélite+Ruas / Somente
   Ruas, tudo via Esri (uso livre, sem Google).
 

@@ -213,6 +213,17 @@
       font-size: .9rem; font-weight: 600; cursor: pointer;
     }
 
+    /* Exportar dados (popover Dados) */
+    .exp-lista { display: flex; flex-direction: column; gap: 7px; }
+    .exp-op {
+      display: block; width: 100%; text-align: left; cursor: pointer;
+      background: #f4f7f2; border: 1px solid #e2e8e2; border-radius: 9px;
+      padding: 11px 13px; font-size: .88rem; color: #333;
+    }
+    .exp-op:hover { background: #eaf0ea; }
+    .exp-op:focus-visible { outline: 2px solid var(--primaria); outline-offset: 2px; }
+    .exp-nota { font-size: .7rem; color: #888; text-align: center; margin-top: 8px; }
+
     /* Camadas (lista dentro do painel) */
     .cam-lista { display: flex; flex-direction: column; gap: 7px; }
     .cam-op {
@@ -288,6 +299,24 @@
                 <button id="med-dist" type="button">📏 Medir distância</button>
                 <button id="med-area" type="button">△ Medir área</button>
               </div>
+            </div>
+          </div>
+
+          <div class="tool">
+            <button class="tool-btn" id="btn-dados" aria-expanded="false" aria-haspopup="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="18" height="10" rx="1.5"/>
+                <path d="M3 6.8h18M9.4 3v10M15 3v10"/>
+                <path d="M12 15v6M9.2 18.4 12 21.2l2.8-2.8"/>
+              </svg>
+              <span>Dados</span>
+            </button>
+            <div class="tool-pop" id="pop-dados" role="menu">
+              <div class="exp-lista">
+                <button type="button" class="exp-op" id="exp-csv">📊 Excel (CSV)</button>
+                <button type="button" class="exp-op" id="exp-kml">🌍 KML (Google Earth)</button>
+              </div>
+              <div class="exp-nota">Backup do catálogo completo</div>
             </div>
           </div>
 
@@ -465,11 +494,13 @@
     // ---- Atalhos do cabeçalho: popovers Medir / Fundo do mapa ----
     const btnMedir = document.getElementById("btn-medir");
     const btnFundo = document.getElementById("btn-fundo");
+    const btnDados = document.getElementById("btn-dados");
     const popMedir = document.getElementById("pop-medir");
     const popFundo = document.getElementById("pop-fundo");
+    const popDados = document.getElementById("pop-dados");
 
     function fecharPopovers() {
-      [[btnMedir, popMedir], [btnFundo, popFundo]].forEach(function (par) {
+      [[btnMedir, popMedir], [btnDados, popDados], [btnFundo, popFundo]].forEach(function (par) {
         par[0].classList.remove("aberto"); par[0].setAttribute("aria-expanded", "false");
         par[1].classList.remove("aberto");
       });
@@ -480,6 +511,7 @@
       if (abrir) { pop.classList.add("aberto"); btn.classList.add("aberto"); btn.setAttribute("aria-expanded", "true"); }
     }
     btnMedir.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnMedir, popMedir); });
+    btnDados.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnDados, popDados); });
     btnFundo.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnFundo, popFundo); });
     document.addEventListener("click", function (e) {
       if (!e.target.closest(".tool")) fecharPopovers();
@@ -830,6 +862,149 @@
     document.getElementById("med-desfazer").addEventListener("click", function () {
       medPontos.pop();
       atualizarMedicao();
+    });
+
+    // ---- 11. Exportar dados (backup): Excel/CSV e KML ----
+    function baixarArquivo(nome, conteudo, mime) {
+      const blob = new Blob([conteudo], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nome;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }
+
+    function nomeArquivo(ext) {
+      const d = new Date();
+      const data = d.getFullYear() + "-" +
+        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0");
+      return "ADMImob_" + slug + "_" + data + "." + ext;
+    }
+
+    // centro da feature: o próprio ponto, ou o centróide do polígono
+    function centroFeature(f) {
+      const g = f.geometry || {};
+      if (g.type === "Point") return [g.coordinates[1], g.coordinates[0]];
+      try {
+        const c = turf.centroid(f).geometry.coordinates;
+        return [c[1], c[0]];
+      } catch (e) { return [null, null]; }
+    }
+
+    function chavesSpec(feats) {
+      const specs = [];
+      feats.forEach(function (f) {
+        Object.keys(f.properties || {}).forEach(function (k) {
+          if (k.indexOf("spec_") === 0 && specs.indexOf(k) === -1) specs.push(k);
+        });
+      });
+      return specs.sort();
+    }
+
+    function exportarCSV() {
+      const feats = todasFeatures;
+      if (!feats.length) { alert("Nenhum imóvel carregado para exportar."); return; }
+      const specs = chavesSpec(feats);
+
+      const cab = ["Código", "Título", "Tipo", "Negócio", "Preço", "Endereço",
+                   "Latitude", "Longitude", "Área (ha)"]
+        .concat(specs.map(function (k) { return k.replace("spec_", "").replace(/_/g, " "); }));
+
+      // separador ";" e vírgula decimal = padrão do Excel em pt-BR
+      function esc(v) {
+        const s = (v === undefined || v === null) ? "" : String(v);
+        return /[";\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+      }
+      function num(v) {
+        return (v === null || v === undefined || v === "") ? "" : String(v).replace(".", ",");
+      }
+
+      const linhas = [cab.map(esc).join(";")];
+      feats.forEach(function (f) {
+        const p = f.properties || {};
+        const g = f.geometry || {};
+        const c = centroFeature(f);
+        const ha = (g.type === "Polygon" || g.type === "MultiPolygon")
+          ? num(areaHectares(f).toFixed(2)) : "";
+        const linha = [
+          p.codigo, p.titulo, rotuloTipo(p.tipo), rotuloNegocio(p.negocio),
+          p.preco, p.endereco, num(c[0]), num(c[1]), ha
+        ].concat(specs.map(function (k) { return p[k]; }));
+        linhas.push(linha.map(esc).join(";"));
+      });
+
+      // BOM (﻿) faz o Excel abrir os acentos corretamente
+      baixarArquivo(nomeArquivo("csv"), String.fromCharCode(0xFEFF) + linhas.join("\r\n"),
+        "text/csv;charset=utf-8;");
+    }
+
+    function escXml(v) {
+      return String(v === undefined || v === null ? "" : v)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    function anelKML(anel) {
+      return anel.map(function (c) { return c[0] + "," + c[1] + ",0"; }).join(" ");
+    }
+
+    function geometriaKML(g) {
+      if (g.type === "Point") {
+        return "<Point><coordinates>" + g.coordinates[0] + "," + g.coordinates[1] + ",0</coordinates></Point>";
+      }
+      if (g.type === "Polygon") {
+        return "<Polygon><outerBoundaryIs><LinearRing><coordinates>" +
+          anelKML(g.coordinates[0]) + "</coordinates></LinearRing></outerBoundaryIs></Polygon>";
+      }
+      if (g.type === "MultiPolygon") {
+        return "<MultiGeometry>" + g.coordinates.map(function (poly) {
+          return "<Polygon><outerBoundaryIs><LinearRing><coordinates>" +
+            anelKML(poly[0]) + "</coordinates></LinearRing></outerBoundaryIs></Polygon>";
+        }).join("") + "</MultiGeometry>";
+      }
+      return "";
+    }
+
+    function exportarKML() {
+      const feats = todasFeatures;
+      if (!feats.length) { alert("Nenhum imóvel carregado para exportar."); return; }
+
+      const marcas = feats.map(function (f) {
+        const p = f.properties || {};
+        const linhas = [
+          "Código: " + (p.codigo || ""),
+          "Tipo: " + rotuloTipo(p.tipo),
+          "Negócio: " + rotuloNegocio(p.negocio),
+          "Preço: " + fmtBRL(p.preco),
+          "Endereço: " + (p.endereco || "")
+        ].concat(
+          Object.keys(p).filter(function (k) { return k.indexOf("spec_") === 0; })
+            .map(function (k) { return k.replace("spec_", "").replace(/_/g, " ") + ": " + p[k]; })
+        );
+        return "  <Placemark>\n" +
+          "    <name>" + escXml(p.titulo || p.codigo || "Imóvel") + "</name>\n" +
+          "    <description><![CDATA[" + linhas.join("<br/>") + "]]></description>\n" +
+          "    " + geometriaKML(f.geometry || {}) + "\n" +
+          "  </Placemark>";
+      }).join("\n");
+
+      const kml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        '<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n' +
+        "  <name>" + escXml(cliente.marca || "ADMImob") + "</name>\n" +
+        marcas + "\n</Document>\n</kml>";
+
+      baixarArquivo(nomeArquivo("kml"), kml, "application/vnd.google-earth.kml+xml");
+    }
+
+    document.getElementById("exp-csv").addEventListener("click", function () {
+      exportarCSV(); fecharPopovers();
+    });
+    document.getElementById("exp-kml").addEventListener("click", function () {
+      exportarKML(); fecharPopovers();
     });
 
   })();
