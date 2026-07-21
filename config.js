@@ -22,9 +22,13 @@ const CLIENTES = {
     // Logo do cabeçalho (caminho da imagem). Deixe "" para não mostrar.
     // O ?v=1 fura o cache do navegador; aumente pra v=2, v=3... ao trocar o logo.
     logo: "img/logo.png?v=1",
-    // Cores da interface (cabeçalho, botões, destaques)
-    corPrimaria: "#1b6e4b",   // verde
-    corSecundaria: "#0f4d33",
+    // Cores da interface — paleta casada com o logo do corretor
+    corTopo: "#17191c",       // preto/chumbo: barra superior e topo do painel
+    corPrimaria: "#d81f2a",   // vermelho do logo: ativos, preços, botões
+    corSecundaria: "#2b2f33", // cinza chumbo: títulos e textos de apoio
+
+    // Logo do corretor (aparece no quadro de usuário). "" = usa as iniciais.
+    logoUsuario: "img/adriel.png?v=1",
 
     // --- Onde o mapa abre (lat, lng) e zoom inicial ---
     // Cassilândia-MS por padrão. Ajuste para a cidade do corretor.

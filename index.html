@@ -15,24 +15,26 @@
 
   <style>
     :root {
-      --primaria: #1b6e4b;
-      --secundaria: #0f4d33;
+      --topo: #17191c;        /* barra superior e cabeçalho do painel */
+      --primaria: #1b6e4b;    /* destaques: ativos, preços, botões */
+      --secundaria: #0f4d33;  /* títulos e textos de apoio */
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
     #app { display: flex; flex-direction: column; height: 100%; }
 
     header {
-      background: var(--primaria);
+      position: relative;
+      background: var(--topo);
       color: #fff;
       padding: 14px 16px;
       display: flex;
       align-items: center;
+      justify-content: center;   /* ferramentas centralizadas */
       gap: 14px;
       z-index: 1000;
-      box-shadow: 0 2px 6px rgba(0,0,0,.2);
+      box-shadow: 0 2px 6px rgba(0,0,0,.28);
     }
-    .hdr-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .hdr-logo-wrap {
       display: none; /* aparece só quando o logo carrega */
       flex: none; width: 56px; height: 56px; border-radius: 12px;
@@ -52,10 +54,17 @@
       border-radius: 14px; padding: 7px 15px 7px 8px;
     }
     #user-badge .avatar {
-      flex: none; width: 46px; height: 46px; border-radius: 50%;
+      flex: none; width: 46px; height: 46px; border-radius: 50%; overflow: hidden;
       background: #fff; color: var(--secundaria); font-weight: 800; font-size: 1rem;
       display: flex; align-items: center; justify-content: center;
     }
+    #user-badge .avatar img { display: none; width: 100%; height: 100%; object-fit: contain; }
+    /* com logo do corretor: vira quadrado arredondado pra caber a marca inteira */
+    #user-badge .avatar.tem-logo {
+      border-radius: 12px; background: #000; border: 1px solid rgba(255,255,255,.25);
+    }
+    #user-badge .avatar.tem-logo img { display: block; }
+    #user-badge .avatar.tem-logo #user-iniciais { display: none; }
     #user-badge .u-nome { font-weight: 700; font-size: 1rem; line-height: 1.2; white-space: nowrap; }
     #user-badge .u-creci { font-size: .75rem; opacity: .9; line-height: 1.3; white-space: nowrap; }
     #user-badge .u-status { display: flex; align-items: center; gap: 6px; font-size: .72rem; margin-top: 3px; }
@@ -64,7 +73,10 @@
       box-shadow: 0 0 0 3px rgba(56,214,107,.28);
     }
     /* Atalhos do cabeçalho (Filtros / Medir / Dados / Fundo / Camadas) */
-    .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 12px; flex: none; }
+    .hdr-right {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      display: flex; align-items: center; gap: 12px;
+    }
     .hdr-tools { display: flex; gap: 6px; }
     .tool { position: relative; }
     .tool-btn {
@@ -89,7 +101,6 @@
     }
     @media (max-width: 900px) {
       /* espaço apertado: some o título e o logo do app, o usuário continua */
-      .hdr-left { display: none; }
       .hdr-logo-wrap.tem-logo { display: none; }
     }
     @media (max-width: 620px) {
@@ -117,7 +128,7 @@
     #painel.aberto { transform: translateX(0); }
     .painel-head {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 15px 16px; background: var(--primaria); color: #fff;
+      padding: 15px 16px; background: var(--topo); color: #fff;
       position: sticky; top: 0; z-index: 1;
     }
     .painel-head h2 { margin: 0; font-size: 1.05rem; }
@@ -279,11 +290,6 @@
 <body>
   <div id="app">
     <header>
-      <div class="hdr-left">
-        <div class="hdr-textos">
-          <div class="marca" id="hdr-marca">ADMImob</div>
-        </div>
-      </div>
       <div class="hdr-tools">
           <div class="tool">
             <button class="tool-btn" id="menu-toggle" aria-label="Abrir filtros" aria-expanded="false">
@@ -372,7 +378,10 @@
           <img class="hdr-logo" id="hdr-logo" alt="" />
         </span>
         <div id="user-badge" title="Usuário logado">
-          <span class="avatar" id="user-avatar">?</span>
+          <span class="avatar" id="user-avatar">
+            <span id="user-iniciais">?</span>
+            <img id="user-logo" alt="" />
+          </span>
           <div class="u-info">
             <div class="u-nome" id="user-nome">Usuário</div>
             <div class="u-creci" id="user-creci"></div>
@@ -449,7 +458,7 @@
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
        para o navegador do corretor pegar a versão nova em vez do cache. -->
-  <script src="config.js?v=2"></script>
+  <script src="config.js?v=3"></script>
   <script>
   (function () {
     "use strict";
@@ -467,18 +476,29 @@
     }
 
     // ---- 2. Aplicar marca / cores / título ----
-    document.documentElement.style.setProperty("--primaria", cliente.corPrimaria || "#1b6e4b");
-    document.documentElement.style.setProperty("--secundaria", cliente.corSecundaria || "#0f4d33");
+    const raiz = document.documentElement.style;
+    raiz.setProperty("--topo", cliente.corTopo || cliente.corPrimaria || "#17191c");
+    raiz.setProperty("--primaria", cliente.corPrimaria || "#1b6e4b");
+    raiz.setProperty("--secundaria", cliente.corSecundaria || "#0f4d33");
     document.title = cliente.marca || "ADMImob";
-    document.getElementById("hdr-marca").textContent = cliente.marca || "ADMImob";
     document.getElementById("user-creci").textContent = cliente.creci || "";
 
-    // Quadro de usuário logado (nome + iniciais do corretor)
+    // Quadro de usuário logado (nome + iniciais, ou o logo do corretor)
     const nomeUsuario = cliente.corretor || "Usuário";
     document.getElementById("user-nome").textContent = nomeUsuario;
     const iniciais = nomeUsuario.trim().split(/\s+/).map(function (p) { return p[0]; })
       .slice(0, 2).join("").toUpperCase();
-    document.getElementById("user-avatar").textContent = iniciais || "?";
+    document.getElementById("user-iniciais").textContent = iniciais || "?";
+
+    // Logo do corretor no avatar (se o arquivo carregar; senão fica nas iniciais)
+    if (cliente.logoUsuario) {
+      const avatarEl = document.getElementById("user-avatar");
+      const logoUsr = document.getElementById("user-logo");
+      logoUsr.alt = nomeUsuario;
+      logoUsr.onload = function () { avatarEl.classList.add("tem-logo"); };
+      logoUsr.onerror = function () { avatarEl.classList.remove("tem-logo"); };
+      logoUsr.src = cliente.logoUsuario;
+    }
 
     // Logo do cabeçalho: só aparece se o arquivo carregar
     if (cliente.logo) {
