@@ -1,0 +1,22 @@
+{
+  "type": "FeatureCollection",
+  "name": "pontos_referencia_exemplo",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "nome": "Praça central (exemplo)" },
+      "geometry": { "type": "Point", "coordinates": [-51.7338, -19.1132] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nome": "Posto de combustível (exemplo)" },
+      "geometry": { "type": "Point", "coordinates": [-51.7265, -19.1165] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "nome": "Supermercado (exemplo)" },
+      "geometry": { "type": "Point", "coordinates": [-51.7372, -19.1108] }
+    }
+  ]
+}

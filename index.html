@@ -213,6 +213,18 @@
       font-size: .9rem; font-weight: 600; cursor: pointer;
     }
 
+    /* Camadas de referência (popover Camadas) */
+    .ref-lista { display: flex; flex-direction: column; gap: 4px; }
+    .ref-op {
+      display: flex; align-items: center; gap: 9px; cursor: pointer;
+      padding: 9px 10px; border-radius: 8px; font-size: .87rem; color: #333;
+    }
+    .ref-op:hover { background: #f4f7f2; }
+    .ref-op input { width: 17px; height: 17px; accent-color: var(--primaria); cursor: pointer; flex: none; }
+    .ref-cor { width: 12px; height: 12px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.15); }
+    .ref-nome { flex: 1; }
+    .ref-status { font-size: .7rem; color: #999; }
+
     /* Exportar dados (popover Dados) */
     .exp-lista { display: flex; flex-direction: column; gap: 7px; }
     .exp-op {
@@ -338,6 +350,21 @@
               </div>
             </div>
           </div>
+
+          <div class="tool">
+            <button class="tool-btn" id="btn-camadas" aria-expanded="false" aria-haspopup="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2.5 21.5 7 12 11.5 2.5 7z"/>
+                <path d="M2.5 12 12 16.5 21.5 12"/>
+                <path d="M2.5 17 12 21.5 21.5 17"/>
+              </svg>
+              <span>Camadas</span>
+            </button>
+            <div class="tool-pop" id="pop-camadas" role="menu">
+              <div class="ref-lista" id="ref-lista"></div>
+              <div class="exp-nota" id="ref-vazio">Nenhuma camada de referência configurada</div>
+            </div>
+          </div>
         </div>
 
         <div id="user-badge" title="Usuário logado">
@@ -415,7 +442,9 @@
     </div>
   </div>
 
-  <script src="config.js"></script>
+  <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
+       para o navegador do corretor pegar a versão nova em vez do cache. -->
+  <script src="config.js?v=2"></script>
   <script>
   (function () {
     "use strict";
@@ -495,12 +524,15 @@
     const btnMedir = document.getElementById("btn-medir");
     const btnFundo = document.getElementById("btn-fundo");
     const btnDados = document.getElementById("btn-dados");
+    const btnCamadas = document.getElementById("btn-camadas");
     const popMedir = document.getElementById("pop-medir");
     const popFundo = document.getElementById("pop-fundo");
     const popDados = document.getElementById("pop-dados");
+    const popCamadas = document.getElementById("pop-camadas");
 
     function fecharPopovers() {
-      [[btnMedir, popMedir], [btnDados, popDados], [btnFundo, popFundo]].forEach(function (par) {
+      [[btnMedir, popMedir], [btnDados, popDados], [btnFundo, popFundo],
+       [btnCamadas, popCamadas]].forEach(function (par) {
         par[0].classList.remove("aberto"); par[0].setAttribute("aria-expanded", "false");
         par[1].classList.remove("aberto");
       });
@@ -513,6 +545,7 @@
     btnMedir.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnMedir, popMedir); });
     btnDados.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnDados, popDados); });
     btnFundo.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnFundo, popFundo); });
+    btnCamadas.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnCamadas, popCamadas); });
     document.addEventListener("click", function (e) {
       if (!e.target.closest(".tool")) fecharPopovers();
     });
@@ -520,6 +553,82 @@
     // troca de camada (fecha o popover ao escolher)
     document.querySelectorAll(".cam-op").forEach(function (b) {
       b.addEventListener("click", function () { trocarCamada(b.dataset.modo); fecharPopovers(); });
+    });
+
+    // ---- Camadas de referência (bairros, ruas, fazendas, pontos...) ----
+    // painel próprio, abaixo dos imóveis do catálogo
+    map.createPane("refs");
+    map.getPane("refs").style.zIndex = 350;
+
+    const refsCarregadas = {};           // índice -> layer já baixada
+    const camadasRef = cliente.camadas || [];
+    const refLista = document.getElementById("ref-lista");
+
+    if (camadasRef.length) {
+      document.getElementById("ref-vazio").style.display = "none";
+    }
+
+    camadasRef.forEach(function (c, i) {
+      const cor = c.cor || "#e8a33d";
+      const linha = document.createElement("label");
+      linha.className = "ref-op";
+
+      const chk = document.createElement("input");
+      chk.type = "checkbox";
+      const bolinha = document.createElement("span");
+      bolinha.className = "ref-cor";
+      bolinha.style.background = cor;
+      const nome = document.createElement("span");
+      nome.className = "ref-nome";
+      nome.textContent = c.nome || ("Camada " + (i + 1));
+      const status = document.createElement("span");
+      status.className = "ref-status";
+
+      linha.appendChild(chk); linha.appendChild(bolinha);
+      linha.appendChild(nome); linha.appendChild(status);
+      refLista.appendChild(linha);
+
+      chk.addEventListener("change", function () {
+        if (!chk.checked) {
+          if (refsCarregadas[i]) map.removeLayer(refsCarregadas[i]);
+          status.textContent = "";
+          return;
+        }
+        if (refsCarregadas[i]) { refsCarregadas[i].addTo(map); return; }
+
+        status.textContent = "carregando…";
+        fetch(c.arquivo, { cache: "no-cache" })
+          .then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+          })
+          .then(function (gj) {
+            refsCarregadas[i] = L.geoJSON(gj, {
+              pane: "refs",
+              style: function () {
+                return { color: cor, weight: 2, opacity: .9, fillOpacity: 0.12 };
+              },
+              pointToLayer: function (feat, latlng) {
+                return L.circleMarker(latlng, {
+                  pane: "refs", radius: 6, color: "#fff", weight: 2,
+                  fillColor: cor, fillOpacity: 1
+                });
+              },
+              onEachFeature: function (feat, lyr) {
+                const p = feat.properties || {};
+                const txt = p[c.rotulo] || p.nome || p.name || p.NOME || "";
+                if (txt) lyr.bindTooltip(String(txt), { direction: "top", sticky: true });
+              }
+            }).addTo(map);
+            status.textContent = "";
+          })
+          .catch(function (err) {
+            status.textContent = "erro";
+            chk.checked = false;
+            alert('Não consegui carregar a camada "' + (c.nome || "") + '".\n' +
+                  "Confira o caminho no config.js (" + c.arquivo + ") — " + err.message);
+          });
+      });
     });
 
     // ---- 4. Estado ----

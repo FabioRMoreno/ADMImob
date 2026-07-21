@@ -41,7 +41,16 @@ const CLIENTES = {
     },
 
     // Arquivo de dados dos imóveis (dentro de /dados)
-    dados: "dados/adriel.geojson"
+    dados: "dados/adriel.geojson",
+
+    // --- Camadas de referência (opcional) ---
+    // Contexto pro corretor: bairros, ruas, fazendas conhecidas, pontos da cidade.
+    // Exporte do QGIS como GeoJSON (WGS84/EPSG:4326) e coloque em dados/ref/.
+    // "rotulo" = nome do campo que aparece ao passar o mouse/tocar.
+    camadas: [
+      { nome: "Bairros", arquivo: "dados/ref/bairros.geojson", cor: "#7a5af5", rotulo: "nome" },
+      { nome: "Pontos de referência", arquivo: "dados/ref/pontos.geojson", cor: "#e3452f", rotulo: "nome" }
+    ]
   }
 
   // ,exemplo: { ...copie o bloco acima para o próximo corretor... }
