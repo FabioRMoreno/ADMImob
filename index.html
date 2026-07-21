@@ -37,7 +37,8 @@
     }
     .hdr-logo-wrap {
       display: none; /* aparece só quando o logo carrega */
-      flex: none; width: 56px; height: 56px; border-radius: 12px;
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      width: 56px; height: 56px; border-radius: 12px;
       background: #fff; padding: 4px; box-sizing: border-box;
       align-items: center; justify-content: center;
     }
@@ -290,6 +291,10 @@
 <body>
   <div id="app">
     <header>
+      <span class="hdr-logo-wrap" id="hdr-logo-wrap">
+        <img class="hdr-logo" id="hdr-logo" alt="" />
+      </span>
+
       <div class="hdr-tools">
           <div class="tool">
             <button class="tool-btn" id="menu-toggle" aria-label="Abrir filtros" aria-expanded="false">
@@ -374,9 +379,6 @@
         </div>
 
       <div class="hdr-right">
-        <span class="hdr-logo-wrap" id="hdr-logo-wrap">
-          <img class="hdr-logo" id="hdr-logo" alt="" />
-        </span>
         <div id="user-badge" title="Usuário logado">
           <span class="avatar" id="user-avatar">
             <span id="user-iniciais">?</span>
