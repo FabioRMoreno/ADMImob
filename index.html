@@ -1099,13 +1099,22 @@ NO 30°45' ; 143,10"></textarea>
     const plantaModal = document.getElementById("planta-modal");
     const COR_PLANTA = "#f0a500";
 
+    const EXEMPLO_PLANTA =
+      "NE 45°30' ; 150,00\n" +
+      "SE 12°10' ; 87,25\n" +
+      "SO 80°00' ; 210,00\n" +
+      "NO 30°45' ; 143,10";
+
     function abrirPlanta() {
       fecharPopovers();
       const c = map.getCenter();
       const lat = document.getElementById("planta-lat");
       const lng = document.getElementById("planta-lng");
+      const txt = document.getElementById("planta-txt");
       if (!lat.value) lat.value = c.lat.toFixed(6).replace(".", ",");
       if (!lng.value) lng.value = c.lng.toFixed(6).replace(".", ",");
+      // já vem com um exemplo de verdade: funciona de primeira e é só substituir
+      if (!txt.value.trim()) txt.value = EXEMPLO_PLANTA;
       plantaModal.classList.add("aberto");
     }
     function fecharPlanta() { plantaModal.classList.remove("aberto"); }
@@ -1195,7 +1204,15 @@ NO 30°45' ; 143,10"></textarea>
         return;
       }
 
-      const linhas = document.getElementById("planta-txt").value.split("\n");
+      const bruto = document.getElementById("planta-txt").value;
+      if (!bruto.trim()) {
+        alert("O campo de segmentos está vazio.\n\n" +
+              "Digite ou cole os segmentos da planta, um por linha, assim:\n" +
+              "NE 45°30' ; 150,00");
+        return;
+      }
+
+      const linhas = bruto.split("\n");
       const segs = [], ignoradas = [];
       linhas.forEach(function (l, i) {
         if (!l.trim()) return;
@@ -1203,7 +1220,9 @@ NO 30°45' ; 143,10"></textarea>
         if (s) segs.push(s); else ignoradas.push(i + 1);
       });
       if (!segs.length) {
-        alert("Não consegui ler nenhum segmento. Confira o formato (ex.: NE 45°30' ; 150,00).");
+        alert("Não consegui ler nenhuma linha.\n\n" +
+              "Cada linha precisa ter o rumo/azimute e a distância, assim:\n" +
+              "NE 45°30' ; 150,00\n88°33' SE ; 3720,00\n135,5 ; 87,25");
         return;
       }
 
