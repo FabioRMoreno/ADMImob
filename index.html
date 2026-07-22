@@ -410,6 +410,8 @@
                 <button type="button" class="cam-op" data-modo="satelite">Satélite</button>
                 <button type="button" class="cam-op" data-modo="hibrido">Satélite + Ruas</button>
                 <button type="button" class="cam-op" data-modo="ruas">Somente Ruas</button>
+                <button type="button" class="cam-op" data-modo="escuro">Escuro</button>
+                <button type="button" class="cam-op" data-modo="claro">Claro</button>
               </div>
             </div>
           </div>
@@ -625,16 +627,33 @@ NO 30°45' ; 143,10"></textarea>
       L.tileLayer(ESRI + "Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, maxNativeZoom: 17 })
     ]);
 
+    // Fundos minimalistas (Canvas da Esri): imagem real até o zoom 16
+    function canvasEsri(estilo) {
+      return L.layerGroup([
+        L.tileLayer(ESRI + "Canvas/World_" + estilo + "_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+          { maxZoom: 19, maxNativeZoom: 16, attribution: attrEsri + ", HERE, Garmin, OpenStreetMap" }),
+        L.tileLayer(ESRI + "Canvas/World_" + estilo + "_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+          { maxZoom: 19, maxNativeZoom: 16 })
+      ]);
+    }
+    const baseEscuro = canvasEsri("Dark");
+    const baseClaro = canvasEsri("Light");
+
+    const CAMADAS = {
+      satelite: [baseSatelite],
+      hibrido:  [baseSatelite, refRuas],
+      ruas:     [baseRuas],
+      escuro:   [baseEscuro],
+      claro:    [baseClaro]
+    };
+
     function trocarCamada(modo) {
-      map.removeLayer(baseSatelite);
-      map.removeLayer(baseRuas);
-      map.removeLayer(refRuas);
-      if (modo === "ruas") {
-        baseRuas.addTo(map);
-      } else {
-        baseSatelite.addTo(map);
-        if (modo === "hibrido") refRuas.addTo(map);
-      }
+      // tira todas e põe só as do modo escolhido
+      Object.keys(CAMADAS).forEach(function (k) {
+        CAMADAS[k].forEach(function (l) { map.removeLayer(l); });
+      });
+      (CAMADAS[modo] || CAMADAS.satelite).forEach(function (l) { l.addTo(map); });
+
       document.querySelectorAll(".cam-op").forEach(function (b) {
         b.classList.toggle("ativa", b.dataset.modo === modo);
       });
