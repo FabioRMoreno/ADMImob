@@ -32,6 +32,10 @@ contato funcionam, e os filtros (tipo/negócio/preço/quartos) filtram certo.
 - **Exportar dados (backup)**: atalho "Dados" no cabeçalho gera **CSV** (abre no
   Excel, com BOM e separador `;`) e **KML** (Google Earth / QGIS). Sem biblioteca
   extra — o arquivo é montado no próprio navegador.
+- **Planta por rumos/azimutes** (menu Medir): cola os segmentos de uma planta
+  antiga e o app desenha a poligonal temporária, com perímetro, área em ha e
+  **erro de fechamento**. Aceita rumo (NE/SE/SO/NO) ou azimute, em GMS
+  (`45°30'20"`) ou decimal. Ler o PDF automaticamente ficou no backlog.
 - **Alternador de camadas** (botão "Camadas"): Satélite / Satélite+Ruas / Somente
   Ruas, tudo via Esri (uso livre, sem Google).
 

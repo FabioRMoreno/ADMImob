@@ -18,5 +18,10 @@ ficam guardadas pra não se perder. Pegar uma de cada vez, só quando fizer sent
 
 ## Operacional
 
+- [ ] **Ler a planta direto do PDF** (hoje o corretor cola os segmentos na mão).
+      Só vale se os PDFs forem de **texto**; plantas escaneadas exigiriam OCR,
+      que erra demais em memorial descritivo antigo. O motor de rumos/azimutes
+      já está pronto — bastaria plugar a extração por cima.
+- [ ] Salvar a planta desenhada como imóvel do catálogo (hoje é só temporária).
 - [ ] Script/checklist para gerar o GeoJSON mais rápido a partir do QGIS.
 - [ ] Página inicial simples listando os corretores (índice).
