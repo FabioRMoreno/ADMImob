@@ -331,6 +331,22 @@
     #med-desfazer { background: #eee; color: #333; }
     #med-fechar { background: var(--primaria); color: #fff; }
 
+    /* Botão de recentralizar (na barra do zoom) */
+    .btn-recentrar {
+      display: flex !important; align-items: center; justify-content: center;
+      width: 30px; height: 30px; color: #333;
+    }
+    .btn-recentrar svg { width: 17px; height: 17px; }
+    .btn-recentrar:hover { color: var(--primaria); }
+
+    /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
+    .leaflet-control-scale { margin-bottom: 12px !important; margin-left: 12px !important; }
+    .leaflet-control-scale-line {
+      background: rgba(0,0,0,.42); color: #fff; border: 1px solid rgba(255,255,255,.55);
+      border-top: none; font-size: .68rem; line-height: 1.1; padding: 2px 6px;
+      text-shadow: none; box-shadow: none;
+    }
+
     .leaflet-popup-content { font-size: .85rem; }
     .erro-carga {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
@@ -659,6 +675,40 @@ NO 30°45' ; 143,10"></textarea>
       });
     }
     trocarCamada("satelite"); // camada inicial
+
+    // ---- Botão de recentralizar (volta à vista inicial do corretor) ----
+    const VISTA_INICIAL = {
+      centro: cliente.centro || [-19.11, -51.73],
+      zoom: cliente.zoom || 13
+    };
+    const CtrlRecentrar = L.Control.extend({
+      options: { position: "topleft" },
+      onAdd: function () {
+        const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+        const a = L.DomUtil.create("a", "btn-recentrar", div);
+        a.href = "#";
+        a.title = "Voltar à vista inicial";
+        a.setAttribute("role", "button");
+        a.setAttribute("aria-label", "Voltar à vista inicial");
+        a.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+          'stroke-linecap="round" aria-hidden="true">' +
+          '<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>' +
+          '<path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg>';
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.on(a, "click", function (e) {
+          L.DomEvent.preventDefault(e);
+          map.setView(VISTA_INICIAL.centro, VISTA_INICIAL.zoom, { animate: true });
+        });
+        return div;
+      }
+    });
+    map.addControl(new CtrlRecentrar());
+
+    // ---- Barra de escala (dá noção de distância) ----
+    L.control.scale({
+      position: "bottomleft", metric: true, imperial: false, maxWidth: 130
+    }).addTo(map);
 
     // ---- Atalhos do cabeçalho: popovers Medir / Fundo do mapa ----
     const btnMedir = document.getElementById("btn-medir");
