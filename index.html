@@ -303,6 +303,7 @@
     }
     .planta-sec:hover { background: #e7ebe7; }
     .planta-dica { font-size: .72rem; color: #777; margin-top: 6px; line-height: 1.5; }
+    .planta-opc { font-weight: 400; color: #999; }
     .planta-dica code { background: #f1f3f1; padding: 1px 4px; border-radius: 4px; }
     .planta-acoes { display: flex; gap: 8px; margin-top: 14px; }
     .planta-acoes button {
@@ -503,6 +504,15 @@ NO 30°45' ; 143,10"></textarea>
             <div class="planta-dica">
               Aceita <b>rumo</b> (NE, SE, SO/SW, NO/NW) ou <b>azimute</b> (0–360°).
               Graus como <code>45°30'20"</code> ou <code>45,5</code>. Distância em metros.
+            </div>
+
+            <label>Declinação magnética <span class="planta-opc">(opcional)</span></label>
+            <input type="text" id="planta-decl" placeholder="ex.: -17°30'  ou  17°30' W" />
+            <div class="planta-dica">
+              Plantas antigas trazem <b>rumos magnéticos</b>. Informe a declinação da
+              <b>época da planta</b> para converter em rumos verdadeiros e o desenho
+              cair no lugar certo. No Brasil ela é <b>Oeste (negativa)</b> — pode escrever
+              <code>-17°30'</code> ou <code>17°30' W</code>. Em branco = usa como está.
             </div>
 
             <div class="planta-acoes">
@@ -1163,6 +1173,20 @@ NO 30°45' ; 143,10"></textarea>
       return v.toLocaleString("pt-BR", { maximumFractionDigits: casas });
     }
 
+    // Declinação magnética: "-17°30'", "17°30' W" (Oeste = negativa), "17,5 E"
+    function lerDeclinacao(txt) {
+      const t = String(txt || "").trim();
+      if (!t) return 0;
+      const n = numerosDe(t);
+      if (!n.length) return 0;
+      const v = Math.abs(paraDecimal(n));
+      const oeste = /^-/.test(t) || /\b(W|O|OESTE|WEST)\b/i.test(t);
+      const leste = /\b(E|L|LESTE|EAST)\b/i.test(t);
+      if (leste && !oeste) return v;
+      if (oeste) return -v;
+      return v; // sem indicação: usa como veio
+    }
+
     function desenharPlanta() {
       const lat = parseFloat(String(document.getElementById("planta-lat").value).replace(",", "."));
       const lng = parseFloat(String(document.getElementById("planta-lng").value).replace(",", "."));
@@ -1185,11 +1209,15 @@ NO 30°45' ; 143,10"></textarea>
 
       plantaLayer.clearLayers();
 
+      // rumos magnéticos -> verdadeiros (rotaciona a poligonal inteira)
+      const decl = lerDeclinacao(document.getElementById("planta-decl").value);
+
       let atual = [lng, lat];              // turf trabalha em [lng, lat]
       const pontos = [atual];
       let perimetro = 0;
       segs.forEach(function (s) {
-        atual = turf.destination(turf.point(atual), s.distancia / 1000, s.azimute,
+        const az = ((s.azimute + decl) % 360 + 360) % 360;
+        atual = turf.destination(turf.point(atual), s.distancia / 1000, az,
                                  { units: "kilometers" }).geometry.coordinates;
         pontos.push(atual);
         perimetro += s.distancia;
@@ -1220,6 +1248,8 @@ NO 30°45' ; 143,10"></textarea>
         (ignoradas.length
           ? ' · <span style="color:#c0392b">linha(s) ignorada(s): ' + ignoradas.join(", ") + "</span>"
           : "") + "</div>" +
+        (decl ? "<div>Declinação aplicada: <b>" + fmtNum(decl, 4) + "°</b> (" +
+                (decl < 0 ? "Oeste" : "Leste") + ") — rumos convertidos p/ verdadeiros</div>" : "") +
         "<div>Perímetro: <b>" + fmtNum(perimetro, 2) + " m</b></div>" +
         (areaHa ? "<div>Área: <b>" + fmtNum(areaHa, 4) + " ha</b> (" +
                   fmtNum(areaHa * 10000, 2) + " m²)</div>" : "") +
