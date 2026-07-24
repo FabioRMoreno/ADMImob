@@ -38,12 +38,12 @@
     .hdr-logo-wrap {
       display: none; /* aparece só quando o logo carrega */
       position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-      width: 56px; height: 56px; border-radius: 12px;
-      background: #fff; padding: 4px; box-sizing: border-box;
+      width: 107px; height: 48px; border-radius: 8px;
+      background: #fff; padding: 0; box-sizing: border-box; overflow: hidden;
       align-items: center; justify-content: center;
     }
     .hdr-logo-wrap.tem-logo { display: flex; }
-    .hdr-logo { max-width: 100%; max-height: 100%; display: block; }
+    .hdr-logo { width: 100%; height: 100%; object-fit: contain; display: block; }
     header .marca { font-weight: 700; font-size: 1.15rem; line-height: 1.15;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     header .corretor { font-size: .76rem; opacity: .85; font-weight: 400; }
@@ -52,20 +52,8 @@
     #user-badge {
       flex: none; display: flex; align-items: center; gap: 12px;
       background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3);
-      border-radius: 14px; padding: 7px 15px 7px 8px;
+      border-radius: 14px; padding: 7px 16px;
     }
-    #user-badge .avatar {
-      flex: none; width: 46px; height: 46px; border-radius: 50%; overflow: hidden;
-      background: #fff; color: var(--secundaria); font-weight: 800; font-size: 1rem;
-      display: flex; align-items: center; justify-content: center;
-    }
-    #user-badge .avatar img { display: none; width: 100%; height: 100%; object-fit: contain; }
-    /* com logo do corretor: vira quadrado arredondado pra caber a marca inteira */
-    #user-badge .avatar.tem-logo {
-      border-radius: 12px; background: #000; border: 1px solid rgba(255,255,255,.25);
-    }
-    #user-badge .avatar.tem-logo img { display: block; }
-    #user-badge .avatar.tem-logo #user-iniciais { display: none; }
     #user-badge .u-nome { font-weight: 700; font-size: 1rem; line-height: 1.2; white-space: nowrap; }
     #user-badge .u-creci { font-size: .75rem; opacity: .9; line-height: 1.3; white-space: nowrap; }
     #user-badge .u-status { display: flex; align-items: center; gap: 6px; font-size: .72rem; margin-top: 3px; }
@@ -90,12 +78,6 @@
     .tool-btn.aberto { background: rgba(255,255,255,.28); }
     .tool-btn svg { width: 24px; height: 24px; }
     .tool-btn span { font-size: .68rem; font-weight: 600; white-space: nowrap; }
-    .tool-pop {
-      display: none; position: absolute; top: calc(100% + 8px); right: 0; z-index: 1200;
-      background: #fff; border-radius: 12px; padding: 8px; min-width: 190px;
-      box-shadow: 0 6px 20px rgba(0,0,0,.28);
-    }
-    .tool-pop.aberto { display: block; }
     @media (max-width: 720px) {
       .tool-btn span { display: none; }
       .tool-btn { min-width: 0; padding: 8px; }
@@ -120,13 +102,21 @@
     }
     #painel-overlay.aberto { opacity: 1; pointer-events: auto; }
     #painel {
-      position: absolute; top: 0; left: 0; bottom: 0; z-index: 1001;
-      width: 300px; max-width: 86vw; background: #fff;
-      transform: translateX(-100%); transition: transform .28s ease;
-      box-shadow: 2px 0 20px rgba(0,0,0,.28);
+      position: absolute; top: 0; right: 0; bottom: 0; z-index: 1001;
+      width: 236px; max-width: 86vw; background: var(--topo); color: #fff;
+      box-shadow: -2px 0 20px rgba(0,0,0,.35);
       display: flex; flex-direction: column; overflow-y: auto;
     }
-    #painel.aberto { transform: translateX(0); }
+    /* Painel vazio ("nada clicado"): esconde o conteúdo, mostra só a marca d'água */
+    #painel:not(.mostrando) .painel-head,
+    #painel:not(.mostrando) .painel-sec { display: none; }
+    #painel-marca {
+      position: absolute; inset: 0; display: flex;
+      align-items: center; justify-content: center;
+      padding: 24px; pointer-events: none;
+    }
+    #painel-marca img { width: 80%; max-width: 170px; opacity: .15; }
+    #painel.mostrando #painel-marca { display: none; }
     .painel-head {
       display: flex; align-items: center; justify-content: space-between;
       padding: 15px 16px; background: var(--topo); color: #fff;
@@ -137,15 +127,15 @@
       background: rgba(255,255,255,.2); border: none; color: #fff;
       width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
     }
-    .painel-sec { padding: 16px; border-bottom: 1px solid #eef0ec; }
+    .painel-sec { padding: 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
     .painel-sec > h3 {
       margin: 0 0 12px; font-size: .74rem; text-transform: uppercase;
-      letter-spacing: .07em; color: var(--secundaria);
+      letter-spacing: .07em; color: #c7ccd1;
     }
 
     /* Filtros por chips (dentro do painel) */
     .chip-grupo { margin-bottom: 16px; }
-    .chip-rot { font-size: .78rem; color: #666; font-weight: 600; margin-bottom: 8px; }
+    .chip-rot { font-size: .78rem; color: #b9bec4; font-weight: 600; margin-bottom: 8px; }
     .chips-filtro { display: flex; flex-wrap: wrap; gap: 7px; }
     .chip-f {
       border: 1px solid #d8ddd6; background: #fff; color: #333;
@@ -154,7 +144,7 @@
     .chip-f:hover { background: #f4f7f2; }
     .chip-f.ativa { background: var(--primaria); color: #fff; border-color: var(--primaria); font-weight: 600; }
     .chip-f:focus-visible { outline: 2px solid var(--primaria); outline-offset: 2px; }
-    .contador { font-size: .78rem; color: #555; margin-top: 4px; text-align: center; font-weight: 600; }
+    .contador { font-size: .78rem; color: #d4d8dc; margin-top: 4px; text-align: center; font-weight: 600; }
 
     /* Ficha do imóvel */
     #ficha {
@@ -233,6 +223,13 @@
     .ref-cor { width: 12px; height: 12px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.15); }
     .ref-nome { flex: 1; }
     .ref-status { font-size: .7rem; color: #999; }
+    .ref-div { height: 1px; background: #e2e8e2; margin: 6px 4px; }
+    .ref-ctrl { display: none; align-items: center; gap: 8px; padding: 0 10px 8px 36px; }
+    .ref-ctrl input[type=range] { flex: 1; accent-color: var(--primaria); cursor: pointer; min-width: 0; }
+    .ref-ctrl input[type=color] {
+      width: 26px; height: 22px; padding: 0; border: 1px solid #d8ddd6;
+      border-radius: 5px; background: none; cursor: pointer; flex: none;
+    }
 
     /* Exportar dados (popover Dados) */
     .exp-lista { display: flex; flex-direction: column; gap: 7px; }
@@ -317,18 +314,22 @@
       font-size: .84rem; line-height: 1.7; border: 1px solid #e6eae6;
     }
 
-    #med-readout {
-      position: absolute; top: 90px; left: 50%; transform: translateX(-50%);
-      z-index: 910; background: #fff; border-radius: 12px; padding: 10px 14px;
-      box-shadow: 0 4px 16px rgba(0,0,0,.25); display: none;
-      max-width: calc(100vw - 100px); text-align: center;
+    /* Medição — resultado ao vivo dentro do painel */
+    #med-painel { display: none; margin-top: 4px; }
+    /* Enquanto mede: some o título e os botões de ferramenta; aparece só o resultado */
+    #sec-medir.medindo > h3,
+    #sec-medir.medindo > #medir-tools { display: none; }
+    #sec-medir.medindo #med-painel { display: block; }
+    #med-total {
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14);
+      border-radius: 10px; padding: 13px 12px; margin-bottom: 10px; text-align: center;
     }
-    #med-readout-txt { font-size: .95rem; font-weight: 700; color: var(--secundaria); }
-    #med-readout .med-acoes { display: flex; gap: 8px; margin-top: 8px; justify-content: center; }
-    #med-readout .med-acoes button {
-      border: none; border-radius: 8px; padding: 6px 12px; font-size: .78rem; cursor: pointer;
-    }
-    #med-desfazer { background: #eee; color: #333; }
+    #med-total .rot { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: #b9bec4; }
+    #med-total .val { font-size: 1.3rem; font-weight: 800; color: #fff; margin-top: 4px; }
+    #med-vazio { font-size: .8rem; color: #b9bec4; text-align: center; padding: 2px 0 8px; }
+    .med-acoes { display: flex; gap: 8px; margin-top: 12px; }
+    .med-acoes button { flex: 1; border: none; border-radius: 8px; padding: 9px 12px; font-size: .82rem; cursor: pointer; }
+    #med-desfazer { background: rgba(255,255,255,.14); color: #fff; }
     #med-fechar { background: var(--primaria); color: #fff; }
 
     /* Botão de recentralizar (na barra do zoom) */
@@ -338,6 +339,13 @@
     }
     .btn-recentrar svg { width: 17px; height: 17px; }
     .btn-recentrar:hover { color: var(--primaria); }
+    /* Botão "ir para cidade" (config.pontoFoco): fundo branco, mira azul */
+    .btn-foco {
+      display: flex !important; align-items: center; justify-content: center;
+      width: 30px; height: 30px; color: #1f6fd4 !important;
+    }
+    .btn-foco svg { width: 17px; height: 17px; }
+    .btn-foco:hover { color: #1a5fb8 !important; }
 
     /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
     .leaflet-control-scale { margin-bottom: 12px !important; margin-left: 12px !important; }
@@ -348,6 +356,27 @@
     }
 
     .leaflet-popup-content { font-size: .85rem; }
+
+    /* --- Camadas de referência (bairros) --- */
+    /* Tira o retângulo de foco que o navegador desenha ao clicar no polígono */
+    .leaflet-interactive:focus,
+    .leaflet-pane path.ref-feat:focus { outline: none; }
+    /* Bairro selecionado: borda neon com brilho */
+    .leaflet-pane path.ref-sel {
+      filter: drop-shadow(0 0 4px #19e6ff) drop-shadow(0 0 10px #19e6ff);
+    }
+    /* Rótulo do bairro (permanente, no centro da feição) */
+    .rotulo-bairro {
+      background: rgba(12,14,18,.6); color: #fff; border: 0;
+      font-weight: 600; font-size: 11px; padding: 1px 6px; border-radius: 6px;
+      box-shadow: none; white-space: nowrap;
+    }
+    .rotulo-bairro::before { display: none; }         /* remove a setinha do balão */
+    /* Rótulos "perto" (bairros): somem quando o mapa afasta (~além de 1:20.000) */
+    .sem-rotulo-perto .rot-perto { display: none; }
+    /* Rótulos "longe" (municípios): somem quando o mapa aproxima (barra de escala < 10 km) */
+    .sem-rotulo-longe .rot-longe { display: none; }
+
     .erro-carga {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
       background: #fff; padding: 16px 20px; border-radius: 10px; z-index: 1200;
@@ -373,7 +402,7 @@
           </div>
 
           <div class="tool">
-            <button class="tool-btn" id="btn-medir" aria-expanded="false" aria-haspopup="true">
+            <button class="tool-btn" id="btn-medir" aria-expanded="false">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <rect x="2.5" y="8.5" width="19" height="7" rx="1.5"/>
                 <line x1="6" y1="8.5" x2="6" y2="11.5"/>
@@ -384,17 +413,10 @@
               </svg>
               <span>Medir</span>
             </button>
-            <div class="tool-pop" id="pop-medir" role="menu">
-              <div id="medir-tools">
-                <button id="med-dist" type="button">📏 Medir distância</button>
-                <button id="med-area" type="button">△ Medir área</button>
-                <button id="med-planta" type="button">📐 Planta (rumos/azimutes)</button>
-              </div>
-            </div>
           </div>
 
           <div class="tool">
-            <button class="tool-btn" id="btn-dados" aria-expanded="false" aria-haspopup="true">
+            <button class="tool-btn" id="btn-dados" aria-expanded="false">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <rect x="3" y="3" width="18" height="10" rx="1.5"/>
                 <path d="M3 6.8h18M9.4 3v10M15 3v10"/>
@@ -402,17 +424,10 @@
               </svg>
               <span>Dados</span>
             </button>
-            <div class="tool-pop" id="pop-dados" role="menu">
-              <div class="exp-lista">
-                <button type="button" class="exp-op" id="exp-csv">📊 Excel (CSV)</button>
-                <button type="button" class="exp-op" id="exp-kml">🌍 KML (Google Earth)</button>
-              </div>
-              <div class="exp-nota">Backup do catálogo completo</div>
-            </div>
           </div>
 
           <div class="tool">
-            <button class="tool-btn" id="btn-fundo" aria-expanded="false" aria-haspopup="true">
+            <button class="tool-btn" id="btn-fundo" aria-expanded="false">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M3 6.5 L9 4 L15 6.5 L21 4 V13 L15 15.5 L9 13 L3 15.5 Z"/>
                 <path d="M9 4 V13 M15 6.5 V15.5"/>
@@ -421,19 +436,10 @@
               </svg>
               <span>Fundo do mapa</span>
             </button>
-            <div class="tool-pop" id="pop-fundo" role="menu">
-              <div class="cam-lista">
-                <button type="button" class="cam-op" data-modo="satelite">Satélite</button>
-                <button type="button" class="cam-op" data-modo="hibrido">Satélite + Ruas</button>
-                <button type="button" class="cam-op" data-modo="ruas">Somente Ruas</button>
-                <button type="button" class="cam-op" data-modo="escuro">Escuro</button>
-                <button type="button" class="cam-op" data-modo="claro">Claro</button>
-              </div>
-            </div>
           </div>
 
           <div class="tool">
-            <button class="tool-btn" id="btn-camadas" aria-expanded="false" aria-haspopup="true">
+            <button class="tool-btn" id="btn-camadas" aria-expanded="false">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M12 2.5 21.5 7 12 11.5 2.5 7z"/>
                 <path d="M2.5 12 12 16.5 21.5 12"/>
@@ -441,19 +447,11 @@
               </svg>
               <span>Camadas</span>
             </button>
-            <div class="tool-pop" id="pop-camadas" role="menu">
-              <div class="ref-lista" id="ref-lista"></div>
-              <div class="exp-nota" id="ref-vazio">Nenhuma camada de referência configurada</div>
-            </div>
           </div>
         </div>
 
       <div class="hdr-right">
         <div id="user-badge" title="Usuário logado">
-          <span class="avatar" id="user-avatar">
-            <span id="user-iniciais">?</span>
-            <img id="user-logo" alt="" />
-          </span>
           <div class="u-info">
             <div class="u-nome" id="user-nome">Usuário</div>
             <div class="u-creci" id="user-creci"></div>
@@ -469,11 +467,11 @@
       <div id="painel-overlay"></div>
       <aside id="painel" aria-label="Menu de funcionalidades">
         <div class="painel-head">
-          <h2>Filtros</h2>
+          <h2 id="painel-titulo">Filtros</h2>
           <button class="fechar" id="painel-fechar" aria-label="Fechar menu">×</button>
         </div>
 
-        <div class="painel-sec">
+        <div class="painel-sec" id="sec-filtros">
           <h3>Filtrar imóveis</h3>
           <div id="filtros">
             <div class="chip-grupo">
@@ -498,6 +496,58 @@
             <div class="contador" id="contador"></div>
           </div>
         </div>
+
+        <div class="painel-sec" id="sec-medir" style="display:none">
+          <h3>Ferramentas de medição</h3>
+          <div id="medir-tools">
+            <button id="med-dist" type="button">📏 Medir distância</button>
+            <button id="med-area" type="button">△ Medir área</button>
+            <button id="med-planta" type="button">📐 Planta (rumos/azimutes)</button>
+          </div>
+          <div id="med-painel">
+            <div id="med-total"><div class="rot"></div><div class="val">—</div></div>
+            <div id="med-vazio"></div>
+            <div class="med-acoes">
+              <button id="med-desfazer">Desfazer</button>
+              <button id="med-fechar">Fechar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="painel-sec" id="sec-dados" style="display:none">
+          <h3>Exportar catálogo</h3>
+          <div class="exp-lista">
+            <button type="button" class="exp-op" id="exp-csv">📊 Excel (CSV)</button>
+            <button type="button" class="exp-op" id="exp-kml">🌍 KML (Google Earth)</button>
+          </div>
+          <div class="exp-nota">Backup do catálogo completo</div>
+        </div>
+
+        <div class="painel-sec" id="sec-fundo" style="display:none">
+          <h3>Fundo do mapa</h3>
+          <div class="cam-lista">
+            <button type="button" class="cam-op" data-modo="satelite">Satélite</button>
+            <button type="button" class="cam-op" data-modo="hibrido">Satélite + Ruas</button>
+            <button type="button" class="cam-op" data-modo="ruas">Somente Ruas</button>
+            <button type="button" class="cam-op" data-modo="topo">Ruas + Relevo</button>
+            <button type="button" class="cam-op" data-modo="escuro">Escuro</button>
+            <button type="button" class="cam-op" data-modo="claro">Claro</button>
+          </div>
+        </div>
+
+        <div class="painel-sec" id="sec-camadas" style="display:none">
+          <h3>Camadas</h3>
+          <label class="ref-op">
+            <input type="checkbox" id="chk-imoveis" checked>
+            <span class="ref-cor" style="background: var(--primaria)"></span>
+            <span class="ref-nome">Imóveis</span>
+          </label>
+          <div class="ref-div"></div>
+          <div class="ref-lista" id="ref-lista"></div>
+          <div class="exp-nota" id="ref-vazio">Nenhuma camada de referência configurada</div>
+        </div>
+
+        <div id="painel-marca" aria-hidden="true"><img id="painel-marca-img" alt="" /></div>
       </aside>
 
       <div id="planta-modal">
@@ -542,13 +592,6 @@ NO 30°45' ; 143,10"></textarea>
         </div>
       </div>
 
-      <div id="med-readout">
-        <span id="med-readout-txt"></span>
-        <div class="med-acoes">
-          <button id="med-desfazer">Desfazer</button>
-          <button id="med-fechar">Fechar</button>
-        </div>
-      </div>
 
       <div id="ficha">
         <div class="ficha-tab" id="ficha-tab" role="button" tabindex="0" aria-expanded="false">
@@ -572,7 +615,7 @@ NO 30°45' ; 143,10"></textarea>
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
        para o navegador do corretor pegar a versão nova em vez do cache. -->
-  <script src="config.js?v=4"></script>
+  <script src="config.js?v=9"></script>
   <script>
   (function () {
     "use strict";
@@ -597,22 +640,10 @@ NO 30°45' ; 143,10"></textarea>
     document.title = cliente.marca || "ADMImob";
     document.getElementById("user-creci").textContent = cliente.creci || "";
 
-    // Quadro de usuário logado (nome + iniciais, ou o logo do corretor)
+    // Quadro de usuário logado (apenas nome + CRECI; o logo do corretor virou
+    // marca d'água no painel, não fica mais no avatar).
     const nomeUsuario = cliente.corretor || "Usuário";
     document.getElementById("user-nome").textContent = nomeUsuario;
-    const iniciais = nomeUsuario.trim().split(/\s+/).map(function (p) { return p[0]; })
-      .slice(0, 2).join("").toUpperCase();
-    document.getElementById("user-iniciais").textContent = iniciais || "?";
-
-    // Logo do corretor no avatar (se o arquivo carregar; senão fica nas iniciais)
-    if (cliente.logoUsuario) {
-      const avatarEl = document.getElementById("user-avatar");
-      const logoUsr = document.getElementById("user-logo");
-      logoUsr.alt = nomeUsuario;
-      logoUsr.onload = function () { avatarEl.classList.add("tem-logo"); };
-      logoUsr.onerror = function () { avatarEl.classList.remove("tem-logo"); };
-      logoUsr.src = cliente.logoUsuario;
-    }
 
     // Logo do cabeçalho: só aparece se o arquivo carregar
     if (cliente.logo) {
@@ -655,10 +686,15 @@ NO 30°45' ; 143,10"></textarea>
     const baseEscuro = canvasEsri("Dark");
     const baseClaro = canvasEsri("Light");
 
+    // Ruas + relevo (topográfico) — tem detalhe até zoom alto
+    const baseTopo = L.tileLayer(ESRI + "World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, attribution: attrEsri + ", HERE, Garmin, USGS, OpenStreetMap" });
+
     const CAMADAS = {
       satelite: [baseSatelite],
       hibrido:  [baseSatelite, refRuas],
       ruas:     [baseRuas],
+      topo:     [baseTopo],
       escuro:   [baseEscuro],
       claro:    [baseClaro]
     };
@@ -698,57 +734,90 @@ NO 30°45' ; 143,10"></textarea>
         L.DomEvent.disableClickPropagation(div);
         L.DomEvent.on(a, "click", function (e) {
           L.DomEvent.preventDefault(e);
-          map.setView(VISTA_INICIAL.centro, VISTA_INICIAL.zoom, { animate: true });
+          map.setView(VISTA_INICIAL.centro, VISTA_INICIAL.zoom); // sem forçar animação: salto longo aborta a anim. do Leaflet
         });
         return div;
       }
     });
     map.addControl(new CtrlRecentrar());
 
+    // ---- Botão azul: ir direto para uma cidade específica (config.pontoFoco) ----
+    if (cliente.pontoFoco && cliente.pontoFoco.centro) {
+      const FOCO = cliente.pontoFoco;
+      const CtrlFoco = L.Control.extend({
+        options: { position: "topleft" },
+        onAdd: function () {
+          const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+          const a = L.DomUtil.create("a", "btn-foco", div);
+          a.href = "#";
+          a.title = "Ir para " + (FOCO.titulo || "cidade");
+          a.setAttribute("role", "button");
+          a.setAttribute("aria-label", a.title);
+          a.innerHTML =
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+            'stroke-linecap="round" aria-hidden="true">' +
+            '<circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/>' +
+            '<path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></svg>';
+          L.DomEvent.disableClickPropagation(div);
+          L.DomEvent.on(a, "click", function (e) {
+            L.DomEvent.preventDefault(e);
+            map.setView(FOCO.centro, FOCO.zoom || 14); // sem forçar animação: salto longo aborta a anim. do Leaflet
+          });
+          return div;
+        }
+      });
+      map.addControl(new CtrlFoco());
+    }
+
     // ---- Barra de escala (dá noção de distância) ----
     L.control.scale({
       position: "bottomleft", metric: true, imperial: false, maxWidth: 130
     }).addTo(map);
 
-    // ---- Atalhos do cabeçalho: popovers Medir / Fundo do mapa ----
-    const btnMedir = document.getElementById("btn-medir");
-    const btnFundo = document.getElementById("btn-fundo");
-    const btnDados = document.getElementById("btn-dados");
-    const btnCamadas = document.getElementById("btn-camadas");
-    const popMedir = document.getElementById("pop-medir");
-    const popFundo = document.getElementById("pop-fundo");
-    const popDados = document.getElementById("pop-dados");
-    const popCamadas = document.getElementById("pop-camadas");
-
-    function fecharPopovers() {
-      [[btnMedir, popMedir], [btnDados, popDados], [btnFundo, popFundo],
-       [btnCamadas, popCamadas]].forEach(function (par) {
-        par[0].classList.remove("aberto"); par[0].setAttribute("aria-expanded", "false");
-        par[1].classList.remove("aberto");
-      });
-    }
-    function alternarPop(btn, pop) {
-      const abrir = !pop.classList.contains("aberto");
-      fecharPopovers();
-      if (abrir) { pop.classList.add("aberto"); btn.classList.add("aberto"); btn.setAttribute("aria-expanded", "true"); }
-    }
-    btnMedir.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnMedir, popMedir); });
-    btnDados.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnDados, popDados); });
-    btnFundo.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnFundo, popFundo); });
-    btnCamadas.addEventListener("click", function (e) { e.stopPropagation(); alternarPop(btnCamadas, popCamadas); });
-    document.addEventListener("click", function (e) {
-      if (!e.target.closest(".tool")) fecharPopovers();
-    });
-
-    // troca de camada (fecha o popover ao escolher)
+    // troca de camada (fundo do mapa)
     document.querySelectorAll(".cam-op").forEach(function (b) {
-      b.addEventListener("click", function () { trocarCamada(b.dataset.modo); fecharPopovers(); });
+      b.addEventListener("click", function () { trocarCamada(b.dataset.modo); });
     });
 
     // ---- Camadas de referência (bairros, ruas, fazendas, pontos...) ----
     // painel próprio, abaixo dos imóveis do catálogo
     map.createPane("refs");
     map.getPane("refs").style.zIndex = 350;
+
+    // Rótulos das camadas de referência têm dois modos de escala:
+    //  - "perto" (bairros): some quando o mapa AFASTA (~além de 1:20.000).
+    //  - "longe" (municípios): some quando o mapa APROXIMA (barra de escala < 10 km).
+    const LIMITE_ESCALA_ROTULO = 20000;   // denominador de escala p/ os rótulos "perto"
+    const LIMITE_ROTULO_LONGE_M = 10000;  // metros na barra de escala p/ os rótulos "longe"
+    function resolucaoMetros() {
+      const lat = map.getCenter().lat * Math.PI / 180;
+      return 156543.03392 * Math.cos(lat) / Math.pow(2, map.getZoom()); // metros por pixel
+    }
+    function escalaDenominador() {
+      return resolucaoMetros() * 96 / 0.0254; // denominador da escala em tela (96 dpi)
+    }
+    function atualizaRotulosRef() {
+      const cont = map.getContainer();
+      cont.classList.toggle("sem-rotulo-perto", escalaDenominador() > LIMITE_ESCALA_ROTULO);
+      cont.classList.toggle("sem-rotulo-longe", resolucaoMetros() * 100 < LIMITE_ROTULO_LONGE_M);
+    }
+    map.on("zoomend", atualizaRotulosRef);
+
+    // Realce neon do bairro clicado (uma seleção por camada).
+    function selecionarRef(grupo, lyr, corBase) {
+      if (!grupo) return;
+      if (grupo._sel && grupo._sel !== lyr) {
+        grupo._sel.setStyle({ color: grupo._selCor || corBase, weight: 2, fillOpacity: 0.12 });
+        if (grupo._sel._path) grupo._sel._path.classList.remove("ref-sel");
+      }
+      lyr.setStyle({ color: "#19e6ff", weight: 3, fillOpacity: 0.28 });
+      if (lyr._path) {
+        lyr._path.classList.add("ref-sel");
+        lyr._path.parentNode.appendChild(lyr._path); // traz a feição selecionada pra frente
+      }
+      grupo._sel = lyr;
+      grupo._selCor = corBase;
+    }
 
     const refsCarregadas = {};           // índice -> layer já baixada
     const camadasRef = cliente.camadas || [];
@@ -759,7 +828,18 @@ NO 30°45' ; 143,10"></textarea>
     }
 
     camadasRef.forEach(function (c, i) {
-      const cor = c.cor || "#e8a33d";
+      const estiloRef = { cor: c.cor || "#e8a33d", op: 0.85 };
+      function estiloDe(tipo) {
+        const o = estiloRef.op;
+        if (tipo === "Point" || tipo === "MultiPoint") {
+          return { pane: "refs", color: "#fff", weight: 2, fillColor: estiloRef.cor, fillOpacity: o, opacity: o };
+        }
+        return { className: "ref-feat", color: estiloRef.cor, weight: 2, opacity: o, fillOpacity: o * 0.3 };
+      }
+      function aplicarEstilo() {
+        if (refsCarregadas[i]) refsCarregadas[i].setStyle(function (f) { return estiloDe(f.geometry.type); });
+      }
+      const cor = estiloRef.cor;
       const linha = document.createElement("label");
       linha.className = "ref-op";
 
@@ -778,6 +858,23 @@ NO 30°45' ; 143,10"></textarea>
       linha.appendChild(nome); linha.appendChild(status);
       refLista.appendChild(linha);
 
+      // Controles de transparência e cor (aparecem quando a camada está ligada)
+      const ctrl = document.createElement("div");
+      ctrl.className = "ref-ctrl";
+      const slider = document.createElement("input");
+      slider.type = "range"; slider.min = "10"; slider.max = "100";
+      slider.value = String(Math.round(estiloRef.op * 100)); slider.title = "Transparência";
+      const corPick = document.createElement("input");
+      corPick.type = "color"; corPick.value = estiloRef.cor; corPick.title = "Cor da camada";
+      ctrl.appendChild(slider); ctrl.appendChild(corPick);
+      refLista.appendChild(ctrl);
+
+      slider.addEventListener("input", function () { estiloRef.op = (+slider.value) / 100; aplicarEstilo(); });
+      corPick.addEventListener("input", function () {
+        estiloRef.cor = corPick.value; bolinha.style.background = corPick.value; aplicarEstilo();
+      });
+      chk.addEventListener("change", function () { ctrl.style.display = chk.checked ? "flex" : "none"; });
+
       chk.addEventListener("change", function () {
         if (!chk.checked) {
           if (refsCarregadas[i]) map.removeLayer(refsCarregadas[i]);
@@ -795,21 +892,28 @@ NO 30°45' ; 143,10"></textarea>
           .then(function (gj) {
             refsCarregadas[i] = L.geoJSON(gj, {
               pane: "refs",
-              style: function () {
-                return { color: cor, weight: 2, opacity: .9, fillOpacity: 0.12 };
-              },
+              style: function (feat) { return estiloDe(feat.geometry.type); },
               pointToLayer: function (feat, latlng) {
-                return L.circleMarker(latlng, {
-                  pane: "refs", radius: 6, color: "#fff", weight: 2,
-                  fillColor: cor, fillOpacity: 1
-                });
+                return L.circleMarker(latlng, Object.assign({ radius: 6 }, estiloDe("Point")));
               },
               onEachFeature: function (feat, lyr) {
                 const p = feat.properties || {};
-                const txt = p[c.rotulo] || p.nome || p.name || p.NOME || "";
-                if (txt) lyr.bindTooltip(String(txt), { direction: "top", sticky: true });
+                const txt = p[c.rotulo] || p.nome || p.name || p.NOME || p.ref || "";
+                if (txt) {
+                  if (c.rotuloModo === "hover") {
+                    // Muitas feições (ex.: ruas): rótulo só ao passar o mouse, sem poluir
+                    lyr.bindTooltip(String(txt), { sticky: true, direction: "top", className: "rotulo-bairro" });
+                  } else {
+                    lyr.bindTooltip(String(txt), {
+                      permanent: true, direction: "center", opacity: 1,
+                      className: "rotulo-bairro " + (c.rotuloModo === "longe" ? "rot-longe" : "rot-perto")
+                    });
+                  }
+                }
+                lyr.on("click", function () { selecionarRef(refsCarregadas[i], lyr, estiloRef.cor); });
               }
             }).addTo(map);
+            atualizaRotulosRef();   // aplica a regra de escala assim que a camada entra
             status.textContent = "";
           })
           .catch(function (err) {
@@ -824,6 +928,14 @@ NO 30°45' ; 143,10"></textarea>
     // ---- 4. Estado ----
     let todasFeatures = [];
     const layerImoveis = L.layerGroup().addTo(map);
+    // Liga/desliga todos os pins de imóveis pelo menu Camadas
+    const chkImoveis = document.getElementById("chk-imoveis");
+    if (chkImoveis) {
+      chkImoveis.addEventListener("change", function () {
+        if (chkImoveis.checked) layerImoveis.addTo(map);
+        else map.removeLayer(layerImoveis);
+      });
+    }
     let rotaLayer = null;
     let posUsuario = null;
     let modoMedicao = null; // null | "distancia" | "area"
@@ -934,23 +1046,48 @@ NO 30°45' ; 143,10"></textarea>
         });
       });
     });
-    // ---- Painel lateral (abrir/fechar) ----
+    // ---- Painel lateral: central única (Filtros / Medir / Dados / Fundo do mapa / Camadas) ----
+    // Cada botão do cabeçalho mostra sua seção dentro do mesmo painel fixo, como abas.
     const painel = document.getElementById("painel");
-    const painelOverlay = document.getElementById("painel-overlay");
-    const menuToggle = document.getElementById("menu-toggle");
-    function abrirPainel() {
-      painel.classList.add("aberto");
-      painelOverlay.classList.add("aberto");
-      menuToggle.setAttribute("aria-expanded", "true");
-    }
+    const painelTitulo = document.getElementById("painel-titulo");
+    const SECOES_PAINEL = [
+      { btnId: "menu-toggle", secId: "sec-filtros", titulo: "Filtros" },
+      { btnId: "btn-medir",   secId: "sec-medir",   titulo: "Medir" },
+      { btnId: "btn-dados",   secId: "sec-dados",   titulo: "Dados" },
+      { btnId: "btn-fundo",   secId: "sec-fundo",   titulo: "Fundo do mapa" },
+      { btnId: "btn-camadas", secId: "sec-camadas", titulo: "Camadas" }
+    ].map(function (s) {
+      return { btn: document.getElementById(s.btnId), sec: document.getElementById(s.secId), titulo: s.titulo };
+    });
+    let secaoPainelAtiva = null;
+
     function fecharPainel() {
-      painel.classList.remove("aberto");
-      painelOverlay.classList.remove("aberto");
-      menuToggle.setAttribute("aria-expanded", "false");
+      painel.classList.remove("mostrando");
+      SECOES_PAINEL.forEach(function (s) {
+        s.btn.classList.remove("aberto"); s.btn.setAttribute("aria-expanded", "false");
+      });
+      secaoPainelAtiva = null;
     }
-    menuToggle.addEventListener("click", abrirPainel);
-    painelOverlay.addEventListener("click", fecharPainel);
+    function abrirSecaoPainel(alvo) {
+      if (secaoPainelAtiva === alvo) { fecharPainel(); return; }
+      SECOES_PAINEL.forEach(function (s) {
+        const ativa = s === alvo;
+        s.sec.style.display = ativa ? "" : "none";
+        s.btn.classList.toggle("aberto", ativa);
+        s.btn.setAttribute("aria-expanded", String(ativa));
+      });
+      painelTitulo.textContent = alvo.titulo;
+      painel.classList.add("mostrando");
+      secaoPainelAtiva = alvo;
+    }
+    SECOES_PAINEL.forEach(function (s) {
+      s.btn.addEventListener("click", function () { abrirSecaoPainel(s); });
+    });
     document.getElementById("painel-fechar").addEventListener("click", fecharPainel);
+    // Marca d'água do corretor no painel vazio (mesmo logo do quadro de usuário).
+    if (cliente.logoUsuario) {
+      document.getElementById("painel-marca-img").src = cliente.logoUsuario;
+    }
 
     // ---- 8. Ficha do imóvel ----
     const ficha = document.getElementById("ficha");
@@ -1077,13 +1214,12 @@ NO 30°45' ; 143,10"></textarea>
     function entrarModo(modo) {
       if (modoMedicao === modo) { sairMedicao(); return; }
       ficha.classList.remove("aberta");
-      fecharPainel(); // fecha o painel pra liberar o clique no mapa
-      fecharPopovers(); // fecha o popover Medir
+      // painel fica ABERTO durante a medição: total, pontos e ações aparecem nele
       modoMedicao = modo;
       medPontos = [];
       document.getElementById("med-dist").classList.toggle("ativo", modo === "distancia");
       document.getElementById("med-area").classList.toggle("ativo", modo === "area");
-      document.getElementById("med-readout").style.display = "block";
+      document.getElementById("sec-medir").classList.add("medindo");
       map.getContainer().style.cursor = "crosshair";
       atualizarMedicao();
     }
@@ -1094,7 +1230,7 @@ NO 30°45' ; 143,10"></textarea>
       medLayer.clearLayers();
       document.getElementById("med-dist").classList.remove("ativo");
       document.getElementById("med-area").classList.remove("ativo");
-      document.getElementById("med-readout").style.display = "none";
+      document.getElementById("sec-medir").classList.remove("medindo");
       map.getContainer().style.cursor = "";
     }
 
@@ -1114,27 +1250,29 @@ NO 30°45' ; 143,10"></textarea>
         }).addTo(medLayer);
       });
 
-      const txt = document.getElementById("med-readout-txt");
+      const totalRot = document.querySelector("#med-total .rot");
+      const totalVal = document.querySelector("#med-total .val");
+      const vazio = document.getElementById("med-vazio");
+      const ehArea = modoMedicao === "area";
+      const minPts = ehArea ? 3 : 2;
+      totalRot.textContent = ehArea ? "Área total" : "Comprimento total";
 
-      if (modoMedicao === "distancia") {
-        if (medPontos.length >= 2) {
-          L.polyline(medPontos, { color: cor, weight: 3, dashArray: "6,6" }).addTo(medLayer);
-          const coords = medPontos.map(function (ll) { return [ll.lng, ll.lat]; });
-          const metros = turf.length(turf.lineString(coords), { units: "kilometers" }) * 1000;
-          txt.textContent = "Distância: " + fmtMetros(metros);
-        } else {
-          txt.textContent = "Toque em 2+ pontos no mapa";
-        }
-      } else if (modoMedicao === "area") {
-        if (medPontos.length >= 3) {
+      if (medPontos.length >= minPts) {
+        const coords = medPontos.map(function (ll) { return [ll.lng, ll.lat]; });
+        if (ehArea) {
           L.polygon(medPontos, { color: cor, weight: 2, fillOpacity: 0.2, dashArray: "6,6" }).addTo(medLayer);
-          const coords = medPontos.map(function (ll) { return [ll.lng, ll.lat]; });
           coords.push(coords[0]); // fecha o anel
-          const m2 = turf.area(turf.polygon([coords]));
-          txt.textContent = "Área: " + fmtArea(m2);
+          totalVal.textContent = fmtArea(turf.area(turf.polygon([coords])));
         } else {
-          txt.textContent = "Toque em 3+ pontos no mapa";
+          L.polyline(medPontos, { color: cor, weight: 3, dashArray: "6,6" }).addTo(medLayer);
+          const metros = turf.length(turf.lineString(coords), { units: "kilometers" }) * 1000;
+          totalVal.textContent = fmtMetros(metros);
         }
+        vazio.style.display = "none";
+      } else {
+        totalVal.textContent = "—";
+        vazio.textContent = "Toque em " + minPts + "+ pontos no mapa";
+        vazio.style.display = "block";
       }
     }
 
@@ -1175,7 +1313,7 @@ NO 30°45' ; 143,10"></textarea>
       "NO 30°45' ; 143,10";
 
     function abrirPlanta() {
-      fecharPopovers();
+      fecharPainel();
       const c = map.getCenter();
       const lat = document.getElementById("planta-lat");
       const lng = document.getElementById("planta-lng");
@@ -1488,10 +1626,10 @@ NO 30°45' ; 143,10"></textarea>
     }
 
     document.getElementById("exp-csv").addEventListener("click", function () {
-      exportarCSV(); fecharPopovers();
+      exportarCSV(); fecharPainel();
     });
     document.getElementById("exp-kml").addEventListener("click", function () {
-      exportarKML(); fecharPopovers();
+      exportarKML(); fecharPainel();
     });
 
   })();

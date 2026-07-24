@@ -21,7 +21,7 @@ const CLIENTES = {
     creci: "CRECI-MS 10101",
     // Logo do cabeçalho (caminho da imagem). Deixe "" para não mostrar.
     // O ?v=1 fura o cache do navegador; aumente pra v=2, v=3... ao trocar o logo.
-    logo: "img/logo.png?v=1",
+    logo: "img/logo.png?v=2",
     // Cores da interface — paleta casada com o logo do corretor
     corTopo: "#17191c",       // preto/chumbo: barra superior e topo do painel
     corPrimaria: "#d81f2a",   // vermelho do logo: ativos, preços, botões
@@ -34,6 +34,11 @@ const CLIENTES = {
     // Cassilândia-MS por padrão. Ajuste para a cidade do corretor.
     centro: [-19.1129, -51.7342],
     zoom: 13,
+
+    // --- Botão azul "ir para cidade" (opcional) ---
+    // Pula direto para outra cidade onde o corretor atua. Deixe fora ou "" para
+    // não mostrar o botão. Troque as coordenadas/zoom pela cidade desejada.
+    pontoFoco: { titulo: "Chapadão do Sul", centro: [-18.7886, -52.6264], zoom: 14 },
 
     // --- Contatos (aparecem nos botões da ficha do imóvel) ---
     // ⚠️ PLACEHOLDERS — trocar pelos dados REAIS do Adriel (pendência 3).
@@ -52,7 +57,9 @@ const CLIENTES = {
     // Exporte do QGIS como GeoJSON (WGS84/EPSG:4326) e coloque em dados/ref/.
     // "rotulo" = nome do campo que aparece ao passar o mouse/tocar.
     camadas: [
-      { nome: "Bairros", arquivo: "dados/ref/bairros.geojson", cor: "#7a5af5", rotulo: "nome" },
+      { nome: "Bairros Cassilândia", arquivo: "dados/ref/bairros_cassilandia.geojson", cor: "#7a5af5", rotulo: "name" },
+      { nome: "Municípios MS", arquivo: "dados/ref/ms_municipios.geojson", cor: "#f2a33c", rotulo: "NM_MUN", rotuloModo: "longe" },
+      { nome: "Acessos", arquivo: "dados/ref/cassilandia_acessos.geojson", cor: "#ffd23f", rotulo: "name", rotuloModo: "hover" },
       { nome: "Pontos de referência", arquivo: "dados/ref/pontos.geojson", cor: "#e3452f", rotulo: "nome" }
     ]
   }
