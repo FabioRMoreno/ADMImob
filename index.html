@@ -133,6 +133,24 @@
       letter-spacing: .07em; color: #c7ccd1;
     }
 
+    /* CELULAR: o painel vira "gaveta de baixo" (bottom sheet). Fica escondido por
+       padrão (mapa em tela cheia) e sobe quando uma ferramenta é aberta.
+       Fica DEPOIS da base do #painel de propósito, pra vencer na ordem do CSS. */
+    @media (max-width: 620px) {
+      #painel {
+        top: auto; left: 0; right: 0; bottom: 0;
+        width: 100%; max-width: 100%;
+        height: 62vh; max-height: 62vh;
+        border-radius: 18px 18px 0 0;
+        box-shadow: 0 -6px 24px rgba(0,0,0,.45);
+        transition: transform .28s ease;
+      }
+      /* estados mutuamente exclusivos (não competem pelo mesmo elemento) */
+      #painel:not(.mostrando) { transform: translateY(105%); } /* escondido embaixo */
+      #painel.mostrando { transform: translateY(0); }          /* gaveta pra cima  */
+      #painel-marca { display: none; } /* sem marca d'água ocupando a tela no celular */
+    }
+
     /* Filtros por chips (dentro do painel) */
     .chip-grupo { margin-bottom: 16px; }
     .chip-rot { font-size: .78rem; color: #b9bec4; font-weight: 600; margin-bottom: 8px; }
