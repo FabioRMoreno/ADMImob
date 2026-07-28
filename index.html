@@ -87,9 +87,31 @@
       .hdr-logo-wrap.tem-logo { display: none; }
     }
     @media (max-width: 620px) {
-      #user-badge .u-info { display: none; }
-      #user-badge { padding: 5px; }
-      .hdr-right { gap: 8px; }
+      /* ===== "L invertido": barra fina no topo + trilho vertical na direita ===== */
+      /* Topo fino: logo à esquerda + "● Logado" à direita */
+      header { min-height: 46px; padding: 6px 10px; gap: 8px; box-shadow: 0 1px 5px rgba(0,0,0,.3); }
+      .hdr-logo-wrap.tem-logo { display: flex; width: 84px; height: 32px; left: 10px; border-radius: 7px; }
+      .hdr-right { right: 10px; gap: 8px; }
+      #user-badge { padding: 6px 11px; }
+      #user-badge .u-nome, #user-badge .u-creci { display: none; } /* mantém só "● Logado" */
+      #user-badge .u-status { margin-top: 0; }
+
+      /* Os 5 botões viram o trilho vertical (pílula preta) na direita */
+      .hdr-tools {
+        position: fixed; top: 56px; right: 6px; z-index: 1200;
+        flex-direction: column; gap: 7px;
+        background: var(--topo); padding: 8px 6px; border-radius: 15px;
+        box-shadow: 0 3px 12px rgba(0,0,0,.45);
+      }
+      .tool-btn {
+        min-width: 0; width: 42px; height: 42px; padding: 0;
+        border-radius: 11px; justify-content: center; gap: 0;
+      }
+      .tool-btn span { display: none; }
+
+      /* Controles do mapa (zoom/recentralizar/cidade) descem pra direita, logo abaixo do trilho */
+      .leaflet-top.leaflet-left { left: auto; right: 6px; top: 270px; z-index: 900; }
+      .leaflet-top.leaflet-left .leaflet-control { margin-left: 0 !important; margin-right: 0; }
     }
 
     #conteudo { flex: 1; position: relative; min-height: 0; }
