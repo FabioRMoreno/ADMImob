@@ -96,7 +96,7 @@
       #user-badge .u-nome, #user-badge .u-creci { display: none; } /* mantém só "● Logado" */
       #user-badge .u-status { margin-top: 0; }
 
-      /* Os 5 botões viram o trilho vertical (pílula preta) na direita */
+      /* PAINEL 1 — Ferramentas do mapa (Medir, Dados, Fundo, Camadas) */
       .hdr-tools {
         position: fixed; top: 56px; right: 6px; z-index: 1200;
         flex-direction: column; gap: 7px;
@@ -109,9 +109,33 @@
       }
       .tool-btn span { display: none; }
 
-      /* Controles do mapa (zoom/recentralizar/cidade) descem pra direita, logo abaixo do trilho */
-      .leaflet-top.leaflet-left { left: auto; right: 6px; top: 270px; z-index: 900; }
-      .leaflet-top.leaflet-left .leaflet-control { margin-left: 0 !important; margin-right: 0; }
+      /* PAINEL 2 — Localização (Filtros + zoom + miras + boneco), mesmo visual do 1 */
+      .leaflet-top.leaflet-left {
+        left: auto; right: 6px; top: 230px; z-index: 1200; /* logo abaixo do painel 1 (coords do mapa) */
+        display: flex; flex-direction: column; align-items: center; gap: 7px;
+        background: var(--topo); padding: 8px 6px; border-radius: 15px;
+        box-shadow: 0 3px 12px rgba(0,0,0,.45);
+      }
+      .leaflet-top.leaflet-left > .tool-btn { pointer-events: auto; } /* .leaflet-top é pointer-events:none */
+      .leaflet-top.leaflet-left .leaflet-control {
+        margin: 0 !important; float: none; clear: none;
+        display: flex; flex-direction: column; gap: 7px;
+      }
+      /* tira a caixa branca do leaflet-bar e padroniza cada botão */
+      .leaflet-top.leaflet-left .leaflet-bar { background: transparent; border: none; box-shadow: none; }
+      .leaflet-top.leaflet-left .leaflet-bar a {
+        width: 42px; height: 42px; line-height: 42px;
+        background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.28);
+        border-radius: 11px; color: #fff; font-size: 1.25rem;
+      }
+      .leaflet-top.leaflet-left .leaflet-bar a:hover { background: rgba(255,255,255,.24); }
+      .leaflet-top.leaflet-left .leaflet-bar a.leaflet-disabled { opacity: .4; }
+      .leaflet-top.leaflet-left .btn-recentrar { color: #fff !important; }
+      .leaflet-top.leaflet-left .btn-foco { color: #6ab7ff !important; }   /* mira azul */
+      .leaflet-top.leaflet-left .btn-local { color: #6ab7ff !important; }  /* boneco azul */
+      .leaflet-top.leaflet-left .btn-recentrar svg,
+      .leaflet-top.leaflet-left .btn-foco svg,
+      .leaflet-top.leaflet-left .btn-local svg { width: 21px; height: 21px; }
     }
 
     #conteudo { flex: 1; position: relative; min-height: 0; }
@@ -1460,6 +1484,32 @@ NO 30°45' ; 143,10"></textarea>
       s.btn.addEventListener("click", function () { abrirSecaoPainel(s); });
     });
     document.getElementById("painel-fechar").addEventListener("click", fecharPainel);
+
+    // No celular: "Filtros" sai do painel 1 (ferramentas) e vai pro painel 2 (localização).
+    (function organizarPaineisMobile() {
+      const mq = window.matchMedia("(max-width: 620px)");
+      const btnFiltros = document.getElementById("menu-toggle");
+      const painel2 = document.querySelector(".leaflet-top.leaflet-left");
+      if (!btnFiltros || !painel2) return;
+      const casaDesktop = btnFiltros.parentNode; // <div class="tool"> do cabeçalho
+      let jaIsolado = false;
+      function organizar() {
+        if (mq.matches) {
+          if (btnFiltros.parentNode !== painel2) {
+            painel2.insertBefore(btnFiltros, painel2.firstChild);
+            if (!jaIsolado) { // impede que o clique chegue ao mapa (zoom/arrasto)
+              L.DomEvent.disableClickPropagation(btnFiltros);
+              L.DomEvent.disableScrollPropagation(btnFiltros);
+              jaIsolado = true;
+            }
+          }
+        } else if (btnFiltros.parentNode !== casaDesktop) {
+          casaDesktop.appendChild(btnFiltros);
+        }
+      }
+      organizar();
+      mq.addEventListener("change", organizar);
+    })();
     // Marca d'água do corretor no painel vazio (mesmo logo do quadro de usuário).
     if (cliente.logoUsuario) {
       document.getElementById("painel-marca-img").src = cliente.logoUsuario;
