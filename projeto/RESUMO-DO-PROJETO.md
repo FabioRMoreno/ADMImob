@@ -6,12 +6,16 @@ Este é o "aqui estamos" do projeto. Se voltar depois de um tempo, comece por aq
 
 ## Onde estamos
 
-Produto **maduro e personalizado para o Adriel**, já **no GitHub** (repositório
-privado `FabioRMoreno/ADMImob`, sincronizado — o 1º push finalmente aconteceu).
-Em 2026-07-28 entrou **login por corretor + cofre** (dados criptografados; ver
-abaixo). Falta **ligar o GitHub Pages** — decisão pendente do Fabio: repo público
-(grátis) vs. privado com GitHub Pro (~US$ 4/mês) — e trocar os dados de exemplo
-pelos reais.
+Produto **NO AR** 🎉 — repositório **público** `FabioRMoreno/ADMImob`, publicado no
+**GitHub Pages** em 2026-07-28:
+`https://fabiormoreno.github.io/ADMImob/?cliente=adriel` (login `Adriel`). Já abre
+no **celular** (testado no Android), com HTTPS, login e cofre funcionando. Nesse
+mesmo dia entraram **login por corretor + cofre** (dados criptografados; ver abaixo).
+
+**FOCO ATUAL: adaptar o layout ao celular.** Hoje o cabeçalho e o painel lateral
+(largura fixa de 236px, feita pra desktop) ficam **desconfigurados na tela do
+celular** — o painel ocupa ~metade da largura. É a próxima frente de trabalho.
+Falta também trocar os dados de exemplo pelos reais.
 
 ## Novidades de 2026-07-28 — Login + Cofre
 
@@ -149,7 +153,8 @@ Fora das camadas, o `config` de cada cliente também aceita **`pontoFoco`**
 | 2 | Nome "ADMImob" aplicado nos arquivos | ✅ |
 | 3 | Trocar contatos placeholder do Adriel por reais (`config.js`) | ⏳ |
 | 4 | Resolver hospedagem de fotos (Cloudinary) | ⏳ |
-| 5 | Ativar GitHub Pages | ⏳ |
+| 5 | Ativar GitHub Pages | ✅ (repo público + Pages no ar, 2026-07-28) |
+| 8 | Adaptar o layout ao celular (foco atual) | 🟡 em andamento |
 | 6 | Cadastrar catálogo real do Adriel | 🟡 estrutura pronta (6 exemplos); faltam os reais |
 | 7 | Fechar com o Adriel e cobrar 1ª mensalidade | ⏳ |
 
