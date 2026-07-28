@@ -138,6 +138,28 @@
       .leaflet-top.leaflet-left .btn-local svg { width: 21px; height: 21px; }
     }
 
+    /* Barra inferior preta (espelha o topo) */
+    #barra-inferior {
+      flex: none; z-index: 1000;
+      background: var(--topo); color: #fff;
+      display: flex; align-items: center; gap: 14px;
+      padding: 5px 14px; min-height: 40px;
+      font-size: .78rem; box-shadow: 0 -2px 6px rgba(0,0,0,.28);
+    }
+    #bi-num { flex: none; font-variant-numeric: tabular-nums; color: #e8eaec; font-weight: 600; }
+    #bi-local { flex: 1; min-width: 0; display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
+    #bi-local .bi-pin { font-size: .9rem; flex: none; }
+    #bi-local-nome { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #bi-escala { flex: none; display: flex; align-items: center; }
+    #bi-escala .leaflet-control-scale { margin: 0; }
+    #bi-escala .leaflet-control-scale-line {
+      border-color: rgba(255,255,255,.65); color: #fff; background: transparent;
+      box-shadow: none; text-shadow: none; font-size: .7rem; padding: 1px 6px; line-height: 1.3;
+    }
+    @media (max-width: 620px) {
+      #barra-inferior { gap: 9px; padding: 4px 10px; min-height: 36px; font-size: .72rem; }
+    }
+
     #conteudo { flex: 1; position: relative; min-height: 0; }
     #map { position: absolute; inset: 0; }
 
@@ -773,6 +795,13 @@ NO 30°45' ; 143,10"></textarea>
         </div>
       </div>
     </div>
+
+    <!-- Barra inferior preta (espelha o topo): escala + escala numérica + localização -->
+    <footer id="barra-inferior">
+      <div id="bi-escala"></div>
+      <div id="bi-num">1:—</div>
+      <div id="bi-local"><span class="bi-pin">📍</span><span id="bi-local-nome">—</span></div>
+    </footer>
   </div>
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
@@ -934,6 +963,10 @@ NO 30°45' ; 143,10"></textarea>
     // Remove só o "Leaflet" (cortesia, não obrigatório). O crédito dos tiles
     // (Esri/OSM) PERMANECE por exigência da licença — não pode ser escondido.
     map.attributionControl.setPrefix(false);
+
+    // Perímetros das cidades (preenchido ao carregar cidadesFoco). Usado pela
+    // mira azul E pela barra inferior (localização atual por ponto-em-polígono).
+    let listaCidades = [];
 
     const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
     const attrEsri = "Tiles © Esri";
@@ -1102,6 +1135,8 @@ NO 30°45' ; 143,10"></textarea>
               if (bounds && bounds.isValid()) cidades.push({ nome: nome, bounds: bounds, feature: f });
             });
             cidades.sort(function (a, b) { return a.nome.localeCompare(b.nome, "pt-BR"); });
+            listaCidades = cidades;          // disponibiliza p/ a barra inferior
+            atualizarBarraInferior();        // já mostra a localização inicial
             menuCidades.innerHTML = "";
             cidades.forEach(function (c) {
               const b = document.createElement("button");
@@ -1183,10 +1218,32 @@ NO 30°45' ; 143,10"></textarea>
       alert("Não consegui pegar sua localização.\n\nVerifique se você permitiu o acesso à localização para este site nas configurações do navegador.\n\n(" + (e.message || "erro desconhecido") + ")");
     });
 
-    // ---- Barra de escala (dá noção de distância) ----
-    L.control.scale({
-      position: "bottomleft", metric: true, imperial: false, maxWidth: 130
-    }).addTo(map);
+    // ---- Barra inferior: escala (gráfica) + escala numérica + localização ----
+    const ctrlEscala = L.control.scale({ position: "bottomleft", metric: true, imperial: false, maxWidth: 110 });
+    ctrlEscala.addTo(map);
+    const biEscala = document.getElementById("bi-escala");
+    if (biEscala) biEscala.appendChild(ctrlEscala.getContainer()); // move a barra pro rodapé
+
+    // Escala numérica (1:N) + cidade atual (ponto-em-polígono no centro do mapa).
+    function atualizarBarraInferior() {
+      const c = map.getCenter();
+      const mpp = 156543.03392 * Math.cos(c.lat * Math.PI / 180) / Math.pow(2, map.getZoom());
+      const N = Math.round(Number((mpp / 0.00026458).toPrecision(2)));
+      const elNum = document.getElementById("bi-num");
+      if (elNum) elNum.textContent = "1:" + N.toLocaleString("pt-BR");
+
+      let nome = "";
+      if (listaCidades.length) {
+        const pt = turf.point([c.lng, c.lat]);
+        for (let i = 0; i < listaCidades.length; i++) {
+          try { if (turf.booleanPointInPolygon(pt, listaCidades[i].feature)) { nome = listaCidades[i].nome; break; } } catch (e) {}
+        }
+      }
+      const elLoc = document.getElementById("bi-local-nome");
+      if (elLoc) elLoc.textContent = nome || "—";
+    }
+    map.on("moveend zoomend", atualizarBarraInferior);
+    atualizarBarraInferior();
 
     // troca de camada (fundo do mapa)
     document.querySelectorAll(".cam-op").forEach(function (b) {
