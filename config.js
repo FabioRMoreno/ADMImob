@@ -30,6 +30,14 @@ const CLIENTES = {
     // Logo do corretor (aparece no quadro de usuário). "" = usa as iniciais.
     logoUsuario: "img/adriel.jpg?v=1",
 
+    // --- Acesso (COFRE: login + senha que desembaralha os dados) ---
+    // O corretor repassa login+senha a quem ele quiser. A SENHA NÃO fica aqui:
+    // ela é a chave que decripta o dados/adriel.enc. Sem ela, os dados são lixo.
+    // Trocar a senha = re-gerar o .enc e distribuir a nova senha (revoga a antiga).
+    // Gerar/atualizar: node ferramentas/encriptar.js <geojson> <senha> <saida.enc>
+    login: "Adriel",
+    dadosEnc: "dados/adriel.enc",
+
     // --- Onde o mapa abre (lat, lng) e zoom inicial ---
     // Cassilândia-MS por padrão. Ajuste para a cidade do corretor.
     centro: [-19.1129, -51.7342],
@@ -49,8 +57,8 @@ const CLIENTES = {
       instagram: "adrielimoveis"            // sem @
     },
 
-    // Arquivo de dados dos imóveis (dentro de /dados)
-    dados: "dados/adriel.geojson",
+    // Dados dos imóveis: quando há "dadosEnc" acima, o app usa o cofre e o
+    // GeoJSON aberto NÃO é usado nem publicado. (Sem cofre, use: dados: "dados/<slug>.geojson")
 
     // --- Camadas de referência (opcional) ---
     // Contexto pro corretor: bairros, ruas, fazendas conhecidas, pontos da cidade.

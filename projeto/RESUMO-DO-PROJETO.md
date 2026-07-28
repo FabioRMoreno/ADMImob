@@ -1,18 +1,43 @@
 # RESUMO DO PROJETO — ADMImob
 
-_Última atualização: 2026-07-23_
+_Última atualização: 2026-07-28_
 
 Este é o "aqui estamos" do projeto. Se voltar depois de um tempo, comece por aqui.
 
 ## Onde estamos
 
-Produto **maduro e personalizado para o Adriel**, com cara de produto pronto.
-Falta **publicar** (o app só roda no PC do Fabio hoje) e trocar os dados de
-exemplo pelos reais. **25 commits locais** aguardando o primeiro `git push`, **mais
-um dia inteiro de melhorias de 2026-07-23 ainda não commitadas** (`config.js`,
-`index.html`, o `img/logo.png` novo e os GeoJSON de bairros, municípios e acessos).
+Produto **maduro e personalizado para o Adriel**, já **no GitHub** (repositório
+privado `FabioRMoreno/ADMImob`, sincronizado — o 1º push finalmente aconteceu).
+Em 2026-07-28 entrou **login por corretor + cofre** (dados criptografados; ver
+abaixo). Falta **ligar o GitHub Pages** — decisão pendente do Fabio: repo público
+(grátis) vs. privado com GitHub Pro (~US$ 4/mês) — e trocar os dados de exemplo
+pelos reais.
 
-## Novidades de 2026-07-23 (testadas localmente, ainda não commitadas)
+## Novidades de 2026-07-28 — Login + Cofre
+
+- **Tela de login por corretor**: um overlay cobre o app até a pessoa entrar.
+  Logo + "Acesso restrito" + Login/Senha + botão verde `#2f9e44` + fundo
+  `img/fundo.png` (preto com marca d'água). Cada corretor tem seu `login` no
+  `config.js` (o login é público; a senha, não). Foco das caixas em verde.
+- **Cofre (dados criptografados)**: os imóveis viraram `dados/<slug>.enc`
+  (AES-GCM 256 + PBKDF2 300k, via **Web Crypto nativo** — sem biblioteca). A
+  **senha é a chave** que desembaralha e **não fica no código**. Senha errada =
+  os dados nem carregam. A sessão guarda a senha (`sessionStorage`, chave
+  `admimob_sess_<slug>`) pra não pedir a cada reload.
+- **Config**: corretor com cofre usa `dadosEnc: "dados/<slug>.enc"` (sem `senha`
+  nem `dados` abertos). Sem cofre, o antigo `dados` + `senha` viram um "porteiro"
+  simples (gate visual). Sem login nem cofre, o app abre livre.
+- **Ferramenta** `ferramentas/encriptar.js` gera/atualiza o `.enc`:
+  `node ferramentas/encriptar.js dados/fonte/<slug>.geojson <senha> dados/<slug>.enc`.
+- **Fontes abertas** ficam em `dados/fonte/` (no `.gitignore`, **nunca publicadas**);
+  só o `.enc` vai pro ar. O GeoJSON aberto do Adriel foi movido pra lá — o caminho
+  antigo `dados/adriel.geojson` agora dá **404** (não vaza).
+- **Senha do Adriel: 6 dígitos** (guardada só com o Fabio, **fora do repo**). É um
+  "cofre leve": 6 dígitos = 1 milhão de combinações, cobre comprador/concorrente
+  casual; pra dados muito sensíveis, subir pra 8+ com letras. Trocar a senha =
+  re-gerar o `.enc` (revoga a antiga na hora). O `config.js?v=` está em **v=11**.
+
+## Novidades de 2026-07-23 (commitadas e no GitHub)
 
 - **Camada "Bairros Cassilândia"** (`dados/ref/bairros_cassilandia.geojson`, 14
   bairros, nome no campo `name`).
@@ -90,7 +115,7 @@ um dia inteiro de melhorias de 2026-07-23 ainda não commitadas** (`config.js`,
   atuais do Adriel: Bairros Cassilândia, Municípios MS, Acessos, Pontos de referência.
 - Multi-cliente por URL, área em ha, compatível com GeoJSON do QGIS.
 - Cache resolvido: geojson `no-cache`; `config.js?v=N` (bump ao editar o config;
-  **hoje está em `?v=9`**).
+  **hoje está em `?v=11`**).
 
 ## Esquema do `config.camadas` (atualizado)
 
@@ -120,7 +145,7 @@ Fora das camadas, o `config` de cada cliente também aceita **`pontoFoco`**
 
 | # | Pendência | Status |
 |---|-----------|--------|
-| 1 | Liberar push no GitHub (autenticar git via PAT) | ⏳ (Fabio quer estudar antes) |
+| 1 | Liberar push no GitHub (autenticar git via PAT) | ✅ (credencial salva no Windows; push ok em 2026-07-28) |
 | 2 | Nome "ADMImob" aplicado nos arquivos | ✅ |
 | 3 | Trocar contatos placeholder do Adriel por reais (`config.js`) | ⏳ |
 | 4 | Resolver hospedagem de fotos (Cloudinary) | ⏳ |

@@ -382,9 +382,55 @@
       background: #fff; padding: 16px 20px; border-radius: 10px; z-index: 1200;
       box-shadow: 0 4px 16px rgba(0,0,0,.3); max-width: 300px; text-align: center; font-size: .9rem; color: #b00;
     }
+
+    /* Tela de login (porta de acesso por corretor) */
+    #login-overlay {
+      position: fixed; inset: 0; z-index: 2000; padding: 24px;
+      background: #17191c url("img/fundo.png?v=1") center / cover no-repeat;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #login-overlay.oculto { display: none; }
+    .login-caixa {
+      width: 100%; max-width: 330px; text-align: center;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .login-logo { max-width: 150px; max-height: 74px; margin: 0 auto; object-fit: contain; }
+    .login-sub { font-size: .82rem; color: #b9bec4; }
+    .login-campo { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+    .login-campo > span { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: #b9bec4; }
+    .login-campo input {
+      padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,.15);
+      background: rgba(255,255,255,.06); color: #fff; font-size: 1rem; outline: none;
+    }
+    .login-campo input:focus { border-color: #2f9e44; }
+    #login-btn {
+      margin-top: 4px; padding: 13px; border: none; border-radius: 10px; cursor: pointer;
+      background: #2f9e44; color: #fff; font-size: 1rem; font-weight: 700;
+    }
+    #login-btn:hover { filter: brightness(1.08); }
+    .login-erro { font-size: .82rem; color: #ff8a8a; min-height: 1.1em; }
+    .login-aviso { font-size: .72rem; color: #7f858b; margin-top: 6px; line-height: 1.45; }
   </style>
 </head>
 <body>
+  <div id="login-overlay" class="oculto">
+    <div class="login-caixa">
+      <img id="login-logo" class="login-logo" alt="ADMImob" />
+      <div class="login-sub">Acesso restrito</div>
+      <label class="login-campo">
+        <span>Login</span>
+        <input type="text" id="login-user" autocomplete="off" autocapitalize="none" spellcheck="false" />
+      </label>
+      <label class="login-campo">
+        <span>Senha</span>
+        <input type="password" id="login-pass" inputmode="numeric" maxlength="8" autocomplete="off" />
+      </label>
+      <button id="login-btn" type="button">Entrar</button>
+      <div id="login-erro" class="login-erro"></div>
+      <div class="login-aviso">🔒 Conteúdo confidencial. Não repasse seu acesso a terceiros.</div>
+    </div>
+  </div>
+
   <div id="app">
     <header>
       <span class="hdr-logo-wrap" id="hdr-logo-wrap">
@@ -615,7 +661,7 @@ NO 30°45' ; 143,10"></textarea>
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
        para o navegador do corretor pegar a versão nova em vez do cache. -->
-  <script src="config.js?v=9"></script>
+  <script src="config.js?v=11"></script>
   <script>
   (function () {
     "use strict";
@@ -654,6 +700,117 @@ NO 30°45' ; 143,10"></textarea>
       logoImg.onerror = function () { logoWrap.classList.remove("tem-logo"); };
       logoImg.src = cliente.logo;
     }
+
+    // ---- 2b. Carregamento dos imóveis (aberto ou via cofre) ----
+    function usarDados(gj) {
+      todasFeatures = (gj && gj.features) || [];
+      aplicarFiltros();
+    }
+    function erroDados(msg) {
+      const div = document.createElement("div");
+      div.className = "erro-carga";
+      div.textContent = "Não foi possível carregar os imóveis (" + msg + ").";
+      document.getElementById("conteudo").appendChild(div);
+    }
+    function carregarAbertos() {
+      fetch(cliente.dados, { cache: "no-cache" })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+        .then(usarDados)
+        .catch(function (e) {
+          erroDados(e.message + " — se abriu via file://, publique no GitHub Pages");
+        });
+    }
+    // Cofre: desembaralha o GeoJSON com a senha (Web Crypto: PBKDF2 + AES-GCM).
+    // Senha errada faz a decriptação falhar (GCM), então serve de validação.
+    async function decriptarDados(encObj, senha) {
+      const b2u = function (b64) { return Uint8Array.from(atob(b64), function (c) { return c.charCodeAt(0); }); };
+      const baseKey = await crypto.subtle.importKey(
+        "raw", new TextEncoder().encode(senha), "PBKDF2", false, ["deriveKey"]);
+      const key = await crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: b2u(encObj.salt), iterations: encObj.iter, hash: "SHA-256" },
+        baseKey, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+      const buf = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: b2u(encObj.iv) }, key, b2u(encObj.ct));
+      return JSON.parse(new TextDecoder().decode(buf));
+    }
+
+    // ---- 2c. Login por corretor: porteiro simples OU cofre criptografado ----
+    (function iniciarLogin() {
+      const overlay = document.getElementById("login-overlay");
+      const temCofre = !!cliente.dadosEnc;
+      const temPorteiro = !!(cliente.login && cliente.senha);
+      const chaveSess = "admimob_sess_" + slug;
+
+      // Sem login nenhum: abre direto e carrega os dados abertos.
+      if (!temCofre && !temPorteiro) {
+        overlay.classList.add("oculto");
+        carregarAbertos();
+        return;
+      }
+
+      // Logo da tela de login (usa o mesmo do cabeçalho)
+      if (cliente.logo) {
+        const lg = document.getElementById("login-logo");
+        lg.onerror = function () { lg.style.display = "none"; };
+        lg.src = cliente.logo;
+      }
+      const inUser = document.getElementById("login-user");
+      const inPass = document.getElementById("login-pass");
+      const erro = document.getElementById("login-erro");
+      const btn = document.getElementById("login-btn");
+
+      function falhar() {
+        overlay.classList.remove("oculto");
+        erro.textContent = "Login ou senha incorretos.";
+        inPass.value = ""; btn.disabled = false;
+        setTimeout(function () { inPass.focus(); }, 30);
+      }
+
+      function tentar(loginTxt, senhaTxt, silencioso) {
+        const u = (loginTxt || "").trim().toLowerCase();
+        const s = (senhaTxt || "").trim();
+        const loginOk = u === String(cliente.login || "").trim().toLowerCase();
+
+        if (temCofre) {
+          if (!loginOk || !s) { if (!silencioso) falhar(); return; }
+          btn.disabled = true; erro.textContent = "Abrindo…";
+          fetch(cliente.dadosEnc, { cache: "no-cache" })
+            .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+            .then(function (encObj) { return decriptarDados(encObj, s); })
+            .then(function (gj) {
+              sessionStorage.setItem(chaveSess, s); // lembra a senha só nesta sessão
+              overlay.classList.add("oculto");
+              erro.textContent = ""; btn.disabled = false;
+              usarDados(gj);
+            })
+            .catch(function () { sessionStorage.removeItem(chaveSess); falhar(); });
+        } else {
+          // Porteiro simples: valida senha do config (dados abertos carregam à parte)
+          if (loginOk && s === String(cliente.senha).trim()) {
+            sessionStorage.setItem(chaveSess, "ok");
+            overlay.classList.add("oculto");
+          } else if (!silencioso) { falhar(); }
+        }
+      }
+
+      // Porteiro simples: os dados abertos carregam por trás do login.
+      if (!temCofre) carregarAbertos();
+
+      btn.addEventListener("click", function () { tentar(inUser.value, inPass.value, false); });
+      inUser.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); inPass.focus(); } });
+      inPass.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); tentar(inUser.value, inPass.value, false); } });
+
+      // Já autenticado nesta sessão? reabre sem pedir de novo.
+      const lembrado = sessionStorage.getItem(chaveSess);
+      if (lembrado) {
+        overlay.classList.add("oculto"); // otimista, evita o "flash" da tela
+        if (temCofre) tentar(cliente.login, lembrado, true); // re-decripta em silêncio
+        return;
+      }
+
+      overlay.classList.remove("oculto");
+      setTimeout(function () { inUser.focus(); }, 50);
+    })();
 
     // ---- 3. Mapa base (satélite Esri, uso livre) ----
     const map = L.map("map", { zoomControl: true })
@@ -961,22 +1118,8 @@ NO 30°45' ; 143,10"></textarea>
     };
 
     // ---- 5. Carregar GeoJSON do corretor ----
-    fetch(cliente.dados, { cache: "no-cache" }) // revalida sempre: catálogo atualizado aparece na hora
-      .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
-      .then(function (gj) {
-        todasFeatures = (gj.features || []);
-        aplicarFiltros();
-      })
-      .catch(function (e) {
-        const div = document.createElement("div");
-        div.className = "erro-carga";
-        div.textContent = "Não foi possível carregar os imóveis (" + e.message +
-          "). Se estiver abrindo o arquivo direto do PC, publique no GitHub Pages — fetch não funciona em file://";
-        document.getElementById("conteudo").appendChild(div);
-      });
+    // Feito na seção 2b/2c: dados abertos carregam na hora; dados em cofre só
+    // carregam após a senha correta desembaralhar o arquivo .enc.
 
     // ---- 6. Renderizar features no mapa ----
     function render(features) {

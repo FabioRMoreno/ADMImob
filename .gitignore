@@ -4,6 +4,10 @@
 # Fotos de imóveis nunca vão pro repo (usar Cloudinary)
 # (o logo em img/ é exceção: é a marca, pode versionar)
 
+# COFRE: os GeoJSON ABERTOS de corretores ficam só aqui (nunca no repo/ar).
+# Só o arquivo .enc (embaralhado) é publicado. Ver ferramentas/encriptar.js
+dados/fonte/
+
 # Lixo de sistema
 Thumbs.db
 .DS_Store
