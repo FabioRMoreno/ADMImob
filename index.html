@@ -395,6 +395,22 @@
     .btn-local:hover { color: #1558c0 !important; }
     .btn-local.carregando { color: #1a73e8 !important; opacity: .55; }
 
+    /* Balão de cidades (menu da mira azul) */
+    #foco-menu {
+      position: fixed; z-index: 1400; display: none;
+      background: var(--topo); color: #fff; border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.45); padding: 6px;
+      min-width: 172px; max-height: 62vh; overflow-y: auto;
+    }
+    #foco-menu.aberto { display: block; }
+    .foco-cidade {
+      display: block; width: 100%; text-align: left; cursor: pointer;
+      background: transparent; border: none; color: #fff;
+      padding: 10px 12px; border-radius: 8px; font-size: .9rem;
+    }
+    .foco-cidade:hover { background: rgba(255,255,255,.14); }
+    .foco-vazio { padding: 12px; font-size: .85rem; color: #b9bec4; }
+
     /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
     .leaflet-control-scale { margin-bottom: 12px !important; margin-left: 12px !important; }
     .leaflet-control-scale-line {
@@ -555,6 +571,9 @@
       </div>
     </header>
 
+    <!-- Balão de cidades (abre ao tocar na mira azul) -->
+    <div id="foco-menu"></div>
+
     <div id="conteudo">
       <div id="map"></div>
 
@@ -709,7 +728,7 @@ NO 30°45' ; 143,10"></textarea>
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
        para o navegador do corretor pegar a versão nova em vez do cache. -->
-  <script src="config.js?v=11"></script>
+  <script src="config.js?v=12"></script>
   <script>
   (function () {
     "use strict";
@@ -946,16 +965,19 @@ NO 30°45' ; 143,10"></textarea>
     });
     map.addControl(new CtrlRecentrar());
 
-    // ---- Botão azul: ir direto para uma cidade específica (config.pontoFoco) ----
-    if (cliente.pontoFoco && cliente.pontoFoco.centro) {
-      const FOCO = cliente.pontoFoco;
+    // ---- Botão azul (mira): menu de cidades OU salto único (fallback) ----
+    const temMenuCidades = !!(cliente.cidadesFoco && cliente.cidadesFoco.arquivo);
+    const FOCO = cliente.pontoFoco;
+    if (temMenuCidades || (FOCO && FOCO.centro)) {
+      let btnFocoEl = null;
       const CtrlFoco = L.Control.extend({
         options: { position: "topleft" },
         onAdd: function () {
           const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
           const a = L.DomUtil.create("a", "btn-foco", div);
+          btnFocoEl = a;
           a.href = "#";
-          a.title = "Ir para " + (FOCO.titulo || "cidade");
+          a.title = temMenuCidades ? "Ir para uma cidade" : ("Ir para " + ((FOCO && FOCO.titulo) || "cidade"));
           a.setAttribute("role", "button");
           a.setAttribute("aria-label", a.title);
           a.innerHTML =
@@ -966,12 +988,67 @@ NO 30°45' ; 143,10"></textarea>
           L.DomEvent.disableClickPropagation(div);
           L.DomEvent.on(a, "click", function (e) {
             L.DomEvent.preventDefault(e);
-            map.setView(FOCO.centro, FOCO.zoom || 14); // sem forçar animação: salto longo aborta a anim. do Leaflet
+            if (temMenuCidades) alternarMenuCidades(a);
+            else map.setView(FOCO.centro, FOCO.zoom || 14);
           });
           return div;
         }
       });
       map.addControl(new CtrlFoco());
+
+      // menu/funções no escopo do bloco (acessíveis ao handler do clique)
+      const menuCidades = document.getElementById("foco-menu");
+      function fecharMenuCidades() { menuCidades.classList.remove("aberto"); }
+      function alternarMenuCidades(btn) {
+        if (menuCidades.classList.contains("aberto")) { fecharMenuCidades(); return; }
+        menuCidades.classList.add("aberto");
+        // posiciona ao lado do botão (abre pro lado com mais espaço)
+        const r = btn.getBoundingClientRect();
+        menuCidades.style.top = Math.max(8, Math.min(r.top, window.innerHeight - menuCidades.offsetHeight - 8)) + "px";
+        if (r.left > window.innerWidth / 2) {
+          menuCidades.style.right = (window.innerWidth - r.left + 8) + "px"; menuCidades.style.left = "auto";
+        } else {
+          menuCidades.style.left = (r.right + 8) + "px"; menuCidades.style.right = "auto";
+        }
+      }
+
+      if (temMenuCidades) {
+        // Camada INVISÍVEL: só usa a geometria pra calcular o enquadramento de cada cidade.
+        fetch(cliente.cidadesFoco.arquivo, { cache: "no-cache" })
+          .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+          .then(function (gj) {
+            const campo = cliente.cidadesFoco.rotulo || "Name";
+            const cidades = [];
+            (gj.features || []).forEach(function (f) {
+              const p = f.properties || {};
+              const nome = p[campo] || p.name || p.nome || p.NOME || "Cidade";
+              let bounds = null;
+              try { bounds = L.geoJSON(f).getBounds(); } catch (e) { bounds = null; }
+              if (bounds && bounds.isValid()) cidades.push({ nome: nome, bounds: bounds });
+            });
+            cidades.sort(function (a, b) { return a.nome.localeCompare(b.nome, "pt-BR"); });
+            menuCidades.innerHTML = "";
+            cidades.forEach(function (c) {
+              const b = document.createElement("button");
+              b.type = "button"; b.className = "foco-cidade"; b.textContent = c.nome;
+              b.addEventListener("click", function () {
+                map.fitBounds(c.bounds, { padding: [28, 28] });
+                fecharMenuCidades();
+              });
+              menuCidades.appendChild(b);
+            });
+          })
+          .catch(function () {
+            menuCidades.innerHTML = '<div class="foco-vazio">Não consegui carregar as cidades.</div>';
+          });
+
+        // fecha ao tocar fora do menu (o clique na mira não propaga: disableClickPropagation)
+        document.addEventListener("click", function (e) {
+          if (!menuCidades.classList.contains("aberto")) return;
+          if (menuCidades.contains(e.target) || (btnFocoEl && btnFocoEl.contains(e.target))) return;
+          fecharMenuCidades();
+        });
+      }
     }
 
     // ---- Botão: minha localização (GPS do usuário) ----

@@ -48,6 +48,12 @@ const CLIENTES = {
     // não mostrar o botão. Troque as coordenadas/zoom pela cidade desejada.
     pontoFoco: { titulo: "Chapadão do Sul", centro: [-18.7886, -52.6264], zoom: 14 },
 
+    // --- Menu de cidades na "mira azul" ---
+    // Clica na mira -> balão com os nomes -> vai direto ao perímetro da cidade.
+    // Camada INVISÍVEL (só referência pra navegar). Nomes no campo "Name".
+    // Se definido, tem prioridade sobre o pontoFoco (que vira só fallback).
+    cidadesFoco: { arquivo: "dados/ref/cidades_zoom.geojson", rotulo: "Name" },
+
     // --- Contatos (aparecem nos botões da ficha do imóvel) ---
     // ⚠️ PLACEHOLDERS — trocar pelos dados REAIS do Adriel (pendência 3).
     contatos: {
