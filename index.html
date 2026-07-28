@@ -386,6 +386,14 @@
     }
     .btn-foco svg { width: 17px; height: 17px; }
     .btn-foco:hover { color: #1a5fb8 !important; }
+    /* Botão "minha localização" (GPS) */
+    .btn-local {
+      display: flex !important; align-items: center; justify-content: center;
+      width: 30px; height: 30px; color: #333;
+    }
+    .btn-local svg { width: 18px; height: 18px; }
+    .btn-local:hover { color: #1a73e8; }
+    .btn-local.carregando { color: #1a73e8; opacity: .55; }
 
     /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
     .leaflet-control-scale { margin-bottom: 12px !important; margin-left: 12px !important; }
@@ -965,6 +973,59 @@ NO 30°45' ; 143,10"></textarea>
       });
       map.addControl(new CtrlFoco());
     }
+
+    // ---- Botão: minha localização (GPS do usuário) ----
+    let marcadorUsuario = null, circuloPrecisao = null;
+    const CtrlLocal = L.Control.extend({
+      options: { position: "topleft" },
+      onAdd: function () {
+        const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+        const a = L.DomUtil.create("a", "btn-local", div);
+        a.href = "#";
+        a.title = "Minha localização";
+        a.setAttribute("role", "button");
+        a.setAttribute("aria-label", "Minha localização");
+        a.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/>' +
+          '<circle cx="12" cy="10" r="2.5"/></svg>';
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.on(a, "click", function (e) {
+          L.DomEvent.preventDefault(e);
+          a.classList.add("carregando");
+          map.locate({ setView: true, maxZoom: 16, enableHighAccuracy: true, timeout: 10000 });
+        });
+        return div;
+      }
+    });
+    map.addControl(new CtrlLocal());
+
+    map.on("locationfound", function (e) {
+      posUsuario = [e.latlng.lat, e.latlng.lng];
+      document.querySelectorAll(".btn-local").forEach(function (a) { a.classList.remove("carregando"); });
+      if (marcadorUsuario) {
+        marcadorUsuario.setLatLng(e.latlng);
+      } else {
+        marcadorUsuario = L.circleMarker(e.latlng, {
+          radius: 8, color: "#fff", weight: 3, fillColor: "#1a73e8", fillOpacity: 1
+        }).addTo(map);
+        marcadorUsuario.bindPopup("Você está aqui");
+      }
+      const raio = Math.min(Math.max(e.accuracy || 40, 10), 600);
+      if (circuloPrecisao) {
+        circuloPrecisao.setLatLng(e.latlng).setRadius(raio);
+      } else {
+        circuloPrecisao = L.circle(e.latlng, {
+          radius: raio, color: "#1a73e8", weight: 1, fillColor: "#1a73e8", fillOpacity: 0.12
+        }).addTo(map);
+      }
+    });
+
+    map.on("locationerror", function (e) {
+      document.querySelectorAll(".btn-local").forEach(function (a) { a.classList.remove("carregando"); });
+      alert("Não consegui pegar sua localização.\n\nVerifique se você permitiu o acesso à localização para este site nas configurações do navegador.\n\n(" + (e.message || "erro desconhecido") + ")");
+    });
 
     // ---- Barra de escala (dá noção de distância) ----
     L.control.scale({
