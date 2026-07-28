@@ -395,6 +395,13 @@
     .btn-local:hover { color: #1558c0 !important; }
     .btn-local.carregando { color: #1a73e8 !important; opacity: .55; }
 
+    /* Atribuição dos tiles: discreta (mas visível, por exigência da licença) */
+    .leaflet-control-attribution {
+      font-size: 9px; line-height: 1.4; padding: 0 5px;
+      background: rgba(255,255,255,.5) !important; color: #566;
+    }
+    .leaflet-control-attribution a { color: #566; }
+
     /* Balão de cidades (menu da mira azul) */
     #foco-menu {
       position: fixed; z-index: 1400; display: none;
@@ -900,6 +907,9 @@ NO 30°45' ; 143,10"></textarea>
     // ---- 3. Mapa base (satélite Esri, uso livre) ----
     const map = L.map("map", { zoomControl: true })
       .setView(cliente.centro || [-19.11, -51.73], cliente.zoom || 13);
+    // Remove só o "Leaflet" (cortesia, não obrigatório). O crédito dos tiles
+    // (Esri/OSM) PERMANECE por exigência da licença — não pode ser escondido.
+    map.attributionControl.setPrefix(false);
 
     const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
     const attrEsri = "Tiles © Esri";
