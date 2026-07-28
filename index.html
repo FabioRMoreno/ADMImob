@@ -389,11 +389,11 @@
     /* Botão "minha localização" (GPS) */
     .btn-local {
       display: flex !important; align-items: center; justify-content: center;
-      width: 30px; height: 30px; color: #333;
+      width: 30px; height: 30px; color: #1a73e8 !important;
     }
     .btn-local svg { width: 18px; height: 18px; }
-    .btn-local:hover { color: #1a73e8; }
-    .btn-local.carregando { color: #1a73e8; opacity: .55; }
+    .btn-local:hover { color: #1558c0 !important; }
+    .btn-local.carregando { color: #1a73e8 !important; opacity: .55; }
 
     /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
     .leaflet-control-scale { margin-bottom: 12px !important; margin-left: 12px !important; }
@@ -988,8 +988,11 @@ NO 30°45' ; 143,10"></textarea>
         a.innerHTML =
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
           'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-          '<path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/>' +
-          '<circle cx="12" cy="10" r="2.5"/></svg>';
+          '<circle cx="12" cy="5" r="2.4"/>' +          /* cabeça */
+          '<path d="M12 7.4V14.5"/>' +                  /* tronco  */
+          '<path d="M7.5 10H16.5"/>' +                  /* braços  */
+          '<path d="M12 14.5L8.5 20M12 14.5L15.5 20"/>' + /* pernas  */
+          '</svg>';
         L.DomEvent.disableClickPropagation(div);
         L.DomEvent.on(a, "click", function (e) {
           L.DomEvent.preventDefault(e);
