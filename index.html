@@ -411,6 +411,24 @@
     .foco-cidade:hover { background: rgba(255,255,255,.14); }
     .foco-vazio { padding: 12px; font-size: .85rem; color: #b9bec4; }
 
+    /* "Flash" neon ao escolher uma cidade (aparece ~2s e some) */
+    @keyframes cidadeFlash {
+      0% { opacity: 0; } 12% { opacity: 1; } 72% { opacity: 1; } 100% { opacity: 0; }
+    }
+    .cidade-flash {
+      filter: drop-shadow(0 0 4px #1e9bff) drop-shadow(0 0 8px #1e9bff);
+      animation: cidadeFlash 2s ease forwards;
+    }
+    .leaflet-div-icon.cidade-flash-icon {
+      background: transparent; border: none; box-shadow: none;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none; animation: cidadeFlash 2s ease forwards;
+    }
+    .cidade-flash-txt {
+      color: #4fc3ff; font-size: 1.15rem; font-weight: 800; white-space: nowrap;
+      text-shadow: 0 0 6px #1e9bff, 0 0 12px #1e9bff, 0 1px 3px rgba(0,0,0,.7);
+    }
+
     /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
     .leaflet-control-scale { margin-bottom: 12px !important; margin-left: 12px !important; }
     .leaflet-control-scale-line {
@@ -1012,6 +1030,29 @@ NO 30°45' ; 143,10"></textarea>
         }
       }
 
+      // "Flash" da cidade escolhida: contorno neon azul + nome, por ~2s (só confirma o zoom).
+      let flashLayer = null, flashLabel = null, flashId = 0;
+      function limparFlash() {
+        if (flashLayer) { map.removeLayer(flashLayer); flashLayer = null; }
+        if (flashLabel) { map.removeLayer(flashLabel); flashLabel = null; }
+      }
+      function flashCidade(feature, bounds, nome) {
+        limparFlash();
+        const meuId = ++flashId;
+        flashLayer = L.geoJSON(feature, {
+          style: { color: "#1e9bff", weight: 3, opacity: 1, fill: false, className: "cidade-flash" }
+        }).addTo(map);
+        flashLabel = L.marker(bounds.getCenter(), {
+          interactive: false, keyboard: false,
+          icon: L.divIcon({
+            className: "cidade-flash-icon",
+            html: '<span class="cidade-flash-txt">' + nome + '</span>',
+            iconSize: [220, 40], iconAnchor: [110, 20]
+          })
+        }).addTo(map);
+        setTimeout(function () { if (meuId === flashId) limparFlash(); }, 2000);
+      }
+
       if (temMenuCidades) {
         // Camada INVISÍVEL: só usa a geometria pra calcular o enquadramento de cada cidade.
         fetch(cliente.cidadesFoco.arquivo, { cache: "no-cache" })
@@ -1024,7 +1065,7 @@ NO 30°45' ; 143,10"></textarea>
               const nome = p[campo] || p.name || p.nome || p.NOME || "Cidade";
               let bounds = null;
               try { bounds = L.geoJSON(f).getBounds(); } catch (e) { bounds = null; }
-              if (bounds && bounds.isValid()) cidades.push({ nome: nome, bounds: bounds });
+              if (bounds && bounds.isValid()) cidades.push({ nome: nome, bounds: bounds, feature: f });
             });
             cidades.sort(function (a, b) { return a.nome.localeCompare(b.nome, "pt-BR"); });
             menuCidades.innerHTML = "";
@@ -1034,6 +1075,7 @@ NO 30°45' ; 143,10"></textarea>
               b.addEventListener("click", function () {
                 map.fitBounds(c.bounds, { padding: [28, 28] });
                 fecharMenuCidades();
+                flashCidade(c.feature, c.bounds, c.nome);
               });
               menuCidades.appendChild(b);
             });
