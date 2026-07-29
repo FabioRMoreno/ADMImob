@@ -62,10 +62,6 @@
       box-shadow: 0 0 0 3px rgba(56,214,107,.28);
     }
     /* Atalhos do cabeçalho (Filtros / Medir / Dados / Fundo / Camadas) */
-    .hdr-right {
-      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
-      display: flex; align-items: center; gap: 12px;
-    }
     .hdr-tools { display: flex; gap: 6px; }
     .tool { position: relative; }
     .tool-btn {
@@ -88,11 +84,10 @@
     }
     @media (max-width: 620px) {
       /* ===== "L invertido": barra fina no topo + trilho vertical na direita ===== */
-      /* Topo fino: logo à esquerda + "● Logado" à direita */
+      /* Topo fino: só a logo (o "Logado" mora na barra inferior) */
       header { min-height: 46px; padding: 6px 10px; gap: 8px; box-shadow: 0 1px 5px rgba(0,0,0,.3); }
       .hdr-logo-wrap.tem-logo { display: flex; width: 100px; height: 38px; left: 10px; border-radius: 7px; }
-      .hdr-right { right: 10px; gap: 8px; }
-      #user-badge { padding: 6px 11px; }
+      #user-badge { padding: 5px 10px; gap: 8px; }
       #user-badge .u-nome, #user-badge .u-creci { display: none; } /* mantém só "● Logado" */
       #user-badge .u-status { margin-top: 0; }
 
@@ -142,14 +137,18 @@
     #barra-inferior {
       flex: none; z-index: 1000;
       background: var(--topo); color: #fff;
-      display: flex; align-items: center; gap: 14px;
-      padding: 5px 14px; min-height: 40px;
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      padding: 5px 16px; min-height: 40px;
       font-size: .78rem; box-shadow: 0 -2px 6px rgba(0,0,0,.28);
     }
     #bi-num { flex: none; font-variant-numeric: tabular-nums; color: #e8eaec; font-weight: 600; }
-    #bi-local { flex: 1; min-width: 0; display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
-    #bi-local .bi-pin { font-size: .9rem; flex: none; }
-    #bi-local-nome { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Cidade atual: centralizada, sem pino, mesmo neon azul do flash da mira */
+    #bi-cidade {
+      flex: 1; min-width: 0; text-align: center; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+      color: #4fc3ff; font-size: .95rem; font-weight: 800;
+      text-shadow: 0 0 6px #1e9bff, 0 0 12px #1e9bff, 0 1px 3px rgba(0,0,0,.7);
+    }
     #bi-escala { flex: none; display: flex; align-items: center; }
     #bi-escala .leaflet-control-scale { margin: 0; }
     #bi-escala .leaflet-control-scale-line {
@@ -631,15 +630,6 @@
           </div>
         </div>
 
-      <div class="hdr-right">
-        <div id="user-badge" title="Usuário logado">
-          <div class="u-info">
-            <div class="u-nome" id="user-nome">Usuário</div>
-            <div class="u-creci" id="user-creci"></div>
-            <div class="u-status"><span class="dot"></span>Logado</div>
-          </div>
-        </div>
-      </div>
     </header>
 
     <!-- Balão de cidades (abre ao tocar na mira azul) -->
@@ -796,11 +786,18 @@ NO 30°45' ; 143,10"></textarea>
       </div>
     </div>
 
-    <!-- Barra inferior preta (espelha o topo): escala + escala numérica + localização -->
+    <!-- Barra inferior preta (espelha o topo): escala + escala numérica + localização + logado -->
     <footer id="barra-inferior">
       <div id="bi-escala"></div>
       <div id="bi-num">1:—</div>
-      <div id="bi-local"><span class="bi-pin">📍</span><span id="bi-local-nome">—</span></div>
+      <div id="bi-cidade">—</div>
+      <div id="user-badge" title="Usuário logado">
+        <div class="u-info">
+          <div class="u-nome" id="user-nome">Usuário</div>
+          <div class="u-creci" id="user-creci"></div>
+          <div class="u-status"><span class="dot"></span>Logado</div>
+        </div>
+      </div>
     </footer>
   </div>
 
@@ -1239,7 +1236,7 @@ NO 30°45' ; 143,10"></textarea>
           try { if (turf.booleanPointInPolygon(pt, listaCidades[i].feature)) { nome = listaCidades[i].nome; break; } } catch (e) {}
         }
       }
-      const elLoc = document.getElementById("bi-local-nome");
+      const elLoc = document.getElementById("bi-cidade");
       if (elLoc) elLoc.textContent = nome || "—";
     }
     map.on("moveend zoomend", atualizarBarraInferior);
