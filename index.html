@@ -155,7 +155,8 @@
       /* Com algum painel aberto (Medir, Dados, Anotações...), os Painéis 1 e 2
          somem — evita sobrepor o conteúdo. Voltam ao fechar. */
       body.painel-aberto .hdr-tools,
-      body.painel-aberto .leaflet-top.leaflet-left { display: none; }
+      body.painel-aberto .leaflet-top.leaflet-left,
+      body.painel-aberto #barra-inferior { display: none; }
     }
 
     /* Barra inferior preta (espelha o topo) */
