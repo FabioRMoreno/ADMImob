@@ -523,6 +523,12 @@
       background: #17191c url("img/fundo.png?v=1") center / cover no-repeat;
       display: flex; align-items: center; justify-content: center;
     }
+    @media (max-width: 620px) {
+      /* fundo.png é paisagem (marca d'água nas bordas laterais); em tela
+         estreita "cover" estica a imagem e empurra as bordas pra fora.
+         "contain" mostra a imagem inteira (as duas bordas ficam visíveis). */
+      #login-overlay { background-size: contain; }
+    }
     #login-overlay.oculto { display: none; }
     .login-caixa {
       width: 100%; max-width: 330px; text-align: center;
