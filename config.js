@@ -29,6 +29,9 @@ const CLIENTES = {
 
     // Logo do corretor (aparece no quadro de usuário). "" = usa as iniciais.
     logoUsuario: "img/adriel.jpg?v=1",
+    // Emblema do corretor (só a figura, sem texto) — canto superior direito
+    // do cabeçalho, espelhando o logo ADMImob à esquerda. "" = não mostra.
+    logoIcone: "img/logo_adriel.png?v=1",
 
     // --- Acesso (COFRE: login + senha que desembaralha os dados) ---
     // O corretor repassa login+senha a quem ele quiser. A SENHA NÃO fica aqui:

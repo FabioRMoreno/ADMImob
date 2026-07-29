@@ -48,6 +48,22 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     header .corretor { font-size: .76rem; opacity: .85; font-weight: 400; }
 
+    /* Canto superior direito: emblema do corretor (espelha o logo ADMImob) */
+    .hdr-right {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .hdr-cliente-txt { text-align: right; line-height: 1.2; }
+    .hdr-cliente-nome { font-weight: 700; font-size: .85rem; white-space: nowrap; color: #fff; }
+    .hdr-cliente-creci { font-size: .68rem; opacity: .78; white-space: nowrap; }
+    .hdr-icone-wrap {
+      display: none; /* aparece só quando o ícone carrega */
+      width: 140px; height: 54px; border-radius: 8px;
+      background: transparent; overflow: hidden;
+      align-items: center; justify-content: center; flex: none;
+    }
+    .hdr-icone-wrap.tem-logo { display: flex; }
+
     /* Quadro de usuário logado (destaque, na direita) */
     #user-badge {
       flex: none; display: flex; align-items: center; gap: 12px;
@@ -87,6 +103,10 @@
       /* Topo fino: só a logo (o "Logado" mora na barra inferior) */
       header { min-height: 46px; padding: 6px 10px; gap: 8px; box-shadow: 0 1px 5px rgba(0,0,0,.3); }
       .hdr-logo-wrap.tem-logo { display: flex; width: 110px; height: 32px; left: 10px; border-radius: 7px; }
+      .hdr-right { right: 10px; gap: 6px; }
+      .hdr-icone-wrap.tem-logo { width: 74px; height: 32px; border-radius: 7px; }
+      .hdr-cliente-nome { font-size: .72rem; }
+      .hdr-cliente-creci { font-size: .6rem; }
       #user-badge { padding: 5px 10px; gap: 8px; }
       #user-badge .u-nome, #user-badge .u-creci { display: none; } /* mantém só "● Logado" */
       #user-badge .u-status { margin-top: 0; }
@@ -636,6 +656,15 @@
           </div>
         </div>
 
+      <div class="hdr-right">
+        <div class="hdr-cliente-txt" id="hdr-cliente-txt">
+          <div class="hdr-cliente-nome" id="hdr-cliente-nome"></div>
+          <div class="hdr-cliente-creci" id="hdr-cliente-creci"></div>
+        </div>
+        <span class="hdr-icone-wrap" id="hdr-icone-wrap">
+          <img class="hdr-logo" id="hdr-icone" alt="" />
+        </span>
+      </div>
     </header>
 
     <!-- Balão de cidades (abre ao tocar na mira azul) -->
@@ -847,6 +876,18 @@ NO 30°45' ; 143,10"></textarea>
       logoImg.onload = function () { logoWrap.classList.add("tem-logo"); };
       logoImg.onerror = function () { logoWrap.classList.remove("tem-logo"); };
       logoImg.src = cliente.logo;
+    }
+
+    // Canto superior direito: nome/CRECI + emblema do corretor (espelha o logo à esquerda)
+    document.getElementById("hdr-cliente-nome").textContent = nomeUsuario;
+    document.getElementById("hdr-cliente-creci").textContent = cliente.creci || "";
+    if (cliente.logoIcone) {
+      const iconeImg = document.getElementById("hdr-icone");
+      const iconeWrap = document.getElementById("hdr-icone-wrap");
+      iconeImg.alt = nomeUsuario;
+      iconeImg.onload = function () { iconeWrap.classList.add("tem-logo"); };
+      iconeImg.onerror = function () { iconeWrap.classList.remove("tem-logo"); };
+      iconeImg.src = cliente.logoIcone;
     }
 
     // ---- 2b. Carregamento dos imóveis (aberto ou via cofre) ----
