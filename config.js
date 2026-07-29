@@ -21,7 +21,7 @@ const CLIENTES = {
     creci: "CRECI-MS 10101",
     // Logo do cabeçalho (caminho da imagem). Deixe "" para não mostrar.
     // O ?v=1 fura o cache do navegador; aumente pra v=2, v=3... ao trocar o logo.
-    logo: "img/logo.png?v=2",
+    logo: "img/logo.png?v=3",
     // Cores da interface — paleta casada com o logo do corretor
     corTopo: "#17191c",       // preto/chumbo: barra superior e topo do painel
     corPrimaria: "#d81f2a",   // vermelho do logo: ativos, preços, botões
