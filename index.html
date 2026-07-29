@@ -151,6 +151,11 @@
       .leaflet-top.leaflet-left .btn-recentrar svg,
       .leaflet-top.leaflet-left .btn-foco svg,
       .leaflet-top.leaflet-left .btn-local svg { width: 21px; height: 21px; }
+
+      /* Com algum painel aberto (Medir, Dados, Anotações...), os Painéis 1 e 2
+         somem — evita sobrepor o conteúdo. Voltam ao fechar. */
+      body.painel-aberto .hdr-tools,
+      body.painel-aberto .leaflet-top.leaflet-left { display: none; }
     }
 
     /* Barra inferior preta (espelha o topo) */
@@ -291,7 +296,7 @@
       #painel {
         top: auto; left: 0; right: 0; bottom: 0;
         width: 100%; max-width: 100%;
-        height: 62vh; max-height: 62vh;
+        height: 42vh; max-height: 42vh;
         border-radius: 18px 18px 0 0;
         box-shadow: 0 -6px 24px rgba(0,0,0,.45);
         transition: transform .28s ease;
@@ -1638,6 +1643,7 @@ NO 30°45' ; 143,10"></textarea>
 
     function fecharPainel() {
       painel.classList.remove("mostrando");
+      document.body.classList.remove("painel-aberto");
       SECOES_PAINEL.forEach(function (s) {
         s.btn.classList.remove("aberto"); s.btn.setAttribute("aria-expanded", "false");
       });
@@ -1653,6 +1659,7 @@ NO 30°45' ; 143,10"></textarea>
       });
       painelTitulo.textContent = alvo.titulo;
       painel.classList.add("mostrando");
+      document.body.classList.add("painel-aberto");
       secaoPainelAtiva = alvo;
     }
     SECOES_PAINEL.forEach(function (s) {
@@ -2253,8 +2260,8 @@ NO 30°45' ; 143,10"></textarea>
         }, 400);
       });
 
-      function abrirNotas() { painelNotas.classList.add("aberto"); }
-      function fecharNotas() { painelNotas.classList.remove("aberto"); }
+      function abrirNotas() { painelNotas.classList.add("aberto"); document.body.classList.add("painel-aberto"); }
+      function fecharNotas() { painelNotas.classList.remove("aberto"); document.body.classList.remove("painel-aberto"); }
 
       // Gesto de arrastar: pega ponto inicial e final do toque/clique, mede
       // o deslocamento vertical (sem acompanhar o dedo em tempo real).
