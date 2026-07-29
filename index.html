@@ -126,8 +126,8 @@
       .leaflet-top.leaflet-left .leaflet-bar a:hover { background: rgba(255,255,255,.24); }
       .leaflet-top.leaflet-left .leaflet-bar a.leaflet-disabled { opacity: .4; }
       .leaflet-top.leaflet-left .btn-recentrar { color: #fff !important; }
-      .leaflet-top.leaflet-left .btn-foco { color: #6ab7ff !important; }   /* mira azul */
-      .leaflet-top.leaflet-left .btn-local { color: #6ab7ff !important; }  /* boneco azul */
+      .leaflet-top.leaflet-left .btn-foco { color: #87cb33 !important; }   /* mira verde-limão */
+      .leaflet-top.leaflet-left .btn-local { color: #87cb33 !important; }  /* boneco verde-limão */
       .leaflet-top.leaflet-left .btn-recentrar svg,
       .leaflet-top.leaflet-left .btn-foco svg,
       .leaflet-top.leaflet-left .btn-local svg { width: 21px; height: 21px; }
@@ -146,8 +146,8 @@
     #bi-cidade {
       flex: 1; min-width: 0; text-align: center; white-space: nowrap;
       overflow: hidden; text-overflow: ellipsis;
-      color: #4fc3ff; font-size: .95rem; font-weight: 800;
-      text-shadow: 0 0 6px #1e9bff, 0 0 12px #1e9bff, 0 1px 3px rgba(0,0,0,.7);
+      color: #87cb33; font-size: .95rem; font-weight: 800;
+      text-shadow: 0 0 6px #87cb33, 0 0 12px #87cb33, 0 1px 3px rgba(0,0,0,.7);
     }
     #bi-escala { flex: none; display: flex; align-items: center; }
     #bi-escala .leaflet-control-scale { margin: 0; }
@@ -424,21 +424,21 @@
     }
     .btn-recentrar svg { width: 17px; height: 17px; }
     .btn-recentrar:hover { color: var(--primaria); }
-    /* Botão "ir para cidade" (config.pontoFoco): fundo branco, mira azul */
+    /* Botão "ir para cidade" (config.pontoFoco): fundo branco, mira verde-limão */
     .btn-foco {
       display: flex !important; align-items: center; justify-content: center;
-      width: 30px; height: 30px; color: #1f6fd4 !important;
+      width: 30px; height: 30px; color: #87cb33 !important;
     }
     .btn-foco svg { width: 17px; height: 17px; }
-    .btn-foco:hover { color: #1a5fb8 !important; }
+    .btn-foco:hover { color: #6da62a !important; }
     /* Botão "minha localização" (GPS) */
     .btn-local {
       display: flex !important; align-items: center; justify-content: center;
-      width: 30px; height: 30px; color: #1a73e8 !important;
+      width: 30px; height: 30px; color: #87cb33 !important;
     }
     .btn-local svg { width: 18px; height: 18px; }
-    .btn-local:hover { color: #1558c0 !important; }
-    .btn-local.carregando { color: #1a73e8 !important; opacity: .55; }
+    .btn-local:hover { color: #6da62a !important; }
+    .btn-local.carregando { color: #87cb33 !important; opacity: .55; }
 
     /* Atribuição dos tiles: discreta (mas visível, por exigência da licença) */
     .leaflet-control-attribution {
@@ -468,7 +468,7 @@
       0% { opacity: 0; } 12% { opacity: 1; } 72% { opacity: 1; } 100% { opacity: 0; }
     }
     .cidade-flash {
-      filter: drop-shadow(0 0 4px #1e9bff) drop-shadow(0 0 8px #1e9bff);
+      filter: drop-shadow(0 0 4px #87cb33) drop-shadow(0 0 8px #87cb33);
       animation: cidadeFlash 2s ease forwards;
     }
     .leaflet-div-icon.cidade-flash-icon {
@@ -477,8 +477,8 @@
       pointer-events: none; animation: cidadeFlash 2s ease forwards;
     }
     .cidade-flash-txt {
-      color: #4fc3ff; font-size: 1.15rem; font-weight: 800; white-space: nowrap;
-      text-shadow: 0 0 6px #1e9bff, 0 0 12px #1e9bff, 0 1px 3px rgba(0,0,0,.7);
+      color: #87cb33; font-size: 1.15rem; font-weight: 800; white-space: nowrap;
+      text-shadow: 0 0 6px #87cb33, 0 0 12px #87cb33, 0 1px 3px rgba(0,0,0,.7);
     }
 
     /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
@@ -1104,7 +1104,7 @@ NO 30°45' ; 143,10"></textarea>
         limparFlash();
         const meuId = ++flashId;
         flashLayer = L.geoJSON(feature, {
-          style: { color: "#1e9bff", weight: 3, opacity: 1, fill: false, className: "cidade-flash" }
+          style: { color: "#87cb33", weight: 3, opacity: 1, fill: false, className: "cidade-flash" }
         }).addTo(map);
         flashLabel = L.marker(bounds.getCenter(), {
           interactive: false, keyboard: false,
