@@ -155,11 +155,18 @@
 
     /* Barra inferior preta (espelha o topo) */
     #barra-inferior {
-      flex: none; z-index: 1000;
+      position: relative; flex: none; z-index: 1000;
       background: var(--topo); color: #fff;
       display: flex; align-items: center; justify-content: space-between; gap: 18px;
       padding: 5px 16px; min-height: 40px;
       font-size: .78rem; box-shadow: 0 -2px 6px rgba(0,0,0,.28);
+      touch-action: none; /* permite detectar o arrastar vertical sem o navegador rolar a página */
+    }
+    /* Alça de arrastar (abre o painel de Anotações) */
+    #bi-handle {
+      position: absolute; left: 50%; top: 4px; transform: translateX(-50%);
+      width: 40px; height: 4px; border-radius: 3px;
+      background: rgba(255,255,255,.3); cursor: grab;
     }
     #bi-num { flex: none; font-variant-numeric: tabular-nums; color: #e8eaec; font-weight: 600; }
     /* Cidade atual: centralizada, sem pino, mesmo neon azul do flash da mira */
@@ -178,6 +185,57 @@
     @media (max-width: 620px) {
       #barra-inferior { gap: 9px; padding: 4px 10px; min-height: 36px; font-size: .72rem; }
     }
+
+    /* Painel oculto: bloco de anotações (arraste a barra inferior pra cima) */
+    #anotacoes-painel {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 2500;
+      height: 72vh; max-height: 640px;
+      background: var(--topo); color: #fff; overflow: hidden;
+      border-radius: 16px 16px 0 0; box-shadow: 0 -6px 26px rgba(0,0,0,.5);
+      display: flex; flex-direction: column;
+      transform: translateY(102%);
+      transition: transform .3s ease;
+    }
+    #anotacoes-painel.aberto { transform: translateY(0); }
+    #anotacoes-painel::before {
+      content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+      background: url("img/fundo.png?v=2") center / cover no-repeat;
+      opacity: .16; pointer-events: none;
+    }
+    .anotacoes-topo {
+      position: relative; flex: none; padding: 16px 16px 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .anotacoes-alca {
+      position: absolute; left: 50%; top: 6px; transform: translateX(-50%);
+      width: 40px; height: 4px; border-radius: 3px; background: rgba(255,255,255,.3);
+    }
+    .anotacoes-topo h2 {
+      margin: 0; font-size: 1rem; font-weight: 700; color: #fff;
+      letter-spacing: .04em; text-transform: uppercase;
+    }
+    .anotacoes-topo .fechar {
+      position: absolute; right: 12px; top: 8px;
+      background: transparent; border: none; color: #fff; opacity: .7;
+      font-size: 1.5rem; line-height: 1; cursor: pointer; padding: 4px 8px;
+    }
+    .anotacoes-topo .fechar:hover { opacity: 1; }
+    #anotacoes-texto {
+      flex: 1; margin: 0 16px 16px; padding: 14px;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15);
+      border-radius: 12px; color: #fff; font-size: .95rem; line-height: 1.5;
+      resize: none; outline: none; font-family: inherit;
+    }
+    #anotacoes-texto::placeholder { color: rgba(255,255,255,.4); }
+    #anotacoes-whatsapp {
+      position: absolute; right: 20px; bottom: 20px;
+      width: 54px; height: 54px; border-radius: 50%; border: none;
+      background: #fff; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 3px 12px rgba(0,0,0,.4);
+    }
+    #anotacoes-whatsapp:hover { filter: brightness(1.05); }
+    #anotacoes-whatsapp svg { width: 30px; height: 30px; }
 
     #conteudo { flex: 1; position: relative; min-height: 0; }
     #map { position: absolute; inset: 0; }
@@ -823,6 +881,7 @@ NO 30°45' ; 143,10"></textarea>
 
     <!-- Barra inferior preta (espelha o topo): escala + escala numérica + localização + logado -->
     <footer id="barra-inferior">
+      <div id="bi-handle" title="Arraste para cima: Anotações" aria-label="Abrir anotações"></div>
       <div id="bi-escala"></div>
       <div id="bi-num">1:—</div>
       <div id="bi-cidade">—</div>
@@ -834,6 +893,21 @@ NO 30°45' ; 143,10"></textarea>
         </div>
       </div>
     </footer>
+
+    <!-- Painel oculto: bloco de anotações (arraste a barra inferior pra cima) -->
+    <div id="anotacoes-painel" aria-label="Anotações">
+      <div class="anotacoes-topo">
+        <span class="anotacoes-alca"></span>
+        <h2>Anotações</h2>
+        <button class="fechar" id="anotacoes-fechar" aria-label="Fechar">×</button>
+      </div>
+      <textarea id="anotacoes-texto" placeholder="Anote aqui detalhes da visita, observações do imóvel, combinados com o cliente..." spellcheck="false"></textarea>
+      <button id="anotacoes-whatsapp" title="Compartilhar no WhatsApp" aria-label="Compartilhar no WhatsApp">
+        <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+          <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.07-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.19-1.77 1.24-.45.05-1.02.07-1.65-.1-.38-.1-.87-.28-1.5-.55-2.64-1.14-4.36-3.8-4.5-3.98-.13-.18-1.08-1.44-1.08-2.74 0-1.3.68-1.94.92-2.2.24-.27.53-.33.7-.33.18 0 .35 0 .5.01.16.01.38-.06.6.46.22.53.75 1.83.82 1.96.07.13.11.29.02.47-.09.18-.13.29-.26.45-.13.16-.27.35-.39.47-.13.13-.26.27-.11.53.15.27.68 1.12 1.46 1.81 1 .89 1.85 1.17 2.11 1.3.27.13.43.11.58-.07.16-.18.66-.77.84-1.03.18-.27.35-.22.6-.13.24.09 1.55.73 1.82.87.27.13.44.2.51.31.07.13.07.71-.15 1.33z"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
@@ -2158,6 +2232,63 @@ NO 30°45' ; 143,10"></textarea>
     document.getElementById("exp-kml").addEventListener("click", function () {
       exportarKML(); fecharPainel();
     });
+
+    // ---- Painel oculto: Anotações (arraste a barra inferior pra cima) ----
+    (function () {
+      const painelNotas = document.getElementById("anotacoes-painel");
+      const handle = document.getElementById("bi-handle");
+      const footer = document.getElementById("barra-inferior");
+      const alca = painelNotas.querySelector(".anotacoes-alca");
+      const btnFechar = document.getElementById("anotacoes-fechar");
+      const texto = document.getElementById("anotacoes-texto");
+      const btnWpp = document.getElementById("anotacoes-whatsapp");
+      const chaveNotas = "admimob_notas_" + slug;
+
+      texto.value = localStorage.getItem(chaveNotas) || "";
+      let salvarTimer = null;
+      texto.addEventListener("input", function () {
+        clearTimeout(salvarTimer);
+        salvarTimer = setTimeout(function () {
+          localStorage.setItem(chaveNotas, texto.value);
+        }, 400);
+      });
+
+      function abrirNotas() { painelNotas.classList.add("aberto"); }
+      function fecharNotas() { painelNotas.classList.remove("aberto"); }
+
+      // Gesto de arrastar: pega ponto inicial e final do toque/clique, mede
+      // o deslocamento vertical (sem acompanhar o dedo em tempo real).
+      function ligarArraste(el, aoArrastarPraCima, aoArrastarPraBaixo) {
+        let inicioY = null;
+        el.addEventListener("pointerdown", function (e) {
+          inicioY = e.clientY;
+          // prende o ponteiro no elemento: garante que o "soltar" chegue aqui
+          // mesmo que o dedo/mouse saia da área da barra durante o arrasto.
+          try { el.setPointerCapture(e.pointerId); } catch (err) {}
+        });
+        el.addEventListener("pointerup", function (e) {
+          if (inicioY === null) return;
+          const deltaY = inicioY - e.clientY; // positivo = arrastou pra cima
+          inicioY = null;
+          try { el.releasePointerCapture(e.pointerId); } catch (err) {}
+          if (deltaY > 35 && aoArrastarPraCima) aoArrastarPraCima();
+          else if (deltaY < -35 && aoArrastarPraBaixo) aoArrastarPraBaixo();
+        });
+      }
+      ligarArraste(footer, abrirNotas, null);
+      ligarArraste(alca, null, fecharNotas);
+
+      handle.addEventListener("click", function () {
+        if (painelNotas.classList.contains("aberto")) fecharNotas(); else abrirNotas();
+      });
+      btnFechar.addEventListener("click", fecharNotas);
+
+      btnWpp.addEventListener("click", function () {
+        const conteudo = texto.value.trim();
+        if (!conteudo) { texto.focus(); return; }
+        window.open("https://wa.me/?text=" + encodeURIComponent(conteudo), "_blank");
+      });
+    })();
 
   })();
   </script>
