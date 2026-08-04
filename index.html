@@ -185,6 +185,12 @@
     }
     @media (max-width: 620px) {
       #barra-inferior {
+        /* Fixa grudada no fundo REAL da tela, fora do fluxo do #app. Antes ela
+           dependia de #app (100dvh) calcular a altura certinha pra sobrar
+           espaço pra ela — no Android, a barra de endereço do Chrome
+           aparece/some e essa conta falhava, empurrando a barra pra fora da
+           área visível. Fixa, ela sempre aparece, não importa o navegador. */
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 1500;
         gap: 9px; min-height: 58px; font-size: .72rem;
         /* respiro embaixo = espaço da barra de navegacao do Android (safe-area) */
         padding: 10px 10px calc(12px + env(safe-area-inset-bottom, 0px));
