@@ -196,9 +196,9 @@
            aparece/some e essa conta falhava, empurrando a barra pra fora da
            área visível. Fixa, ela sempre aparece, não importa o navegador. */
         position: fixed; left: 0; right: 0; bottom: 0; z-index: 1500;
-        gap: 9px; min-height: 58px; font-size: .72rem;
+        gap: 9px; min-height: 48px; font-size: .72rem;
         /* respiro embaixo = espaço da barra de navegacao do Android (safe-area) */
-        padding: 10px 10px calc(12px + env(safe-area-inset-bottom, 0px));
+        padding: 7px 10px calc(9px + env(safe-area-inset-bottom, 0px));
       }
     }
 
@@ -1438,7 +1438,7 @@ NO 30°45' ; 143,10"></textarea>
       // perímetro urbano (listaCidades) — melhor que nada, mas some longe da cidade.
       // Afastado além de 1:100.000, a tela cobre vários municípios de uma vez —
       // apontar só um induziria a erro, então o nome nem é buscado.
-      const LIMITE_ESCALA_MUNICIPIO = 100000;
+      const LIMITE_ESCALA_MUNICIPIO = 600000;
       const fonteLocal = listaMunicipios.length ? listaMunicipios : listaCidades;
       if (fonteLocal.length && N <= LIMITE_ESCALA_MUNICIPIO) {
         const pt = turf.point([c.lng, c.lat]);
