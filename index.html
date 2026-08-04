@@ -16,8 +16,12 @@
   <style>
     :root {
       --topo: #17191c;        /* barra superior e cabeçalho do painel */
-      --primaria: #1b6e4b;    /* destaques: ativos, preços, botões */
+      --primaria: #1b6e4b;    /* destaques: preços, botões de ação */
       --secundaria: #0f4d33;  /* títulos e textos de apoio */
+      /* Verde-limão neon padrão do app (fixo, não muda por corretor) — usado
+         só para destacar item SELECIONADO em listas (Fundo do mapa, Filtros,
+         Medir). Preço e botões de ação continuam na cor de marca (--primaria). */
+      --selecao: #87cb33;
     }
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -398,7 +402,7 @@
       border-radius: 20px; padding: 7px 14px; font-size: .84rem; cursor: pointer;
     }
     .chip-f:hover { background: #f4f7f2; }
-    .chip-f.ativa { background: var(--primaria); color: #fff; border-color: var(--primaria); font-weight: 600; }
+    .chip-f.ativa { background: var(--selecao); color: #17191c; border-color: var(--selecao); font-weight: 700; }
     .chip-f:focus-visible { outline: 2px solid var(--primaria); outline-offset: 2px; }
     .contador { font-size: .78rem; color: #d4d8dc; margin-top: 4px; text-align: center; font-weight: 600; }
 
@@ -506,7 +510,7 @@
       padding: 11px 13px; font-size: .88rem; color: #333;
     }
     .cam-op:hover { background: #eaf0ea; }
-    .cam-op.ativa { background: var(--primaria); color: #fff; font-weight: 600; border-color: var(--primaria); }
+    .cam-op.ativa { background: var(--selecao); color: #17191c; font-weight: 700; border-color: var(--selecao); }
     .cam-op:focus-visible { outline: 2px solid var(--primaria); outline-offset: 2px; }
 
     /* Medição (botões dentro do painel) */
@@ -517,7 +521,7 @@
       padding: 11px 13px; font-size: .88rem; color: #333;
     }
     #medir-tools button:hover { background: #eaf0ea; }
-    #medir-tools button.ativo { background: var(--primaria); color: #fff; font-weight: 600; border-color: var(--primaria); }
+    #medir-tools button.ativo { background: var(--selecao); color: #17191c; font-weight: 700; border-color: var(--selecao); }
 
     /* Modal: planta por rumos/azimutes */
     #planta-modal {
