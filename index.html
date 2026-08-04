@@ -223,9 +223,13 @@
            aparece/some e essa conta falhava, empurrando a barra pra fora da
            área visível. Fixa, ela sempre aparece, não importa o navegador. */
         position: fixed; left: 0; right: 0; bottom: 0; z-index: 1500;
-        gap: 9px; min-height: 48px; font-size: .72rem;
+        min-height: 48px; font-size: .72rem;
         /* respiro embaixo = espaço da barra de navegacao do Android (safe-area) */
-        padding: 7px 10px calc(9px + env(safe-area-inset-bottom, 0px));
+        padding: 7px 6px calc(9px + env(safe-area-inset-bottom, 0px));
+        /* Grid de 3 colunas (badge | cidade | badge) em vez de flex: garante a
+           cidade EXATAMENTE centralizada no meio, sem depender de arredondamento
+           de espaço sobrando — e os badges encostam bem perto da borda. */
+        display: grid; grid-template-columns: 92px 1fr 92px; align-items: center; gap: 4px;
       }
     }
 
