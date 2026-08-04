@@ -22,6 +22,7 @@
     * { box-sizing: border-box; }
     html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
     #app { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
+    #painel3-mobile { display: none; } /* só existe no celular; a media query mais abaixo troca pra flex */
 
     header {
       position: relative;
@@ -207,7 +208,6 @@
     #bi-pin { flex: none; width: 15px; height: 15px; filter: drop-shadow(0 0 4px #87cb33); }
     #bi-cidade-nome { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #bi-escala { flex: none; display: flex; align-items: center; }
-    #painel3-mobile { display: none; } /* só existe no celular (media query abaixo) */
     #bi-escala .leaflet-control-scale { margin: 0; }
     /* Barra de escala como badge FIXO: espelha o "Logado" (mesmo formato,
        mesma distância da borda — os dois são os extremos da barra, com a
