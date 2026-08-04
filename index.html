@@ -116,6 +116,7 @@
       }
       #user-badge .u-nome, #user-badge .u-creci { display: none; } /* mantém só "● Logado" */
       #user-badge .u-status { margin-top: 0; }
+      #bi-escala { width: 92px; height: 30px; }
       #bi-escala .leaflet-control-scale-line { width: 92px !important; height: 30px !important; padding: 0; }
 
       /* PAINEL 1 — Ferramentas do mapa (Medir, Dados, Fundo, Camadas) */
@@ -207,6 +208,13 @@
       box-shadow: none; text-shadow: none; font-weight: 600;
       font-size: .7rem; padding: 5px 0; line-height: 1.2;
     }
+    /* Zera qualquer margem herdada do Leaflet em cada nível do invólucro — sem
+       isso, sobrava uma margem que empurrava o badge um pouco pra direita e
+       pra cima, desalinhando do Logado e da cidade. */
+    #bi-escala, #bi-escala .leaflet-control-scale, #bi-escala .leaflet-control-scale-line {
+      margin: 0 !important;
+    }
+    #bi-escala { justify-content: center; }
     @media (max-width: 620px) {
       #barra-inferior {
         /* Fixa grudada no fundo REAL da tela, fora do fluxo do #app. Antes ela
