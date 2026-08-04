@@ -23,6 +23,7 @@
     html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
     #app { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
     #painel3-mobile { display: none; } /* só existe no celular; a media query mais abaixo troca pra flex */
+    #rail-mobile { display: none; } /* trilho único dos 3 painéis; só existe no celular */
 
     header {
       position: relative;
@@ -120,9 +121,24 @@
       #bi-escala { width: 92px; height: 30px; }
       #bi-escala .leaflet-control-scale-line { width: 92px !important; height: 30px !important; padding: 0; }
 
+      /* Trilho único: os 3 painéis (Mapa / Navegação / Imóveis-pessoal) viram
+         filhos flex NORMAIS deste contêiner — o navegador empilha e espaça
+         sozinho (gap), sem precisar calcular "top" de cada um em JS. Só este
+         contêiner é fixo na tela; os 3 de dentro ficam em fluxo normal. */
+      #rail-mobile {
+        display: flex; flex-direction: column; gap: 6px;
+        position: fixed; top: 56px; right: 6px; z-index: 1200;
+      }
+      /* Anula o position:fixed/absolute que cada painel tinha sozinho antes —
+         agora eles só flutuam dentro do #rail-mobile. */
+      #rail-mobile > .hdr-tools,
+      #rail-mobile > .leaflet-top.leaflet-left,
+      #rail-mobile > #painel3-mobile {
+        position: static; left: auto; right: auto; top: auto;
+      }
+
       /* PAINEL 1 — Ferramentas do mapa (Medir, Dados, Fundo, Camadas) */
       .hdr-tools {
-        position: fixed; top: 56px; right: 6px; z-index: 1200;
         flex-direction: column; gap: 6px;
         background: var(--topo); padding: 7px 6px; border-radius: 15px;
         box-shadow: 0 3px 12px rgba(0,0,0,.45);
@@ -135,7 +151,6 @@
 
       /* PAINEL 2 — Navegação (zoom + recentralizar + ir pra cidade), mesmo visual do 1 */
       .leaflet-top.leaflet-left {
-        left: auto; right: 6px; top: 250px; z-index: 1200; /* logo abaixo do painel 1 */
         display: flex; flex-direction: column; align-items: center; gap: 6px;
         background: var(--topo); padding: 7px 6px; border-radius: 15px;
         box-shadow: 0 3px 12px rgba(0,0,0,.45);
@@ -147,8 +162,7 @@
          .tool-btn simples; Local/Notas são controles do Leaflet — por isso as
          regras de .leaflet-bar/.leaflet-control abaixo valem pros dois painéis. */
       #painel3-mobile {
-        display: flex; position: fixed; left: auto; right: 6px; top: 444px; z-index: 1200;
-        flex-direction: column; align-items: center; gap: 6px;
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
         background: var(--topo); padding: 7px 6px; border-radius: 15px;
         box-shadow: 0 3px 12px rgba(0,0,0,.45);
       }
@@ -179,11 +193,9 @@
       #painel3-mobile .btn-notas svg,
       #painel3-mobile .btn-local svg { width: 19px; height: 19px; }
 
-      /* Com algum painel aberto (Medir, Dados, Anotações...), os Painéis 1, 2 e
-         3 somem — evita sobrepor o conteúdo. Voltam ao fechar. */
-      body.painel-aberto .hdr-tools,
-      body.painel-aberto .leaflet-top.leaflet-left,
-      body.painel-aberto #painel3-mobile,
+      /* Com algum painel aberto (Medir, Dados, Anotações...), o trilho inteiro
+         some — evita sobrepor o conteúdo. Volta ao fechar. */
+      body.painel-aberto #rail-mobile,
       body.painel-aberto #barra-inferior { display: none; }
     }
 
@@ -821,6 +833,10 @@
       <!-- Painel 3 (só celular): Filtros, Limpar, Minha localização, Anotações.
            Vazio aqui — a JS organizarPaineisMobile() move os botões pra dentro. -->
       <div id="painel3-mobile"></div>
+
+      <!-- Trilho único (só celular): recebe os painéis 1, 2 e 3 como filhos
+           flex normais — o navegador empilha sozinho, sem "top" calculado. -->
+      <div id="rail-mobile"></div>
 
       <div id="painel-overlay"></div>
       <aside id="painel" aria-label="Menu de funcionalidades">
@@ -1837,20 +1853,27 @@ NO 30°45' ; 143,10"></textarea>
     });
     document.getElementById("painel-fechar").addEventListener("click", fecharPainel);
 
-    // No celular, 3 painéis de 4 botões (por função):
-    //   Painel 1 (fica onde já estava): Medir, Dados, Fundo do mapa, Camadas.
-    //   Painel 2 (.leaflet-top.leaflet-left, fica onde já estava): zoom, Recentralizar, Ir pra cidade.
+    // No celular, 3 painéis de 4 botões (por função), todos dentro de um
+    // trilho único (#rail-mobile) — o navegador empilha e espaça sozinho via
+    // flex/gap, sem precisar calcular "top" px de cada painel em JS (o jeito
+    // antigo desalinhava fácil). Cada painel INTEIRO troca de "casa":
+    //   Painel 1 (.hdr-tools, mora no <header>): Medir, Dados, Fundo, Camadas.
+    //   Painel 2 (.leaflet-top.leaflet-left, mora no Leaflet): zoom, Recentralizar, Ir pra cidade.
     //   Painel 3 (#painel3-mobile, novo): Filtros, Limpar, Minha localização, Anotações.
-    // Filtros/Limpar saem do cabeçalho; Local/Notas saem do painel 2 — só no celular.
     (function organizarPaineisMobile() {
       const mq = window.matchMedia("(max-width: 620px)");
       const btnFiltros = document.getElementById("menu-toggle");
       const btnLimpar = document.getElementById("btn-limpar-filtros");
-      const painel2 = document.querySelector(".leaflet-top.leaflet-left"); // Navegação
-      const painel3 = document.getElementById("painel3-mobile");           // Imóveis/pessoal
-      if (!btnFiltros || !painel2 || !painel3) return;
+      const hdrTools = document.querySelector(".hdr-tools");                 // Painel 1
+      const painel2 = document.querySelector(".leaflet-top.leaflet-left");   // Painel 2 — Navegação
+      const painel3 = document.getElementById("painel3-mobile");             // Painel 3 — Imóveis/pessoal
+      const rail = document.getElementById("rail-mobile");                  // trilho único (só celular)
+      if (!btnFiltros || !hdrTools || !painel2 || !painel3 || !rail) return;
 
-      const casaFiltros = btnFiltros.parentNode;                 // <div class="tool"> do cabeçalho
+      const casaHdrTools = hdrTools.parentNode;                  // <header>
+      const casaPainel2 = painel2.parentNode;                    // container de controles do Leaflet
+      const casaPainel3 = painel3.parentNode;                    // onde nasceu no HTML (#conteudo)
+      const casaFiltros = btnFiltros.parentNode;                 // <div class="tool"> dentro do painel 1
       const casaLimpar = btnLimpar ? btnLimpar.parentNode : null;
       // Local e Notas nascem dentro do painel2 (controles do Leaflet, addControl
       // sempre põe lá) — .closest(".leaflet-control") pega o invólucro certo pra mover.
@@ -1864,23 +1887,14 @@ NO 30°45' ; 143,10"></textarea>
         L.DomEvent.disableClickPropagation(btn);
         L.DomEvent.disableScrollPropagation(btn);
       }
-      // Em vez de chutar o "top" de cada painel em px fixo (fácil de errar e
-      // sobrepor/desalinhar), mede a altura REAL de cada um e encaixa o
-      // próximo logo abaixo, com o MESMO respiro em toda a fila (cabeçalho →
-      // painel 1 → painel 2 → painel 3) — sempre certo e proporcional, não
-      // importa o tamanho de fonte/tela.
-      const GAP_PAINEIS = 3;
-      function posicionarPaineis() {
-        if (!mq.matches) return;
-        const header = document.querySelector("header");
-        const hdrTools = document.querySelector(".hdr-tools");
-        if (header && hdrTools) hdrTools.style.top = (header.getBoundingClientRect().bottom + GAP_PAINEIS) + "px";
-        if (hdrTools) painel2.style.top = (hdrTools.getBoundingClientRect().bottom + GAP_PAINEIS) + "px";
-        painel3.style.top = (painel2.getBoundingClientRect().bottom + GAP_PAINEIS) + "px";
-      }
 
       function organizar() {
         if (mq.matches) {
+          // os 3 painéis inteiros entram no trilho, nessa ordem
+          if (hdrTools.parentNode !== rail) rail.appendChild(hdrTools);
+          if (painel2.parentNode !== rail) rail.appendChild(painel2);
+          if (painel3.parentNode !== rail) rail.appendChild(painel3);
+          // dentro do painel 3: Filtros, Limpar, Local, Notas
           if (btnFiltros.parentNode !== painel3) painel3.appendChild(btnFiltros);
           if (btnLimpar && btnLimpar.parentNode !== painel3) painel3.appendChild(btnLimpar);
           if (wrapLocal && wrapLocal.parentNode !== painel3) painel3.appendChild(wrapLocal);
@@ -1891,19 +1905,17 @@ NO 30°45' ; 143,10"></textarea>
             jaIsolado = true; // Local/Notas já isolam o próprio clique no onAdd deles
           }
         } else {
+          if (hdrTools.parentNode !== casaHdrTools) casaHdrTools.appendChild(hdrTools);
+          if (painel2.parentNode !== casaPainel2) casaPainel2.appendChild(painel2);
+          if (painel3.parentNode !== casaPainel3) casaPainel3.appendChild(painel3);
           if (btnFiltros.parentNode !== casaFiltros) casaFiltros.appendChild(btnFiltros);
           if (btnLimpar && casaLimpar && btnLimpar.parentNode !== casaLimpar) casaLimpar.appendChild(btnLimpar);
           if (wrapLocal && wrapLocal.parentNode !== painel2) painel2.appendChild(wrapLocal);
           if (wrapNotas && wrapNotas.parentNode !== painel2) painel2.appendChild(wrapNotas);
         }
-        posicionarPaineis();
       }
       organizar();
-      // Reforço: mede de novo depois do primeiro desenho da tela (alguns
-      // celulares/navegadores só têm o tamanho final um instante depois).
-      requestAnimationFrame(posicionarPaineis);
       mq.addEventListener("change", organizar);
-      window.addEventListener("resize", posicionarPaineis);
     })();
     // Marca d'água do corretor no painel vazio (mesmo logo do quadro de usuário).
     if (cliente.logoUsuario) {
