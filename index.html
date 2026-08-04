@@ -665,9 +665,20 @@
           <div class="tool">
             <button class="tool-btn" id="menu-toggle" aria-label="Abrir filtros" aria-expanded="false">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M4 6.5h16M6.5 12h11M10 17.5h4"/>
+                <circle cx="11" cy="11" r="7"/>
+                <line x1="16.5" y1="16.5" x2="21" y2="21"/>
               </svg>
               <span>Filtros</span>
+            </button>
+          </div>
+
+          <div class="tool">
+            <button class="tool-btn" id="btn-limpar-filtros" aria-label="Limpar filtros">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M9 9l6 6M15 9l-6 6"/>
+              </svg>
+              <span>Limpar</span>
             </button>
           </div>
 
@@ -1627,6 +1638,18 @@ NO 30°45' ; 143,10"></textarea>
         });
       });
     });
+
+    // limpar todos os filtros: volta cada grupo para "Todos" e reaplica
+    function limparFiltros() {
+      document.querySelectorAll(".chips-filtro").forEach(function (grupo) {
+        grupo.querySelectorAll(".chip-f").forEach(function (c) { c.classList.remove("ativa"); });
+        const todos = grupo.querySelector('.chip-f[data-val=""]');
+        if (todos) todos.classList.add("ativa");
+      });
+      aplicarFiltros();
+    }
+    const btnLimparFiltros = document.getElementById("btn-limpar-filtros");
+    if (btnLimparFiltros) btnLimparFiltros.addEventListener("click", limparFiltros);
     // ---- Painel lateral: central única (Filtros / Medir / Dados / Fundo do mapa / Camadas) ----
     // Cada botão do cabeçalho mostra sua seção dentro do mesmo painel fixo, como abas.
     const painel = document.getElementById("painel");
@@ -1672,22 +1695,32 @@ NO 30°45' ; 143,10"></textarea>
     (function organizarPaineisMobile() {
       const mq = window.matchMedia("(max-width: 620px)");
       const btnFiltros = document.getElementById("menu-toggle");
+      const btnLimpar = document.getElementById("btn-limpar-filtros");
       const painel2 = document.querySelector(".leaflet-top.leaflet-left");
       if (!btnFiltros || !painel2) return;
-      const casaDesktop = btnFiltros.parentNode; // <div class="tool"> do cabeçalho
+      const casaFiltros = btnFiltros.parentNode;                 // <div class="tool"> do cabeçalho
+      const casaLimpar = btnLimpar ? btnLimpar.parentNode : null;
       let jaIsolado = false;
+      function isolar(btn) { // impede que o clique chegue ao mapa (zoom/arrasto)
+        L.DomEvent.disableClickPropagation(btn);
+        L.DomEvent.disableScrollPropagation(btn);
+      }
       function organizar() {
         if (mq.matches) {
           if (btnFiltros.parentNode !== painel2) {
             painel2.insertBefore(btnFiltros, painel2.firstChild);
-            if (!jaIsolado) { // impede que o clique chegue ao mapa (zoom/arrasto)
-              L.DomEvent.disableClickPropagation(btnFiltros);
-              L.DomEvent.disableScrollPropagation(btnFiltros);
-              jaIsolado = true;
-            }
           }
-        } else if (btnFiltros.parentNode !== casaDesktop) {
-          casaDesktop.appendChild(btnFiltros);
+          if (btnLimpar && btnLimpar.parentNode !== painel2) {
+            btnFiltros.after(btnLimpar);                          // logo abaixo do Filtros
+          }
+          if (!jaIsolado) {
+            isolar(btnFiltros);
+            if (btnLimpar) isolar(btnLimpar);
+            jaIsolado = true;
+          }
+        } else {
+          if (btnFiltros.parentNode !== casaFiltros) casaFiltros.appendChild(btnFiltros);
+          if (btnLimpar && casaLimpar && btnLimpar.parentNode !== casaLimpar) casaLimpar.appendChild(btnLimpar);
         }
       }
       organizar();
