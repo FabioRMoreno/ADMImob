@@ -184,13 +184,18 @@
     }
     #bi-escala { flex: none; display: flex; align-items: center; }
     #bi-escala .leaflet-control-scale { margin: 0; }
-    /* Barra de escala "pill": capsula preenchida (mesmo estilo dos chips/botoes do
-       app), em vez da linha fina com risquinhos padrao do Leaflet. */
+    /* Barra de escala como badge FIXO: mesmo formato do "Logado" (border-radius
+       14px, mesmas cores). O Leaflet recalcula a largura a cada zoom pra
+       representar a distância proporcionalmente (o jeito "regua" tradicional) —
+       isso deixava o badge mudando de tamanho o tempo todo. Travamos a largura
+       (!important vence o style inline que o Leaflet aplica); só o texto da
+       distância ("500 m", "1 km"...) continua atualizando por dentro. */
     #bi-escala .leaflet-control-scale-line {
-      border: 1px solid rgba(255,255,255,.3); border-radius: 999px;
-      background: rgba(255,255,255,.16); color: #fff;
+      width: 66px !important; box-sizing: border-box; text-align: center;
+      border: 1px solid rgba(255,255,255,.3); border-radius: 14px;
+      background: rgba(255,255,255,.14); color: #fff;
       box-shadow: none; text-shadow: none; font-weight: 600;
-      font-size: .7rem; padding: 4px 12px; line-height: 1.2;
+      font-size: .7rem; padding: 4px 0; line-height: 1.2;
     }
     @media (max-width: 620px) {
       #barra-inferior {
