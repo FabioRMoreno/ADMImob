@@ -168,13 +168,6 @@
       display: flex; align-items: center; justify-content: space-between; gap: 18px;
       padding: 5px 16px; min-height: 40px;
       font-size: .78rem; box-shadow: 0 -2px 6px rgba(0,0,0,.28);
-      touch-action: none; /* permite detectar o arrastar vertical sem o navegador rolar a página */
-    }
-    /* Alça de arrastar (abre o painel de Anotações) */
-    #bi-handle {
-      position: absolute; left: 50%; top: 4px; transform: translateX(-50%);
-      width: 40px; height: 4px; border-radius: 3px;
-      background: rgba(255,255,255,.3); cursor: grab;
     }
     #bi-num { flex: none; font-variant-numeric: tabular-nums; color: #e8eaec; font-weight: 600; }
     /* Cidade atual: centralizada, sem pino, mesmo neon azul do flash da mira */
@@ -911,7 +904,6 @@ NO 30°45' ; 143,10"></textarea>
 
     <!-- Barra inferior preta (espelha o topo): escala + escala numérica + localização + logado -->
     <footer id="barra-inferior">
-      <div id="bi-handle" title="Arraste para cima: Anotações" aria-label="Abrir anotações"></div>
       <div id="bi-escala"></div>
       <div id="bi-num">1:—</div>
       <div id="bi-cidade">—</div>
@@ -2326,8 +2318,6 @@ NO 30°45' ; 143,10"></textarea>
     // ---- Painel oculto: Anotações (arraste a barra inferior pra cima) ----
     (function () {
       const painelNotas = document.getElementById("anotacoes-painel");
-      const handle = document.getElementById("bi-handle");
-      const footer = document.getElementById("barra-inferior");
       const alca = painelNotas.querySelector(".anotacoes-alca");
       const btnFechar = document.getElementById("anotacoes-fechar");
       const texto = document.getElementById("anotacoes-texto");
@@ -2365,12 +2355,8 @@ NO 30°45' ; 143,10"></textarea>
           else if (deltaY < -35 && aoArrastarPraBaixo) aoArrastarPraBaixo();
         });
       }
-      ligarArraste(footer, abrirNotas, null);
-      ligarArraste(alca, null, fecharNotas);
+      ligarArraste(alca, null, fecharNotas); // arrastar a alça do painel pra baixo fecha
 
-      handle.addEventListener("click", function () {
-        if (painelNotas.classList.contains("aberto")) fecharNotas(); else abrirNotas();
-      });
       // Botão dedicado no trilho (abaixo do boneco): abre/fecha as anotações.
       const btnNotas = document.getElementById("btn-notas");
       if (btnNotas) btnNotas.addEventListener("click", function () {
