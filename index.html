@@ -1408,21 +1408,27 @@ NO 30°45' ; 143,10"></textarea>
     }
 
     // Municípios (fonte preferida do nome na barra inferior — ver comentário em listaMunicipios).
+    // O arquivo é grande (1,2 MB) — atrasar um pouco o início do download deixa
+    // os tiles do mapa (satélite) carregarem primeiro, sem disputar a mesma
+    // conexão logo de cara. A barra de baixo só mostra o nome do município um
+    // instante depois; o resto do app não depende disso.
     if (cliente.municipioAtual && cliente.municipioAtual.arquivo) {
-      fetch(cliente.municipioAtual.arquivo, { cache: "no-cache" })
-        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-        .then(function (gj) {
-          const campo = cliente.municipioAtual.rotulo || "NM_MUN";
-          const municipios = [];
-          (gj.features || []).forEach(function (f) {
-            const p = f.properties || {};
-            const nome = p[campo] || p.name || p.nome || p.NOME || "";
-            if (nome) municipios.push({ nome: nome, feature: f });
-          });
-          listaMunicipios = municipios;
-          atualizarBarraInferior();
-        })
-        .catch(function () { /* sem município disponível: atualizarBarraInferior cai no fallback (listaCidades) */ });
+      setTimeout(function () {
+        fetch(cliente.municipioAtual.arquivo, { cache: "no-cache" })
+          .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+          .then(function (gj) {
+            const campo = cliente.municipioAtual.rotulo || "NM_MUN";
+            const municipios = [];
+            (gj.features || []).forEach(function (f) {
+              const p = f.properties || {};
+              const nome = p[campo] || p.name || p.nome || p.NOME || "";
+              if (nome) municipios.push({ nome: nome, feature: f });
+            });
+            listaMunicipios = municipios;
+            atualizarBarraInferior();
+          })
+          .catch(function () { /* sem município disponível: atualizarBarraInferior cai no fallback (listaCidades) */ });
+      }, 1200);
     }
 
     // ---- Botão: minha localização (GPS do usuário) ----
