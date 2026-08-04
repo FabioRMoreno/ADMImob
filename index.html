@@ -1429,8 +1429,11 @@ NO 30°45' ; 143,10"></textarea>
       let nome = "";
       // Município (área rural incluída) é a fonte preferida; sem ele, cai no
       // perímetro urbano (listaCidades) — melhor que nada, mas some longe da cidade.
+      // Afastado além de 1:100.000, a tela cobre vários municípios de uma vez —
+      // apontar só um induziria a erro, então o nome nem é buscado.
+      const LIMITE_ESCALA_MUNICIPIO = 100000;
       const fonteLocal = listaMunicipios.length ? listaMunicipios : listaCidades;
-      if (fonteLocal.length) {
+      if (fonteLocal.length && N <= LIMITE_ESCALA_MUNICIPIO) {
         const pt = turf.point([c.lng, c.lat]);
         for (let i = 0; i < fonteLocal.length; i++) {
           try { if (turf.booleanPointInPolygon(pt, fonteLocal[i].feature)) { nome = fonteLocal[i].nome; break; } } catch (e) {}
