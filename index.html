@@ -114,21 +114,21 @@
       /* PAINEL 1 — Ferramentas do mapa (Medir, Dados, Fundo, Camadas) */
       .hdr-tools {
         position: fixed; top: 56px; right: 6px; z-index: 1200;
-        flex-direction: column; gap: 7px;
-        background: var(--topo); padding: 8px 6px; border-radius: 15px;
+        flex-direction: column; gap: 6px;
+        background: var(--topo); padding: 7px 6px; border-radius: 15px;
         box-shadow: 0 3px 12px rgba(0,0,0,.45);
       }
       .tool-btn {
-        min-width: 0; width: 42px; height: 42px; padding: 0;
+        min-width: 0; width: 38px; height: 38px; padding: 0;
         border-radius: 11px; justify-content: center; gap: 0;
       }
       .tool-btn span { display: none; }
 
-      /* PAINEL 2 — Localização (Filtros + zoom + miras + boneco), mesmo visual do 1 */
+      /* PAINEL 2 — Localização (Filtros + Limpar + zoom + miras + boneco + notas), mesmo visual do 1 */
       .leaflet-top.leaflet-left {
         left: auto; right: 6px; top: 230px; z-index: 1200; /* logo abaixo do painel 1 (coords do mapa) */
-        display: flex; flex-direction: column; align-items: center; gap: 7px;
-        background: var(--topo); padding: 8px 6px; border-radius: 15px;
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        background: var(--topo); padding: 7px 6px; border-radius: 15px;
         box-shadow: 0 3px 12px rgba(0,0,0,.45);
       }
       .leaflet-top.leaflet-left > .tool-btn { pointer-events: auto; } /* .leaflet-top é pointer-events:none */
@@ -139,18 +139,20 @@
       /* tira a caixa branca do leaflet-bar e padroniza cada botão */
       .leaflet-top.leaflet-left .leaflet-bar { background: transparent; border: none; box-shadow: none; }
       .leaflet-top.leaflet-left .leaflet-bar a {
-        width: 42px; height: 42px; line-height: 42px;
+        width: 38px; height: 38px; line-height: 38px;
         background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.28);
-        border-radius: 11px; color: #fff; font-size: 1.25rem;
+        border-radius: 11px; color: #fff; font-size: 1.15rem;
       }
       .leaflet-top.leaflet-left .leaflet-bar a:hover { background: rgba(255,255,255,.24); }
       .leaflet-top.leaflet-left .leaflet-bar a.leaflet-disabled { opacity: .4; }
       .leaflet-top.leaflet-left .btn-recentrar { color: #fff !important; }
       .leaflet-top.leaflet-left .btn-foco { color: #87cb33 !important; }   /* mira verde-limão */
       .leaflet-top.leaflet-left .btn-local { color: #87cb33 !important; }  /* boneco verde-limão */
+      .leaflet-top.leaflet-left .btn-notas { color: #fff !important; }     /* anotações: branco */
       .leaflet-top.leaflet-left .btn-recentrar svg,
       .leaflet-top.leaflet-left .btn-foco svg,
-      .leaflet-top.leaflet-left .btn-local svg { width: 21px; height: 21px; }
+      .leaflet-top.leaflet-left .btn-notas svg,
+      .leaflet-top.leaflet-left .btn-local svg { width: 19px; height: 19px; }
 
       /* Com algum painel aberto (Medir, Dados, Anotações...), os Painéis 1 e 2
          somem — evita sobrepor o conteúdo. Voltam ao fechar. */
@@ -533,6 +535,13 @@
     .btn-local svg { width: 18px; height: 18px; }
     .btn-local:hover { color: #6da62a !important; }
     .btn-local.carregando { color: #87cb33 !important; opacity: .55; }
+    /* Botão "Anotações" (abre o painel de anotações) */
+    .btn-notas {
+      display: flex !important; align-items: center; justify-content: center;
+      width: 30px; height: 30px; color: #333;
+    }
+    .btn-notas svg { width: 18px; height: 18px; }
+    .btn-notas:hover { color: var(--primaria); }
 
     /* Atribuição dos tiles: discreta (mas visível, por exigência da licença) */
     .leaflet-control-attribution {
@@ -1330,6 +1339,32 @@ NO 30°45' ; 143,10"></textarea>
       }
     });
     map.addControl(new CtrlLocal());
+
+    // Botão de Anotações no trilho (fica ABAIXO do boneco verde). O abrir/fechar
+    // é ligado mais abaixo, junto do painel de anotações (dono de abrirNotas/fecharNotas).
+    const CtrlNotas = L.Control.extend({
+      options: { position: "topleft" },
+      onAdd: function () {
+        const div = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+        const a = L.DomUtil.create("a", "btn-notas", div);
+        a.href = "#";
+        a.id = "btn-notas";
+        a.title = "Anotações";
+        a.setAttribute("role", "button");
+        a.setAttribute("aria-label", "Anotações");
+        a.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+          'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M5 3.5h9l5 5V20.5H5z"/>' +   /* folha com canto dobrado */
+          '<path d="M14 3.5v5h5"/>' +
+          '<path d="M8.5 13h7M8.5 16.5h4.5"/>' + /* linhas de texto */
+          '</svg>';
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.on(a, "click", function (e) { L.DomEvent.preventDefault(e); });
+        return div;
+      }
+    });
+    map.addControl(new CtrlNotas());
 
     map.on("locationfound", function (e) {
       posUsuario = [e.latlng.lat, e.latlng.lng];
@@ -2334,6 +2369,11 @@ NO 30°45' ; 143,10"></textarea>
       ligarArraste(alca, null, fecharNotas);
 
       handle.addEventListener("click", function () {
+        if (painelNotas.classList.contains("aberto")) fecharNotas(); else abrirNotas();
+      });
+      // Botão dedicado no trilho (abaixo do boneco): abre/fecha as anotações.
+      const btnNotas = document.getElementById("btn-notas");
+      if (btnNotas) btnNotas.addEventListener("click", function () {
         if (painelNotas.classList.contains("aberto")) fecharNotas(); else abrirNotas();
       });
       btnFechar.addEventListener("click", fecharNotas);
