@@ -1899,6 +1899,9 @@ NO 30°45' ; 143,10"></textarea>
         posicionarPaineis();
       }
       organizar();
+      // Reforço: mede de novo depois do primeiro desenho da tela (alguns
+      // celulares/navegadores só têm o tamanho final um instante depois).
+      requestAnimationFrame(posicionarPaineis);
       mq.addEventListener("change", organizar);
       window.addEventListener("resize", posicionarPaineis);
     })();
