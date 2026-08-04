@@ -57,6 +57,13 @@ const CLIENTES = {
     // Se definido, tem prioridade sobre o pontoFoco (que vira só fallback).
     cidadesFoco: { arquivo: "dados/ref/cidades_zoom.geojson", rotulo: "Name" },
 
+    // --- Município atual (nome na barra inferior) ---
+    // Camada INVISÍVEL, separada da "cidadesFoco" acima: aquela é só o perímetro
+    // urbano (pequeno, some se afastar da cidade); esta é o município inteiro
+    // (zona rural incluída), então o nome não some ao navegar pela fazenda.
+    // Reaproveita o mesmo arquivo da camada "Municípios MS" (config.camadas).
+    municipioAtual: { arquivo: "dados/ref/ms_municipios.geojson", rotulo: "NM_MUN" },
+
     // --- Contatos (aparecem nos botões da ficha do imóvel) ---
     // ⚠️ PLACEHOLDERS — trocar pelos dados REAIS do Adriel (pendência 3).
     contatos: {

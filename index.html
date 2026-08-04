@@ -1111,8 +1111,12 @@ NO 30°45' ; 143,10"></textarea>
     map.attributionControl.setPrefix(false);
 
     // Perímetros das cidades (preenchido ao carregar cidadesFoco). Usado pela
-    // mira azul E pela barra inferior (localização atual por ponto-em-polígono).
+    // mira azul (menu "ir para cidade").
     let listaCidades = [];
+    // Municípios (preenchido ao carregar municipioAtual). Fonte preferida da
+    // barra inferior: cobre a zona rural inteira, então o nome não some ao
+    // afastar do perímetro urbano — só listaCidades tinha esse problema.
+    let listaMunicipios = [];
 
     const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
     const attrEsri = "Tiles © Esri";
@@ -1281,8 +1285,8 @@ NO 30°45' ; 143,10"></textarea>
               if (bounds && bounds.isValid()) cidades.push({ nome: nome, bounds: bounds, feature: f });
             });
             cidades.sort(function (a, b) { return a.nome.localeCompare(b.nome, "pt-BR"); });
-            listaCidades = cidades;          // disponibiliza p/ a barra inferior
-            atualizarBarraInferior();        // já mostra a localização inicial
+            listaCidades = cidades;
+            atualizarBarraInferior();        // fallback, caso municipioAtual não esteja configurado
             menuCidades.innerHTML = "";
             cidades.forEach(function (c) {
               const b = document.createElement("button");
@@ -1306,6 +1310,24 @@ NO 30°45' ; 143,10"></textarea>
           fecharMenuCidades();
         });
       }
+    }
+
+    // Municípios (fonte preferida do nome na barra inferior — ver comentário em listaMunicipios).
+    if (cliente.municipioAtual && cliente.municipioAtual.arquivo) {
+      fetch(cliente.municipioAtual.arquivo, { cache: "no-cache" })
+        .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+        .then(function (gj) {
+          const campo = cliente.municipioAtual.rotulo || "NM_MUN";
+          const municipios = [];
+          (gj.features || []).forEach(function (f) {
+            const p = f.properties || {};
+            const nome = p[campo] || p.name || p.nome || p.NOME || "";
+            if (nome) municipios.push({ nome: nome, feature: f });
+          });
+          listaMunicipios = municipios;
+          atualizarBarraInferior();
+        })
+        .catch(function () { /* sem município disponível: atualizarBarraInferior cai no fallback (listaCidades) */ });
     }
 
     // ---- Botão: minha localização (GPS do usuário) ----
@@ -1405,10 +1427,13 @@ NO 30°45' ; 143,10"></textarea>
       if (elNum) elNum.textContent = "1:" + N.toLocaleString("pt-BR");
 
       let nome = "";
-      if (listaCidades.length) {
+      // Município (área rural incluída) é a fonte preferida; sem ele, cai no
+      // perímetro urbano (listaCidades) — melhor que nada, mas some longe da cidade.
+      const fonteLocal = listaMunicipios.length ? listaMunicipios : listaCidades;
+      if (fonteLocal.length) {
         const pt = turf.point([c.lng, c.lat]);
-        for (let i = 0; i < listaCidades.length; i++) {
-          try { if (turf.booleanPointInPolygon(pt, listaCidades[i].feature)) { nome = listaCidades[i].nome; break; } } catch (e) {}
+        for (let i = 0; i < fonteLocal.length; i++) {
+          try { if (turf.booleanPointInPolygon(pt, fonteLocal[i].feature)) { nome = fonteLocal[i].nome; break; } } catch (e) {}
         }
       }
       const elLoc = document.getElementById("bi-cidade");
