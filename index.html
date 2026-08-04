@@ -677,7 +677,7 @@
           </div>
 
           <div class="tool">
-            <button class="tool-btn" id="btn-limpar-filtros" aria-label="Limpar filtros">
+            <button class="tool-btn" id="btn-limpar-filtros" aria-label="Limpar filtros e camadas">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="9"/>
                 <path d="M9 9l6 6M15 9l-6 6"/>
@@ -1643,14 +1643,24 @@ NO 30°45' ; 143,10"></textarea>
       });
     });
 
-    // limpar todos os filtros: volta cada grupo para "Todos" e reaplica
+    // limpar: volta os filtros para "Todos" E desliga as camadas de referencia ligadas
     function limparFiltros() {
+      // 1) filtros (Negocio/Tipo) de volta para "Todos"
       document.querySelectorAll(".chips-filtro").forEach(function (grupo) {
         grupo.querySelectorAll(".chip-f").forEach(function (c) { c.classList.remove("ativa"); });
         const todos = grupo.querySelector('.chip-f[data-val=""]');
         if (todos) todos.classList.add("ativa");
       });
       aplicarFiltros();
+
+      // 2) desliga todas as camadas de referencia ligadas (bairros, acessos, municipios...).
+      //    Os imoveis (#chk-imoveis) ficam de fora, para o mapa continuar mostrando o catalogo.
+      document.querySelectorAll("#ref-lista .ref-op input[type=checkbox]").forEach(function (chk) {
+        if (chk.checked) {
+          chk.checked = false;
+          chk.dispatchEvent(new Event("change")); // reusa o handler que remove o layer e esconde os controles
+        }
+      });
     }
     const btnLimparFiltros = document.getElementById("btn-limpar-filtros");
     if (btnLimparFiltros) btnLimparFiltros.addEventListener("click", limparFiltros);
