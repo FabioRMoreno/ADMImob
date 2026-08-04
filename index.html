@@ -169,7 +169,12 @@
       padding: 5px 16px; min-height: 40px;
       font-size: .78rem; box-shadow: 0 -2px 6px rgba(0,0,0,.28);
     }
-    #bi-num { flex: none; font-variant-numeric: tabular-nums; color: #e8eaec; font-weight: 600; }
+    /* Escala gráfica (Leaflet) + escala numérica embaixo dela, fonte menor */
+    #bi-escala-grupo { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+    #bi-num {
+      font-size: .68em; font-variant-numeric: tabular-nums;
+      color: rgba(232,234,236,.75); font-weight: 600;
+    }
     /* Cidade atual: centralizada, sem pino, mesmo neon azul do flash da mira */
     #bi-cidade {
       flex: 1; min-width: 0; text-align: center; white-space: nowrap;
@@ -910,8 +915,10 @@ NO 30°45' ; 143,10"></textarea>
 
     <!-- Barra inferior preta (espelha o topo): escala + escala numérica + localização + logado -->
     <footer id="barra-inferior">
-      <div id="bi-escala"></div>
-      <div id="bi-num">1:—</div>
+      <div id="bi-escala-grupo">
+        <div id="bi-escala"></div>
+        <div id="bi-num">1:—</div>
+      </div>
       <div id="bi-cidade">—</div>
       <div id="user-badge" title="Usuário logado">
         <div class="u-info">
