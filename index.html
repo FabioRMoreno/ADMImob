@@ -107,9 +107,16 @@
       .hdr-icone-wrap.tem-logo { width: 32px; height: 32px; border-radius: 7px; }
       .hdr-cliente-nome { font-size: .72rem; }
       .hdr-cliente-creci { font-size: .6rem; }
-      #user-badge { padding: 5px 10px; gap: 8px; }
+      /* Largura/altura fixas: espelha exatamente o badge da escala (mesmo
+         tamanho, mesma distância da borda — os dois são flex-child direto da
+         barra, com padding igual dos dois lados). */
+      #user-badge {
+        width: 92px; height: 30px; padding: 0; gap: 8px; box-sizing: border-box;
+        justify-content: center;
+      }
       #user-badge .u-nome, #user-badge .u-creci { display: none; } /* mantém só "● Logado" */
       #user-badge .u-status { margin-top: 0; }
+      #bi-escala .leaflet-control-scale-line { width: 92px !important; height: 30px !important; padding: 0; }
 
       /* PAINEL 1 — Ferramentas do mapa (Medir, Dados, Fundo, Camadas) */
       .hdr-tools {
@@ -191,7 +198,10 @@
        Travamos a largura (!important vence o style inline do Leaflet); só o
        texto da distância ("500 m", "1 km"...) continua atualizando por dentro. */
     #bi-escala .leaflet-control-scale-line {
+      /* tamanho fixo no desktop (o !important vence o width inline do Leaflet).
+         No celular, a media query abaixo troca para o mesmo 92x30 do #user-badge. */
       width: 66px !important; box-sizing: border-box; text-align: center;
+      display: flex; align-items: center; justify-content: center;
       border: 1px solid rgba(255,255,255,.3); border-radius: 14px;
       background: rgba(255,255,255,.14); color: #fff;
       box-shadow: none; text-shadow: none; font-weight: 600;
