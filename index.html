@@ -74,10 +74,13 @@
     }
     #user-badge .u-nome { font-weight: 700; font-size: 1rem; line-height: 1.2; white-space: nowrap; }
     #user-badge .u-creci { font-size: .75rem; opacity: .9; line-height: 1.3; white-space: nowrap; }
-    #user-badge .u-status { display: flex; align-items: center; gap: 6px; font-size: .72rem; margin-top: 3px; }
+    #user-badge .u-status {
+      display: flex; align-items: center; gap: 6px; font-size: .72rem; margin-top: 3px;
+      color: #87cb33; font-weight: 700; /* verde-limão padrão do app (mesmo da cidade/ícones) */
+    }
     #user-badge .u-status .dot {
-      width: 8px; height: 8px; border-radius: 50%; background: #38d66b;
-      box-shadow: 0 0 0 3px rgba(56,214,107,.28);
+      width: 8px; height: 8px; border-radius: 50%; background: #87cb33;
+      box-shadow: 0 0 0 3px rgba(135,203,51,.28), 0 0 6px #87cb33;
     }
     /* Atalhos do cabeçalho (Filtros / Medir / Dados / Fundo / Camadas) */
     .hdr-tools { display: flex; gap: 6px; }
@@ -354,7 +357,10 @@
       padding: 15px 16px; background: var(--topo); color: #fff;
       position: sticky; top: 0; z-index: 1;
     }
-    .painel-head h2 { margin: 0; font-size: 1.05rem; }
+    .painel-head h2 {
+      margin: 0; font-size: 1.05rem;
+      text-shadow: 0 0 8px rgba(135,203,51,.55); /* neon verde sutil, mesmo tom do app */
+    }
     .painel-head .fechar {
       background: rgba(255,255,255,.2); border: none; color: #fff;
       width: 32px; height: 32px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
