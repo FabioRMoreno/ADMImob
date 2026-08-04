@@ -169,33 +169,33 @@
       padding: 5px 16px; min-height: 40px;
       font-size: .78rem; box-shadow: 0 -2px 6px rgba(0,0,0,.28);
     }
-    /* Escala gráfica (Leaflet) + escala numérica embaixo dela, fonte menor */
-    #bi-escala-grupo { flex: none; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
-    #bi-num {
-      font-size: .68em; font-variant-numeric: tabular-nums;
-      color: rgba(232,234,236,.75); font-weight: 600;
-    }
-    /* Cidade atual: centralizada, sem pino, mesmo neon azul do flash da mira */
+    /* Escala numérica: escondida por hora (fica fácil religar depois). */
+    #bi-num[hidden] { display: none; }
+    /* Cidade atual: bem centralizada, alfinete verde pequeno + nome, mesmo
+       neon que já era usado no texto (agora também no alfinete). */
     #bi-cidade {
-      flex: 1; min-width: 0; text-align: center; white-space: nowrap;
-      overflow: hidden; text-overflow: ellipsis;
+      flex: 1; min-width: 0;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
       color: #87cb33; font-size: .95rem; font-weight: 800;
       text-shadow: 0 0 6px #87cb33, 0 0 12px #87cb33, 0 1px 3px rgba(0,0,0,.7);
     }
+    #bi-pin { flex: none; width: 15px; height: 15px; filter: drop-shadow(0 0 4px #87cb33); }
+    #bi-cidade-nome { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #bi-escala { flex: none; display: flex; align-items: center; }
     #bi-escala .leaflet-control-scale { margin: 0; }
-    /* Barra de escala como badge FIXO: mesmo formato do "Logado" (border-radius
-       14px, mesmas cores). O Leaflet recalcula a largura a cada zoom pra
-       representar a distância proporcionalmente (o jeito "regua" tradicional) —
-       isso deixava o badge mudando de tamanho o tempo todo. Travamos a largura
-       (!important vence o style inline que o Leaflet aplica); só o texto da
-       distância ("500 m", "1 km"...) continua atualizando por dentro. */
+    /* Barra de escala como badge FIXO: espelha o "Logado" (mesmo formato,
+       mesma distância da borda — os dois são os extremos da barra, com a
+       cidade centralizada entre eles). O Leaflet recalcula a largura a cada
+       zoom pra representar a distância proporcionalmente (o jeito "régua"
+       tradicional) — isso deixava o badge mudando de tamanho o tempo todo.
+       Travamos a largura (!important vence o style inline do Leaflet); só o
+       texto da distância ("500 m", "1 km"...) continua atualizando por dentro. */
     #bi-escala .leaflet-control-scale-line {
       width: 66px !important; box-sizing: border-box; text-align: center;
       border: 1px solid rgba(255,255,255,.3); border-radius: 14px;
       background: rgba(255,255,255,.14); color: #fff;
       box-shadow: none; text-shadow: none; font-weight: 600;
-      font-size: .7rem; padding: 4px 0; line-height: 1.2;
+      font-size: .7rem; padding: 5px 0; line-height: 1.2;
     }
     @media (max-width: 620px) {
       #barra-inferior {
@@ -922,13 +922,18 @@ NO 30°45' ; 143,10"></textarea>
       </div>
     </div>
 
-    <!-- Barra inferior preta (espelha o topo): escala + escala numérica + localização + logado -->
+    <!-- Barra inferior preta (espelha o topo): escala (esquerda) + cidade (centro) + logado (direita) -->
     <footer id="barra-inferior">
-      <div id="bi-escala-grupo">
-        <div id="bi-escala"></div>
-        <div id="bi-num">1:—</div>
+      <div id="bi-escala"></div>
+      <div id="bi-cidade">
+        <svg id="bi-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 21.5s-7-6.2-7-11.5a7 7 0 0 1 14 0c0 5.3-7 11.5-7 11.5z"/>
+          <circle cx="12" cy="10" r="2.4"/>
+        </svg>
+        <span id="bi-cidade-nome">—</span>
       </div>
-      <div id="bi-cidade">—</div>
+      <div id="bi-num" hidden>1:—</div>
       <div id="user-badge" title="Usuário logado">
         <div class="u-info">
           <div class="u-nome" id="user-nome">Usuário</div>
@@ -1455,8 +1460,10 @@ NO 30°45' ; 143,10"></textarea>
           try { if (turf.booleanPointInPolygon(pt, fonteLocal[i].feature)) { nome = fonteLocal[i].nome; break; } } catch (e) {}
         }
       }
-      const elLoc = document.getElementById("bi-cidade");
+      const elLoc = document.getElementById("bi-cidade-nome");
       if (elLoc) elLoc.textContent = nome || "—";
+      const elPin = document.getElementById("bi-pin");
+      if (elPin) elPin.style.visibility = nome ? "visible" : "hidden"; // sem cidade, sem alfinete
     }
     map.on("moveend zoomend", atualizarBarraInferior);
     atualizarBarraInferior();
