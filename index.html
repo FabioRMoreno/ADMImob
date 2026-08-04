@@ -1864,6 +1864,17 @@ NO 30°45' ; 143,10"></textarea>
         L.DomEvent.disableClickPropagation(btn);
         L.DomEvent.disableScrollPropagation(btn);
       }
+      // Em vez de chutar o "top" de cada painel em px fixo (fácil de errar e
+      // sobrepor), mede a altura REAL do painel anterior e encaixa o próximo
+      // logo abaixo — sempre certo, não importa o tamanho de fonte/tela.
+      const GAP_PAINEIS = 10;
+      function posicionarPaineis() {
+        if (!mq.matches) return;
+        const hdrTools = document.querySelector(".hdr-tools");
+        if (hdrTools) painel2.style.top = (hdrTools.getBoundingClientRect().bottom + GAP_PAINEIS) + "px";
+        painel3.style.top = (painel2.getBoundingClientRect().bottom + GAP_PAINEIS) + "px";
+      }
+
       function organizar() {
         if (mq.matches) {
           if (btnFiltros.parentNode !== painel3) painel3.appendChild(btnFiltros);
@@ -1881,9 +1892,11 @@ NO 30°45' ; 143,10"></textarea>
           if (wrapLocal && wrapLocal.parentNode !== painel2) painel2.appendChild(wrapLocal);
           if (wrapNotas && wrapNotas.parentNode !== painel2) painel2.appendChild(wrapNotas);
         }
+        posicionarPaineis();
       }
       organizar();
       mq.addEventListener("change", organizar);
+      window.addEventListener("resize", posicionarPaineis);
     })();
     // Marca d'água do corretor no painel vazio (mesmo logo do quadro de usuário).
     if (cliente.logoUsuario) {
