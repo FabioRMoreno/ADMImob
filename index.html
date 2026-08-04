@@ -132,40 +132,57 @@
       }
       .tool-btn span { display: none; }
 
-      /* PAINEL 2 — Localização (Filtros + Limpar + zoom + miras + boneco + notas), mesmo visual do 1 */
+      /* PAINEL 2 — Navegação (zoom + recentralizar + ir pra cidade), mesmo visual do 1 */
       .leaflet-top.leaflet-left {
-        left: auto; right: 6px; top: 230px; z-index: 1200; /* logo abaixo do painel 1 (coords do mapa) */
+        left: auto; right: 6px; top: 250px; z-index: 1200; /* logo abaixo do painel 1 */
         display: flex; flex-direction: column; align-items: center; gap: 6px;
         background: var(--topo); padding: 7px 6px; border-radius: 15px;
         box-shadow: 0 3px 12px rgba(0,0,0,.45);
       }
       .leaflet-top.leaflet-left > .tool-btn { pointer-events: auto; } /* .leaflet-top é pointer-events:none */
-      .leaflet-top.leaflet-left .leaflet-control {
+
+      /* PAINEL 3 — Imóveis/pessoal (Filtros + Limpar + Minha localização +
+         Anotações), mesmo visual dos painéis 1 e 2. Filtros/Limpar são
+         .tool-btn simples; Local/Notas são controles do Leaflet — por isso as
+         regras de .leaflet-bar/.leaflet-control abaixo valem pros dois painéis. */
+      #painel3-mobile {
+        display: flex; position: fixed; left: auto; right: 6px; top: 444px; z-index: 1200;
+        flex-direction: column; align-items: center; gap: 6px;
+        background: var(--topo); padding: 7px 6px; border-radius: 15px;
+        box-shadow: 0 3px 12px rgba(0,0,0,.45);
+      }
+
+      .leaflet-top.leaflet-left .leaflet-control,
+      #painel3-mobile .leaflet-control {
         margin: 0 !important; float: none; clear: none;
         display: flex; flex-direction: column; gap: 7px;
       }
       /* tira a caixa branca do leaflet-bar e padroniza cada botão */
-      .leaflet-top.leaflet-left .leaflet-bar { background: transparent; border: none; box-shadow: none; }
-      .leaflet-top.leaflet-left .leaflet-bar a {
+      .leaflet-top.leaflet-left .leaflet-bar,
+      #painel3-mobile .leaflet-bar { background: transparent; border: none; box-shadow: none; }
+      .leaflet-top.leaflet-left .leaflet-bar a,
+      #painel3-mobile .leaflet-bar a {
         width: 38px; height: 38px; line-height: 38px;
         background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.28);
         border-radius: 11px; color: #fff; font-size: 1.15rem;
       }
-      .leaflet-top.leaflet-left .leaflet-bar a:hover { background: rgba(255,255,255,.24); }
+      .leaflet-top.leaflet-left .leaflet-bar a:hover,
+      #painel3-mobile .leaflet-bar a:hover { background: rgba(255,255,255,.24); }
       .leaflet-top.leaflet-left .leaflet-bar a.leaflet-disabled { opacity: .4; }
       .leaflet-top.leaflet-left .btn-recentrar { color: #fff !important; }
       .leaflet-top.leaflet-left .btn-foco { color: #87cb33 !important; }   /* mira verde-limão */
-      .leaflet-top.leaflet-left .btn-local { color: #87cb33 !important; }  /* boneco verde-limão */
-      .leaflet-top.leaflet-left .btn-notas { color: #fff !important; }     /* anotações: branco */
+      #painel3-mobile .btn-local { color: #87cb33 !important; }  /* boneco verde-limão */
+      #painel3-mobile .btn-notas { color: #fff !important; }     /* anotações: branco */
       .leaflet-top.leaflet-left .btn-recentrar svg,
       .leaflet-top.leaflet-left .btn-foco svg,
-      .leaflet-top.leaflet-left .btn-notas svg,
-      .leaflet-top.leaflet-left .btn-local svg { width: 19px; height: 19px; }
+      #painel3-mobile .btn-notas svg,
+      #painel3-mobile .btn-local svg { width: 19px; height: 19px; }
 
-      /* Com algum painel aberto (Medir, Dados, Anotações...), os Painéis 1 e 2
-         somem — evita sobrepor o conteúdo. Voltam ao fechar. */
+      /* Com algum painel aberto (Medir, Dados, Anotações...), os Painéis 1, 2 e
+         3 somem — evita sobrepor o conteúdo. Voltam ao fechar. */
       body.painel-aberto .hdr-tools,
       body.painel-aberto .leaflet-top.leaflet-left,
+      body.painel-aberto #painel3-mobile,
       body.painel-aberto #barra-inferior { display: none; }
     }
 
@@ -190,6 +207,7 @@
     #bi-pin { flex: none; width: 15px; height: 15px; filter: drop-shadow(0 0 4px #87cb33); }
     #bi-cidade-nome { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     #bi-escala { flex: none; display: flex; align-items: center; }
+    #painel3-mobile { display: none; } /* só existe no celular (media query abaixo) */
     #bi-escala .leaflet-control-scale { margin: 0; }
     /* Barra de escala como badge FIXO: espelha o "Logado" (mesmo formato,
        mesma distância da borda — os dois são os extremos da barra, com a
@@ -799,6 +817,10 @@
 
     <div id="conteudo">
       <div id="map"></div>
+
+      <!-- Painel 3 (só celular): Filtros, Limpar, Minha localização, Anotações.
+           Vazio aqui — a JS organizarPaineisMobile() move os botões pra dentro. -->
+      <div id="painel3-mobile"></div>
 
       <div id="painel-overlay"></div>
       <aside id="painel" aria-label="Menu de funcionalidades">
@@ -1815,15 +1837,28 @@ NO 30°45' ; 143,10"></textarea>
     });
     document.getElementById("painel-fechar").addEventListener("click", fecharPainel);
 
-    // No celular: "Filtros" sai do painel 1 (ferramentas) e vai pro painel 2 (localização).
+    // No celular, 3 painéis de 4 botões (por função):
+    //   Painel 1 (fica onde já estava): Medir, Dados, Fundo do mapa, Camadas.
+    //   Painel 2 (.leaflet-top.leaflet-left, fica onde já estava): zoom, Recentralizar, Ir pra cidade.
+    //   Painel 3 (#painel3-mobile, novo): Filtros, Limpar, Minha localização, Anotações.
+    // Filtros/Limpar saem do cabeçalho; Local/Notas saem do painel 2 — só no celular.
     (function organizarPaineisMobile() {
       const mq = window.matchMedia("(max-width: 620px)");
       const btnFiltros = document.getElementById("menu-toggle");
       const btnLimpar = document.getElementById("btn-limpar-filtros");
-      const painel2 = document.querySelector(".leaflet-top.leaflet-left");
-      if (!btnFiltros || !painel2) return;
+      const painel2 = document.querySelector(".leaflet-top.leaflet-left"); // Navegação
+      const painel3 = document.getElementById("painel3-mobile");           // Imóveis/pessoal
+      if (!btnFiltros || !painel2 || !painel3) return;
+
       const casaFiltros = btnFiltros.parentNode;                 // <div class="tool"> do cabeçalho
       const casaLimpar = btnLimpar ? btnLimpar.parentNode : null;
+      // Local e Notas nascem dentro do painel2 (controles do Leaflet, addControl
+      // sempre põe lá) — .closest(".leaflet-control") pega o invólucro certo pra mover.
+      const elLocal = document.querySelector(".btn-local");
+      const wrapLocal = elLocal ? elLocal.closest(".leaflet-control") : null;
+      const elNotas = document.getElementById("btn-notas");
+      const wrapNotas = elNotas ? elNotas.closest(".leaflet-control") : null;
+
       let jaIsolado = false;
       function isolar(btn) { // impede que o clique chegue ao mapa (zoom/arrasto)
         L.DomEvent.disableClickPropagation(btn);
@@ -1831,20 +1866,20 @@ NO 30°45' ; 143,10"></textarea>
       }
       function organizar() {
         if (mq.matches) {
-          if (btnFiltros.parentNode !== painel2) {
-            painel2.insertBefore(btnFiltros, painel2.firstChild);
-          }
-          if (btnLimpar && btnLimpar.parentNode !== painel2) {
-            btnFiltros.after(btnLimpar);                          // logo abaixo do Filtros
-          }
+          if (btnFiltros.parentNode !== painel3) painel3.appendChild(btnFiltros);
+          if (btnLimpar && btnLimpar.parentNode !== painel3) painel3.appendChild(btnLimpar);
+          if (wrapLocal && wrapLocal.parentNode !== painel3) painel3.appendChild(wrapLocal);
+          if (wrapNotas && wrapNotas.parentNode !== painel3) painel3.appendChild(wrapNotas);
           if (!jaIsolado) {
             isolar(btnFiltros);
             if (btnLimpar) isolar(btnLimpar);
-            jaIsolado = true;
+            jaIsolado = true; // Local/Notas já isolam o próprio clique no onAdd deles
           }
         } else {
           if (btnFiltros.parentNode !== casaFiltros) casaFiltros.appendChild(btnFiltros);
           if (btnLimpar && casaLimpar && btnLimpar.parentNode !== casaLimpar) casaLimpar.appendChild(btnLimpar);
+          if (wrapLocal && wrapLocal.parentNode !== painel2) painel2.appendChild(wrapLocal);
+          if (wrapNotas && wrapNotas.parentNode !== painel2) painel2.appendChild(wrapNotas);
         }
       }
       organizar();
