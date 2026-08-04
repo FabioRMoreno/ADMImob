@@ -224,8 +224,10 @@
            área visível. Fixa, ela sempre aparece, não importa o navegador. */
         position: fixed; left: 0; right: 0; bottom: 0; z-index: 1500;
         min-height: 48px; font-size: .72rem;
-        /* respiro embaixo = espaço da barra de navegacao do Android (safe-area) */
-        padding: 7px 6px calc(9px + env(safe-area-inset-bottom, 0px));
+        /* respiro embaixo = espaço da barra de navegacao do Android (safe-area);
+           esquerda 0 = badge da escala encostado no canto (só ele, o Logado
+           mantém a distância da borda direita). */
+        padding: 7px 6px calc(9px + env(safe-area-inset-bottom, 0px)) 0;
         /* Grid de 3 colunas (badge | cidade | badge) em vez de flex: garante a
            cidade EXATAMENTE centralizada no meio, sem depender de arredondamento
            de espaço sobrando — e os badges encostam bem perto da borda. */
