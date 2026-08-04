@@ -140,7 +140,7 @@
       /* PAINEL 1 — Ferramentas do mapa (Medir, Dados, Fundo, Camadas) */
       .hdr-tools {
         flex-direction: column; gap: 6px;
-        background: var(--topo); padding: 4px 6px 7px; border-radius: 15px;
+        background: var(--topo); padding: 7px 6px; border-radius: 15px;
         box-shadow: 0 3px 12px rgba(0,0,0,.45);
       }
       .tool-btn {
@@ -1894,9 +1894,12 @@ NO 30°45' ; 143,10"></textarea>
           if (hdrTools.parentNode !== rail) rail.appendChild(hdrTools);
           if (painel2.parentNode !== rail) rail.appendChild(painel2);
           if (painel3.parentNode !== rail) rail.appendChild(painel3);
-          // dentro do painel 3: Filtros, Limpar, Local, Notas
-          if (btnFiltros.parentNode !== painel3) painel3.appendChild(btnFiltros);
-          if (btnLimpar && btnLimpar.parentNode !== painel3) painel3.appendChild(btnLimpar);
+          // Move a <div class="tool"> INTEIRA (casaFiltros/casaLimpar), não só o
+          // botão — senão a div vazia ficava pra trás dentro do painel 1, e o
+          // "gap" do flex ainda contava ela como item, empurrando o 1º ícone
+          // (Medir) pra baixo (era o "preto sobrando" no topo do painel 1).
+          if (casaFiltros.parentNode !== painel3) painel3.appendChild(casaFiltros);
+          if (casaLimpar && casaLimpar.parentNode !== painel3) painel3.appendChild(casaLimpar);
           if (wrapLocal && wrapLocal.parentNode !== painel3) painel3.appendChild(wrapLocal);
           if (wrapNotas && wrapNotas.parentNode !== painel3) painel3.appendChild(wrapNotas);
           if (!jaIsolado) {
@@ -1908,8 +1911,9 @@ NO 30°45' ; 143,10"></textarea>
           if (hdrTools.parentNode !== casaHdrTools) casaHdrTools.appendChild(hdrTools);
           if (painel2.parentNode !== casaPainel2) casaPainel2.appendChild(painel2);
           if (painel3.parentNode !== casaPainel3) casaPainel3.appendChild(painel3);
-          if (btnFiltros.parentNode !== casaFiltros) casaFiltros.appendChild(btnFiltros);
-          if (btnLimpar && casaLimpar && btnLimpar.parentNode !== casaLimpar) casaLimpar.appendChild(btnLimpar);
+          // devolve os wrappers pro início do painel 1 (ordem original: Filtros, Limpar, Medir...)
+          if (casaFiltros.parentNode !== hdrTools) hdrTools.insertBefore(casaFiltros, hdrTools.firstChild);
+          if (casaLimpar && casaLimpar.parentNode !== hdrTools) casaFiltros.after(casaLimpar);
           if (wrapLocal && wrapLocal.parentNode !== painel2) painel2.appendChild(wrapLocal);
           if (wrapNotas && wrapNotas.parentNode !== painel2) painel2.appendChild(wrapNotas);
         }
