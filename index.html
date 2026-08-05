@@ -238,13 +238,12 @@
     #bi-escala .leaflet-control-scale-line {
       /* tamanho fixo no desktop (o !important vence o width inline do Leaflet).
          No celular, a media query abaixo troca para o mesmo 92x30 do #user-badge.
-         Estilo próprio (diferente do "Logado"): quadrado, cinza claro, texto
-         escuro — se destaca do resto da barra, que é toda preta/transparente. */
+         Verde-limão neon padrão do app (mesmo tom do Logado/cidade/seleção). */
       width: 66px !important; box-sizing: border-box; text-align: center;
       display: flex; align-items: center; justify-content: center;
-      border: none; border-radius: 0;
-      background: #e4e6e8; color: #222;
-      box-shadow: none; text-shadow: none; font-weight: 700;
+      border: 1px solid #87cb33; border-radius: 14px;
+      background: rgba(135,203,51,.14); color: #87cb33;
+      box-shadow: none; text-shadow: 0 0 6px rgba(135,203,51,.55); font-weight: 700;
       font-size: .7rem; padding: 5px 0; line-height: 1.2;
     }
     /* Zera qualquer margem herdada do Leaflet em cada nível do invólucro — sem
