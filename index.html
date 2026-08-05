@@ -1234,33 +1234,48 @@ NO 30°45' ; 143,10"></textarea>
     const ESRI = "https://server.arcgisonline.com/ArcGIS/rest/services/";
     const attrEsri = "Tiles © Esri";
 
+    // Tile individual que falha (rede/timeout passageiro) fica em branco pra
+    // sempre até o mapa se mexer de novo. Isso tenta recarregar sozinho.
+    function ligarRetryTile(layer) {
+      layer.on("tileerror", function (e) {
+        setTimeout(function () {
+          if (e.tile && e.tile.src) {
+            const src = e.tile.src;
+            e.tile.src = ""; // muda e volta: força o navegador a tentar de novo
+            e.tile.src = src;
+          }
+        }, 1500);
+      });
+      return layer;
+    }
+
     // Satélite (imagem só tem até zoom 17 nesta região; acima disso amplia a do 17)
-    const baseSatelite = L.tileLayer(ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 19, maxNativeZoom: 17, attribution: attrEsri + " — Maxar, Earthstar Geographics" });
+    const baseSatelite = ligarRetryTile(L.tileLayer(ESRI + "World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, maxNativeZoom: 17, attribution: attrEsri + " — Maxar, Earthstar Geographics" }));
     // Somente ruas
-    const baseRuas = L.tileLayer(ESRI + "World_Street_Map/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 19, attribution: attrEsri + ", HERE, Garmin, OpenStreetMap" });
+    const baseRuas = ligarRetryTile(L.tileLayer(ESRI + "World_Street_Map/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, attribution: attrEsri + ", HERE, Garmin, OpenStreetMap" }));
     // Overlay transparente (ruas + nomes) para o modo híbrido
     const refRuas = L.layerGroup([
-      L.tileLayer(ESRI + "Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, maxNativeZoom: 17 }),
-      L.tileLayer(ESRI + "Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, maxNativeZoom: 17 })
+      ligarRetryTile(L.tileLayer(ESRI + "Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, maxNativeZoom: 17 })),
+      ligarRetryTile(L.tileLayer(ESRI + "Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, maxNativeZoom: 17 }))
     ]);
 
     // Fundos minimalistas (Canvas da Esri): imagem real até o zoom 16
     function canvasEsri(estilo) {
       return L.layerGroup([
-        L.tileLayer(ESRI + "Canvas/World_" + estilo + "_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-          { maxZoom: 19, maxNativeZoom: 16, attribution: attrEsri + ", HERE, Garmin, OpenStreetMap" }),
-        L.tileLayer(ESRI + "Canvas/World_" + estilo + "_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-          { maxZoom: 19, maxNativeZoom: 16 })
+        ligarRetryTile(L.tileLayer(ESRI + "Canvas/World_" + estilo + "_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+          { maxZoom: 19, maxNativeZoom: 16, attribution: attrEsri + ", HERE, Garmin, OpenStreetMap" })),
+        ligarRetryTile(L.tileLayer(ESRI + "Canvas/World_" + estilo + "_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+          { maxZoom: 19, maxNativeZoom: 16 }))
       ]);
     }
     const baseEscuro = canvasEsri("Dark");
     const baseClaro = canvasEsri("Light");
 
     // Ruas + relevo (topográfico) — tem detalhe até zoom alto
-    const baseTopo = L.tileLayer(ESRI + "World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-      { maxZoom: 19, attribution: attrEsri + ", HERE, Garmin, USGS, OpenStreetMap" });
+    const baseTopo = ligarRetryTile(L.tileLayer(ESRI + "World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+      { maxZoom: 19, attribution: attrEsri + ", HERE, Garmin, USGS, OpenStreetMap" }));
 
     const CAMADAS = {
       satelite: [baseSatelite],
@@ -1430,13 +1445,15 @@ NO 30°45' ; 143,10"></textarea>
     // MESMO listaMunicipios, com "uf" pra mostrar a sigla embaixo do nome.
     // Os arquivos são grandes (~1,2 MB cada) — atrasar o início do download
     // deixa os tiles do mapa (satélite) carregarem primeiro, sem disputar a
-    // mesma conexão logo de cara. A barra de baixo só mostra o nome um
-    // instante depois; o resto do app não depende disso.
+    // mesma conexão logo de cara. Com mais de um estado, cada um começa em um
+    // instante diferente (1200ms, 2600ms...) — baixar os dois JUNTOS já causou
+    // tile do mapa falhando por disputa de banda. A barra de baixo só mostra
+    // o nome um instante depois; o resto do app não depende disso.
     (function carregarMunicipios() {
       const fontes = cliente.municipioAtual
         ? (Array.isArray(cliente.municipioAtual) ? cliente.municipioAtual : [cliente.municipioAtual])
         : [];
-      fontes.forEach(function (fonte) {
+      fontes.forEach(function (fonte, i) {
         if (!fonte || !fonte.arquivo) return;
         setTimeout(function () {
           fetch(fonte.arquivo, { cache: "no-cache" })
@@ -1453,7 +1470,7 @@ NO 30°45' ; 143,10"></textarea>
               atualizarBarraInferior();
             })
             .catch(function () { /* essa fonte falhou: as outras (se houver) continuam valendo */ });
-        }, 1200);
+        }, 1200 + i * 1400); // escalona: 1200ms, 2600ms, 4000ms...
       });
     })();
 
