@@ -1595,7 +1595,11 @@ NO 30°45' ; 143,10"></textarea>
     //  - "longe" (municípios MS/GO): some quando o mapa APROXIMA (barra de
     //    escala visual, o badge com o ícone de régua, mostra menos de 30 km).
     const LIMITE_ESCALA_ROTULO = 20000;   // denominador de escala p/ os rótulos "perto"
-    const LIMITE_ROTULO_LONGE_M = 30000;  // metros na barra de escala p/ os rótulos "longe"
+    // Um pouco abaixo de 30.000: a barra de escala mostra "30 km" já
+    // arredondado, mas o cálculo aqui é mais preciso — bem no limite, o valor
+    // real pode ficar um pouco abaixo de 30.000 mesmo a tela lendo "30 km",
+    // escondendo o rótulo à toa. Essa folga garante que em "30 km" ele apareça.
+    const LIMITE_ROTULO_LONGE_M = 25000;  // metros na barra de escala p/ os rótulos "longe"
     function resolucaoMetros() {
       const lat = map.getCenter().lat * Math.PI / 180;
       return 156543.03392 * Math.cos(lat) / Math.pow(2, map.getZoom()); // metros por pixel
