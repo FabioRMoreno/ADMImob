@@ -83,6 +83,7 @@ const CLIENTES = {
     camadas: [
       { nome: "Bairros Cassilândia", arquivo: "dados/ref/bairros_cassilandia.geojson", cor: "#7a5af5", rotulo: "name" },
       { nome: "Municípios MS", arquivo: "dados/ref/ms_municipios.geojson", cor: "#f2a33c", rotulo: "NM_MUN", rotuloModo: "longe" },
+      { nome: "Municípios GO", arquivo: "dados/ref/go_municipios.geojson", cor: "#3ca7f2", rotulo: "NM_MUN", rotuloModo: "longe" },
       { nome: "Acessos", arquivo: "dados/ref/cassilandia_acessos.geojson", cor: "#ffd23f", rotulo: "name", rotuloModo: "hover" },
       { nome: "Pontos de referência", arquivo: "dados/ref/pontos.geojson", cor: "#e3452f", rotulo: "nome" }
     ]
