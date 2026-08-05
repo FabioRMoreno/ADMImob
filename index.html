@@ -1850,6 +1850,11 @@ NO 30°45' ; 143,10"></textarea>
     let secaoPainelAtiva = null;
 
     function fecharPainel() {
+      // Fechar o painel com uma medição em andamento tem que sair da medição
+      // também (mesma função do botão "Fechar" de dentro do Medir) — senão,
+      // ao reabrir "Medir" depois, ele voltava direto pro meio da medição
+      // anterior em vez da tela de seleção (Distância/Área/Planta).
+      if (modoMedicao) sairMedicao();
       painel.classList.remove("mostrando");
       document.body.classList.remove("painel-aberto");
       SECOES_PAINEL.forEach(function (s) {
