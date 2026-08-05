@@ -224,7 +224,7 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
     }
     #bi-cidade-linha {
-      display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 0;
+      display: flex; align-items: center; justify-content: center; gap: 2px; min-width: 0;
       color: #87cb33; font-size: .95rem; font-weight: 800;
       text-shadow: 0 0 6px #87cb33, 0 0 12px #87cb33, 0 1px 3px rgba(0,0,0,.7);
     }
@@ -705,9 +705,7 @@
     .rotulo-bairro::before { display: none; }         /* remove a setinha do balão */
     /* Rótulos "perto" (bairros): somem quando o mapa afasta (~além de 1:20.000) */
     .sem-rotulo-perto .rot-perto { display: none; }
-    /* Rótulos "municipio" (MS/GO): só aparecem perto de 1:30.000 */
-    .sem-rotulo-municipio .rot-municipio { display: none; }
-    /* Rótulos "longe": somem quando o mapa aproxima (barra de escala < 10 km) */
+    /* Rótulos "longe" (municípios MS/GO): somem quando o mapa aproxima (barra de escala visual < 30 km) */
     .sem-rotulo-longe .rot-longe { display: none; }
 
     .erro-carga {
@@ -1592,15 +1590,12 @@ NO 30°45' ; 143,10"></textarea>
     map.createPane("refs");
     map.getPane("refs").style.zIndex = 350;
 
-    // Rótulos das camadas de referência têm três modos de escala:
+    // Rótulos das camadas de referência têm dois modos de escala:
     //  - "perto" (bairros): some quando o mapa AFASTA (~além de 1:20.000).
-    //  - "longe": some quando o mapa APROXIMA (barra de escala < 10 km).
-    //  - "municipio" (MS/GO): só aparece perto de 1:30.000 (mesma lógica do
-    //    "perto", limite próprio — mais folgado que bairros, já que município
-    //    é uma área bem maior).
-    const LIMITE_ESCALA_ROTULO = 20000;            // denominador p/ os rótulos "perto"
-    const LIMITE_ESCALA_ROTULO_MUNICIPIO = 30000;  // denominador p/ os rótulos "municipio"
-    const LIMITE_ROTULO_LONGE_M = 10000;  // metros na barra de escala p/ os rótulos "longe"
+    //  - "longe" (municípios MS/GO): some quando o mapa APROXIMA (barra de
+    //    escala visual, o badge com o ícone de régua, mostra menos de 30 km).
+    const LIMITE_ESCALA_ROTULO = 20000;   // denominador de escala p/ os rótulos "perto"
+    const LIMITE_ROTULO_LONGE_M = 30000;  // metros na barra de escala p/ os rótulos "longe"
     function resolucaoMetros() {
       const lat = map.getCenter().lat * Math.PI / 180;
       return 156543.03392 * Math.cos(lat) / Math.pow(2, map.getZoom()); // metros por pixel
@@ -1610,9 +1605,7 @@ NO 30°45' ; 143,10"></textarea>
     }
     function atualizaRotulosRef() {
       const cont = map.getContainer();
-      const N = escalaDenominador();
-      cont.classList.toggle("sem-rotulo-perto", N > LIMITE_ESCALA_ROTULO);
-      cont.classList.toggle("sem-rotulo-municipio", N > LIMITE_ESCALA_ROTULO_MUNICIPIO);
+      cont.classList.toggle("sem-rotulo-perto", escalaDenominador() > LIMITE_ESCALA_ROTULO);
       cont.classList.toggle("sem-rotulo-longe", resolucaoMetros() * 100 < LIMITE_ROTULO_LONGE_M);
     }
     map.on("zoomend", atualizaRotulosRef);
@@ -1718,12 +1711,9 @@ NO 30°45' ; 143,10"></textarea>
                     // Muitas feições (ex.: ruas): rótulo só ao passar o mouse, sem poluir
                     lyr.bindTooltip(String(txt), { sticky: true, direction: "top", className: "rotulo-bairro" });
                   } else {
-                    const classeEscala =
-                      c.rotuloModo === "longe" ? "rot-longe" :
-                      c.rotuloModo === "municipio" ? "rot-municipio" : "rot-perto";
                     lyr.bindTooltip(String(txt), {
                       permanent: true, direction: "center", opacity: 1,
-                      className: "rotulo-bairro " + classeEscala
+                      className: "rotulo-bairro " + (c.rotuloModo === "longe" ? "rot-longe" : "rot-perto")
                     });
                   }
                 }
