@@ -61,8 +61,13 @@ const CLIENTES = {
     // Camada INVISÍVEL, separada da "cidadesFoco" acima: aquela é só o perímetro
     // urbano (pequeno, some se afastar da cidade); esta é o município inteiro
     // (zona rural incluída), então o nome não some ao navegar pela fazenda.
-    // Reaproveita o mesmo arquivo da camada "Municípios MS" (config.camadas).
-    municipioAtual: { arquivo: "dados/ref/ms_municipios.geojson", rotulo: "NM_MUN" },
+    // Lista (não objeto único): dá pra somar vários estados — cada um com sua
+    // sigla ("uf"), que aparece pequena embaixo do nome na barra inferior.
+    // Reaproveita os mesmos arquivos das camadas "Municípios MS/GO" (config.camadas).
+    municipioAtual: [
+      { arquivo: "dados/ref/ms_municipios.geojson", rotulo: "NM_MUN", uf: "MS" },
+      { arquivo: "dados/ref/go_municipios.geojson", rotulo: "NM_MUN", uf: "GO" }
+    ],
 
     // --- Contatos (aparecem nos botões da ficha do imóvel) ---
     // ⚠️ PLACEHOLDERS — trocar pelos dados REAIS do Adriel (pendência 3).
@@ -82,8 +87,8 @@ const CLIENTES = {
     // "rotulo" = nome do campo que aparece ao passar o mouse/tocar.
     camadas: [
       { nome: "Bairros Cassilândia", arquivo: "dados/ref/bairros_cassilandia.geojson", cor: "#7a5af5", rotulo: "name" },
-      { nome: "Municípios MS", arquivo: "dados/ref/ms_municipios.geojson", cor: "#f2a33c", rotulo: "NM_MUN", rotuloModo: "longe" },
-      { nome: "Municípios GO", arquivo: "dados/ref/go_municipios.geojson", cor: "#3ca7f2", rotulo: "NM_MUN", rotuloModo: "longe" },
+      { nome: "Municípios MS", arquivo: "dados/ref/ms_municipios.geojson", cor: "#f2a33c", rotulo: "NM_MUN", rotuloModo: "municipio" },
+      { nome: "Municípios GO", arquivo: "dados/ref/go_municipios.geojson", cor: "#3ca7f2", rotulo: "NM_MUN", rotuloModo: "municipio" },
       { nome: "Acessos", arquivo: "dados/ref/cassilandia_acessos.geojson", cor: "#ffd23f", rotulo: "name", rotuloModo: "hover" },
       { nome: "Pontos de referência", arquivo: "dados/ref/pontos.geojson", cor: "#e3452f", rotulo: "nome" }
     ]

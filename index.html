@@ -217,15 +217,24 @@
     /* Escala numérica: escondida por hora (fica fácil religar depois). */
     #bi-num[hidden] { display: none; }
     /* Cidade atual: bem centralizada, alfinete verde pequeno + nome, mesmo
-       neon que já era usado no texto (agora também no alfinete). */
+       neon que já era usado no texto (agora também no alfinete). Embaixo,
+       a sigla do estado (MS/GO) bem pequena. */
     #bi-cidade {
       flex: 1; min-width: 0;
-      display: flex; align-items: center; justify-content: center; gap: 5px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+    }
+    #bi-cidade-linha {
+      display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 0;
       color: #87cb33; font-size: .95rem; font-weight: 800;
       text-shadow: 0 0 6px #87cb33, 0 0 12px #87cb33, 0 1px 3px rgba(0,0,0,.7);
     }
     #bi-pin { flex: none; width: 15px; height: 15px; filter: drop-shadow(0 0 4px #87cb33); }
     #bi-cidade-nome { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #bi-uf {
+      font-size: .62rem; font-weight: 700; letter-spacing: .04em;
+      color: rgba(135,203,51,.8); text-transform: uppercase;
+    }
+    #bi-uf:empty { display: none; }
     #bi-escala { flex: none; display: flex; align-items: center; }
     #bi-escala .leaflet-control-scale { margin: 0; }
     /* Barra de escala como badge FIXO: espelha o "Logado" (mesmo formato,
@@ -696,7 +705,9 @@
     .rotulo-bairro::before { display: none; }         /* remove a setinha do balão */
     /* Rótulos "perto" (bairros): somem quando o mapa afasta (~além de 1:20.000) */
     .sem-rotulo-perto .rot-perto { display: none; }
-    /* Rótulos "longe" (municípios): somem quando o mapa aproxima (barra de escala < 10 km) */
+    /* Rótulos "municipio" (MS/GO): só aparecem perto de 1:30.000 */
+    .sem-rotulo-municipio .rot-municipio { display: none; }
+    /* Rótulos "longe": somem quando o mapa aproxima (barra de escala < 10 km) */
     .sem-rotulo-longe .rot-longe { display: none; }
 
     .erro-carga {
@@ -1006,12 +1017,15 @@ NO 30°45' ; 143,10"></textarea>
     <footer id="barra-inferior">
       <div id="bi-escala"></div>
       <div id="bi-cidade">
-        <svg id="bi-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 21.5s-7-6.2-7-11.5a7 7 0 0 1 14 0c0 5.3-7 11.5-7 11.5z"/>
-          <circle cx="12" cy="10" r="2.4"/>
-        </svg>
-        <span id="bi-cidade-nome">—</span>
+        <div id="bi-cidade-linha">
+          <svg id="bi-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 21.5s-7-6.2-7-11.5a7 7 0 0 1 14 0c0 5.3-7 11.5-7 11.5z"/>
+            <circle cx="12" cy="10" r="2.4"/>
+          </svg>
+          <span id="bi-cidade-nome">—</span>
+        </div>
+        <span id="bi-uf"></span>
       </div>
       <div id="bi-num" hidden>1:—</div>
       <div id="user-badge" title="Usuário logado">
@@ -1414,28 +1428,36 @@ NO 30°45' ; 143,10"></textarea>
     }
 
     // Municípios (fonte preferida do nome na barra inferior — ver comentário em listaMunicipios).
-    // O arquivo é grande (1,2 MB) — atrasar um pouco o início do download deixa
-    // os tiles do mapa (satélite) carregarem primeiro, sem disputar a mesma
-    // conexão logo de cara. A barra de baixo só mostra o nome do município um
+    // Lista (pode ter mais de um estado, ex.: MS + GO) — cada um contribui pro
+    // MESMO listaMunicipios, com "uf" pra mostrar a sigla embaixo do nome.
+    // Os arquivos são grandes (~1,2 MB cada) — atrasar o início do download
+    // deixa os tiles do mapa (satélite) carregarem primeiro, sem disputar a
+    // mesma conexão logo de cara. A barra de baixo só mostra o nome um
     // instante depois; o resto do app não depende disso.
-    if (cliente.municipioAtual && cliente.municipioAtual.arquivo) {
-      setTimeout(function () {
-        fetch(cliente.municipioAtual.arquivo, { cache: "no-cache" })
-          .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-          .then(function (gj) {
-            const campo = cliente.municipioAtual.rotulo || "NM_MUN";
-            const municipios = [];
-            (gj.features || []).forEach(function (f) {
-              const p = f.properties || {};
-              const nome = p[campo] || p.name || p.nome || p.NOME || "";
-              if (nome) municipios.push({ nome: nome, feature: f });
-            });
-            listaMunicipios = municipios;
-            atualizarBarraInferior();
-          })
-          .catch(function () { /* sem município disponível: atualizarBarraInferior cai no fallback (listaCidades) */ });
-      }, 1200);
-    }
+    (function carregarMunicipios() {
+      const fontes = cliente.municipioAtual
+        ? (Array.isArray(cliente.municipioAtual) ? cliente.municipioAtual : [cliente.municipioAtual])
+        : [];
+      fontes.forEach(function (fonte) {
+        if (!fonte || !fonte.arquivo) return;
+        setTimeout(function () {
+          fetch(fonte.arquivo, { cache: "no-cache" })
+            .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+            .then(function (gj) {
+              const campo = fonte.rotulo || "NM_MUN";
+              const municipios = [];
+              (gj.features || []).forEach(function (f) {
+                const p = f.properties || {};
+                const nome = p[campo] || p.name || p.nome || p.NOME || "";
+                if (nome) municipios.push({ nome: nome, feature: f, uf: fonte.uf || "" });
+              });
+              listaMunicipios = listaMunicipios.concat(municipios); // soma às de outros estados já carregados
+              atualizarBarraInferior();
+            })
+            .catch(function () { /* essa fonte falhou: as outras (se houver) continuam valendo */ });
+        }, 1200);
+      });
+    })();
 
     // ---- Botão: minha localização (GPS do usuário) ----
     let marcadorUsuario = null, circuloPrecisao = null;
@@ -1533,7 +1555,7 @@ NO 30°45' ; 143,10"></textarea>
       const elNum = document.getElementById("bi-num");
       if (elNum) elNum.textContent = "1:" + N.toLocaleString("pt-BR");
 
-      let nome = "";
+      let nome = "", uf = "";
       // Município (área rural incluída) é a fonte preferida; sem ele, cai no
       // perímetro urbano (listaCidades) — melhor que nada, mas some longe da cidade.
       // Afastado além de 1:100.000, a tela cobre vários municípios de uma vez —
@@ -1543,13 +1565,19 @@ NO 30°45' ; 143,10"></textarea>
       if (fonteLocal.length && N <= LIMITE_ESCALA_MUNICIPIO) {
         const pt = turf.point([c.lng, c.lat]);
         for (let i = 0; i < fonteLocal.length; i++) {
-          try { if (turf.booleanPointInPolygon(pt, fonteLocal[i].feature)) { nome = fonteLocal[i].nome; break; } } catch (e) {}
+          try {
+            if (turf.booleanPointInPolygon(pt, fonteLocal[i].feature)) {
+              nome = fonteLocal[i].nome; uf = fonteLocal[i].uf || ""; break;
+            }
+          } catch (e) {}
         }
       }
       const elLoc = document.getElementById("bi-cidade-nome");
       if (elLoc) elLoc.textContent = nome || "—";
       const elPin = document.getElementById("bi-pin");
       if (elPin) elPin.style.visibility = nome ? "visible" : "hidden"; // sem cidade, sem alfinete
+      const elUf = document.getElementById("bi-uf");
+      if (elUf) elUf.textContent = uf; // vazio = some sozinho (:empty no CSS)
     }
     map.on("moveend zoomend", atualizarBarraInferior);
     atualizarBarraInferior();
@@ -1564,10 +1592,14 @@ NO 30°45' ; 143,10"></textarea>
     map.createPane("refs");
     map.getPane("refs").style.zIndex = 350;
 
-    // Rótulos das camadas de referência têm dois modos de escala:
+    // Rótulos das camadas de referência têm três modos de escala:
     //  - "perto" (bairros): some quando o mapa AFASTA (~além de 1:20.000).
-    //  - "longe" (municípios): some quando o mapa APROXIMA (barra de escala < 10 km).
-    const LIMITE_ESCALA_ROTULO = 20000;   // denominador de escala p/ os rótulos "perto"
+    //  - "longe": some quando o mapa APROXIMA (barra de escala < 10 km).
+    //  - "municipio" (MS/GO): só aparece perto de 1:30.000 (mesma lógica do
+    //    "perto", limite próprio — mais folgado que bairros, já que município
+    //    é uma área bem maior).
+    const LIMITE_ESCALA_ROTULO = 20000;            // denominador p/ os rótulos "perto"
+    const LIMITE_ESCALA_ROTULO_MUNICIPIO = 30000;  // denominador p/ os rótulos "municipio"
     const LIMITE_ROTULO_LONGE_M = 10000;  // metros na barra de escala p/ os rótulos "longe"
     function resolucaoMetros() {
       const lat = map.getCenter().lat * Math.PI / 180;
@@ -1578,7 +1610,9 @@ NO 30°45' ; 143,10"></textarea>
     }
     function atualizaRotulosRef() {
       const cont = map.getContainer();
-      cont.classList.toggle("sem-rotulo-perto", escalaDenominador() > LIMITE_ESCALA_ROTULO);
+      const N = escalaDenominador();
+      cont.classList.toggle("sem-rotulo-perto", N > LIMITE_ESCALA_ROTULO);
+      cont.classList.toggle("sem-rotulo-municipio", N > LIMITE_ESCALA_ROTULO_MUNICIPIO);
       cont.classList.toggle("sem-rotulo-longe", resolucaoMetros() * 100 < LIMITE_ROTULO_LONGE_M);
     }
     map.on("zoomend", atualizaRotulosRef);
@@ -1684,9 +1718,12 @@ NO 30°45' ; 143,10"></textarea>
                     // Muitas feições (ex.: ruas): rótulo só ao passar o mouse, sem poluir
                     lyr.bindTooltip(String(txt), { sticky: true, direction: "top", className: "rotulo-bairro" });
                   } else {
+                    const classeEscala =
+                      c.rotuloModo === "longe" ? "rot-longe" :
+                      c.rotuloModo === "municipio" ? "rot-municipio" : "rot-perto";
                     lyr.bindTooltip(String(txt), {
                       permanent: true, direction: "center", opacity: 1,
-                      className: "rotulo-bairro " + (c.rotuloModo === "longe" ? "rot-longe" : "rot-perto")
+                      className: "rotulo-bairro " + classeEscala
                     });
                   }
                 }
