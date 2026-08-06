@@ -331,37 +331,37 @@
          ao digitar, ignorando que o botão flutua por cima — só encolher a
          caixa em si garante que o texto nunca alcance ali ("risco invisível",
          igual parar de escrever antes da margem de um caderno). */
-      /* margem de baixo maior (cabe o botão + a legenda em cima dele agora) */
-      margin: 0 16px calc(104px + env(safe-area-inset-bottom, 0px)); padding: 14px;
+      /* margem de baixo cabe só o cantinho dos botões agora (menores, juntos) */
+      margin: 0 16px calc(78px + env(safe-area-inset-bottom, 0px)); padding: 14px;
       background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15);
       border-radius: 12px; color: #fff; font-size: .95rem; line-height: 1.5;
       resize: none; outline: none; font-family: inherit;
     }
     #anotacoes-texto::placeholder { color: rgba(255,255,255,.4); }
-    /* Dois grupos espelhados no rodapé do painel: WhatsApp (direita) e Limpar
-       tudo (esquerda) — ícone + legenda pequena EMBAIXO, mesmo estilo (letra
-       miúda, maiúscula) da sigla MS/GO da barra inferior. Mesmo tamanho e
-       mesma cor cinza translúcida nos dois botões. */
-    #anotacoes-wpp-grupo, #anotacoes-limpar-grupo {
-      position: absolute; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-      display: flex; flex-direction: column; align-items: center; gap: 5px;
+    /* Limpar tudo + WhatsApp lado a lado, um cantinho só (canto direito) —
+       ícone + legenda pequena embaixo, mesmo estilo (letra miúda, maiúscula)
+       da sigla MS/GO da barra inferior. Menores, pra sobrar mais caixa de texto. */
+    #anotacoes-acoes {
+      position: absolute; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      display: flex; flex-direction: row; align-items: flex-end; gap: 12px;
     }
-    #anotacoes-wpp-grupo { right: 20px; }
-    #anotacoes-limpar-grupo { left: 20px; }
+    #anotacoes-wpp-grupo, #anotacoes-limpar-grupo {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
     .anotacoes-legenda {
-      font-size: .62rem; font-weight: 700; letter-spacing: .04em;
+      font-size: .58rem; font-weight: 700; letter-spacing: .03em;
       color: rgba(255,255,255,.7); text-transform: uppercase; text-align: center;
-      max-width: 72px; line-height: 1.2;
+      max-width: 60px; line-height: 1.15;
     }
     #anotacoes-whatsapp, #anotacoes-limpar {
-      width: 46px; height: 46px; border-radius: 50%; cursor: pointer;
+      width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
       background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.28); color: #fff;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 3px 12px rgba(0,0,0,.3);
     }
     #anotacoes-whatsapp:hover, #anotacoes-limpar:hover { background: rgba(255,255,255,.22); }
-    #anotacoes-whatsapp svg { width: 24px; height: 24px; }
-    #anotacoes-limpar svg { width: 21px; height: 21px; }
+    #anotacoes-whatsapp svg { width: 19px; height: 19px; }
+    #anotacoes-limpar svg { width: 17px; height: 17px; }
 
     #conteudo { flex: 1; position: relative; min-height: 0; }
     #map { position: absolute; inset: 0; }
@@ -1024,25 +1024,27 @@
         <button class="fechar" id="anotacoes-fechar" aria-label="Fechar">×</button>
       </div>
       <textarea id="anotacoes-texto" placeholder="Anote aqui detalhes da visita, observações do imóvel, combinados com o cliente..." spellcheck="false"></textarea>
-      <div id="anotacoes-limpar-grupo">
-        <button id="anotacoes-limpar" title="Limpar tudo" aria-label="Limpar tudo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 7h16"/>
-            <path d="M9 7V4.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1V7"/>
-            <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>
-            <line x1="10" y1="11" x2="10" y2="17"/>
-            <line x1="14" y1="11" x2="14" y2="17"/>
-          </svg>
-        </button>
-        <span class="anotacoes-legenda">Limpar tudo</span>
-      </div>
-      <div id="anotacoes-wpp-grupo">
-        <button id="anotacoes-whatsapp" title="Compartilhar no WhatsApp" aria-label="Compartilhar no WhatsApp">
-          <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
-            <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.07-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.19-1.77 1.24-.45.05-1.02.07-1.65-.1-.38-.1-.87-.28-1.5-.55-2.64-1.14-4.36-3.8-4.5-3.98-.13-.18-1.08-1.44-1.08-2.74 0-1.3.68-1.94.92-2.2.24-.27.53-.33.7-.33.18 0 .35 0 .5.01.16.01.38-.06.6.46.22.53.75 1.83.82 1.96.07.13.11.29.02.47-.09.18-.13.29-.26.45-.13.16-.27.35-.39.47-.13.13-.26.27-.11.53.15.27.68 1.12 1.46 1.81 1 .89 1.85 1.17 2.11 1.3.27.13.43.11.58-.07.16-.18.66-.77.84-1.03.18-.27.35-.22.6-.13.24.09 1.55.73 1.82.87.27.13.44.2.51.31.07.13.07.71-.15 1.33z"/>
-          </svg>
-        </button>
-        <span class="anotacoes-legenda">Enviar por WhatsApp</span>
+      <div id="anotacoes-acoes">
+        <div id="anotacoes-limpar-grupo">
+          <button id="anotacoes-limpar" title="Limpar tudo" aria-label="Limpar tudo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 7h16"/>
+              <path d="M9 7V4.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1V7"/>
+              <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/>
+              <line x1="10" y1="11" x2="10" y2="17"/>
+              <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+          </button>
+          <span class="anotacoes-legenda">Limpar tudo</span>
+        </div>
+        <div id="anotacoes-wpp-grupo">
+          <button id="anotacoes-whatsapp" title="Compartilhar no WhatsApp" aria-label="Compartilhar no WhatsApp">
+            <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+              <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.07-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.19-1.77 1.24-.45.05-1.02.07-1.65-.1-.38-.1-.87-.28-1.5-.55-2.64-1.14-4.36-3.8-4.5-3.98-.13-.18-1.08-1.44-1.08-2.74 0-1.3.68-1.94.92-2.2.24-.27.53-.33.7-.33.18 0 .35 0 .5.01.16.01.38-.06.6.46.22.53.75 1.83.82 1.96.07.13.11.29.02.47-.09.18-.13.29-.26.45-.13.16-.27.35-.39.47-.13.13-.26.27-.11.53.15.27.68 1.12 1.46 1.81 1 .89 1.85 1.17 2.11 1.3.27.13.43.11.58-.07.16-.18.66-.77.84-1.03.18-.27.35-.22.6-.13.24.09 1.55.73 1.82.87.27.13.44.2.51.31.07.13.07.71-.15 1.33z"/>
+            </svg>
+          </button>
+          <span class="anotacoes-legenda">Enviar por WhatsApp</span>
+        </div>
       </div>
     </div>
   </div>
