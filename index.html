@@ -576,8 +576,37 @@
     #med-vazio { font-size: .8rem; color: #b9bec4; text-align: center; padding: 2px 0 8px; }
     .med-acoes { display: flex; gap: 8px; margin-top: 12px; }
     .med-acoes button { flex: 1; border: none; border-radius: 8px; padding: 9px 12px; font-size: .82rem; cursor: pointer; }
+    .med-acoes button:disabled { opacity: .45; cursor: not-allowed; }
     #med-desfazer { background: rgba(255,255,255,.14); color: #fff; }
     #med-fechar { background: var(--primaria); color: #fff; }
+    #med-concluir { background: var(--selecao); color: #17191c; font-weight: 700; }
+
+    /* Desenhar: seletor de tipo (Ponto/Linha/Polígono) — reaproveita o visual
+       do .chip-f, mas com clique próprio (não deve disparar filtro de imóveis). */
+    .desenho-tipos-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+    #desenho-contador {
+      font-size: .78rem; color: #b9bec4; text-align: center; padding: 2px 0 4px;
+    }
+    #desenho-wpp-grupo {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      margin-top: 12px;
+    }
+    #desenho-whatsapp {
+      width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+      background: rgba(255,255,255,.14); display: flex; align-items: center; justify-content: center;
+    }
+    #desenho-whatsapp:hover { background: rgba(255,255,255,.24); }
+    #desenho-whatsapp svg { width: 22px; height: 22px; }
+    #desenho-nota { color: rgba(255,255,255,.5); }
+
+    /* Vértice arrastável (medição e desenho): marker de verdade (não circleMarker),
+       pra dar pra arrastar depois de posicionado. Cor vem por instância (inline). */
+    .vertice-arrastavel { cursor: grab; }
+    .vertice-arrastavel:active { cursor: grabbing; }
+    .vertice-arrastavel span {
+      display: block; width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.5);
+    }
 
     /* Botão de recentralizar (na barra do zoom) */
     .btn-recentrar {
@@ -877,7 +906,7 @@
           </div>
           <div id="med-painel">
             <!-- só aparece no modo Desenhar: escolha o tipo da feição atual -->
-            <div id="desenho-tipos" class="chips-filtro" style="display:none">
+            <div id="desenho-tipos" class="desenho-tipos-chips" style="display:none">
               <button type="button" class="chip-f" data-tipo="Point">Ponto</button>
               <button type="button" class="chip-f" data-tipo="LineString">Linha</button>
               <button type="button" class="chip-f" data-tipo="Polygon">Polígono</button>
@@ -2114,18 +2143,39 @@
       }
     }
 
-    // ---- 10. Medição (distância / área) via Turf ----
-    const medLayer = L.layerGroup().addTo(map);
-    let medPontos = []; // array de L.latLng
+    // ---- 10. Medição (distância / área) via Turf + Desenhar (temporário) ----
+    const medLayer = L.layerGroup().addTo(map);            // vértices/linha da feição EM ANDAMENTO
+    const desenhoConcluidoLayer = L.layerGroup().addTo(map); // feições já concluídas na sessão de Desenhar
+    let medPontos = [];    // array de L.latLng da feição em andamento (medir OU desenhar)
+    let medLinha = null;   // polyline/polygon de preview (recriado a cada mudança)
+    let desenhoTipo = null;        // null | "Point" | "LineString" | "Polygon"
+    let feicoesDesenhadas = [];    // GeoJSON Features já concluídas (Desenhar), só em memória
+
+    // Marcador arrastável (usado tanto no Medir quanto no Desenhar). Arrastar só
+    // redesenha a linha/polígono de conexão — não recria os marcadores, senão o
+    // gesto de arrastar quebra no meio.
+    function criarVerticeMarker(ll, idx, cor, aoMover) {
+      const m = L.marker(ll, {
+        draggable: true,
+        icon: L.divIcon({
+          className: "vertice-arrastavel", iconSize: [14, 14], iconAnchor: [7, 7],
+          html: '<span style="background:' + cor + '"></span>'
+        })
+      }).addTo(medLayer);
+      m.on("drag", function () { aoMover(idx, m.getLatLng()); });
+      return m;
+    }
 
     function entrarModo(modo) {
       if (modoMedicao === modo) { sairMedicao(); return; }
       ficha.classList.remove("aberta");
+      resetarDesenho();
       // painel fica ABERTO durante a medição: total, pontos e ações aparecem nele
       modoMedicao = modo;
       medPontos = [];
       document.getElementById("med-dist").classList.toggle("ativo", modo === "distancia");
       document.getElementById("med-area").classList.toggle("ativo", modo === "area");
+      document.getElementById("med-desenhar").classList.remove("ativo");
       document.getElementById("sec-medir").classList.add("medindo");
       map.getContainer().style.cursor = "crosshair";
       atualizarMedicao();
@@ -2135,28 +2185,40 @@
       modoMedicao = null;
       medPontos = [];
       medLayer.clearLayers();
+      medLinha = null;
       document.getElementById("med-dist").classList.remove("ativo");
       document.getElementById("med-area").classList.remove("ativo");
+      document.getElementById("med-desenhar").classList.remove("ativo");
       document.getElementById("sec-medir").classList.remove("medindo");
       map.getContainer().style.cursor = "";
+      resetarDesenho();
     }
 
     map.on("click", function (e) {
-      if (!modoMedicao) return;
-      medPontos.push(e.latlng);
-      atualizarMedicao();
+      if (modoMedicao === "distancia" || modoMedicao === "area") {
+        medPontos.push(e.latlng);
+        atualizarMedicao();
+      } else if (modoMedicao === "desenho") {
+        cliqueDesenho(e.latlng);
+      }
     });
 
     function atualizarMedicao() {
       medLayer.clearLayers();
+      medLinha = null;
       const cor = cliente.corPrimaria || "#1b6e4b";
-
-      medPontos.forEach(function (ll) {
-        L.circleMarker(ll, {
-          radius: 5, color: "#fff", weight: 2, fillColor: cor, fillOpacity: 1
-        }).addTo(medLayer);
+      medPontos.forEach(function (ll, i) {
+        criarVerticeMarker(ll, i, cor, function (idx, novaLl) {
+          medPontos[idx] = novaLl;
+          redesenharLinhaMedicao();
+        });
       });
+      redesenharLinhaMedicao();
+    }
 
+    function redesenharLinhaMedicao() {
+      if (medLinha) { medLayer.removeLayer(medLinha); medLinha = null; }
+      const cor = cliente.corPrimaria || "#1b6e4b";
       const totalRot = document.querySelector("#med-total .rot");
       const totalVal = document.querySelector("#med-total .val");
       const vazio = document.getElementById("med-vazio");
@@ -2167,14 +2229,15 @@
       if (medPontos.length >= minPts) {
         const coords = medPontos.map(function (ll) { return [ll.lng, ll.lat]; });
         if (ehArea) {
-          L.polygon(medPontos, { color: cor, weight: 2, fillOpacity: 0.2, dashArray: "6,6" }).addTo(medLayer);
+          medLinha = L.polygon(medPontos, { color: cor, weight: 2, fillOpacity: 0.2, dashArray: "6,6" }).addTo(medLayer);
           coords.push(coords[0]); // fecha o anel
           totalVal.textContent = fmtArea(turf.area(turf.polygon([coords])));
         } else {
-          L.polyline(medPontos, { color: cor, weight: 3, dashArray: "6,6" }).addTo(medLayer);
+          medLinha = L.polyline(medPontos, { color: cor, weight: 3, dashArray: "6,6" }).addTo(medLayer);
           const metros = turf.length(turf.lineString(coords), { units: "kilometers" }) * 1000;
           totalVal.textContent = fmtMetros(metros);
         }
+        medLinha.bringToBack(); // vértices ficam por cima, continuam arrastáveis
         vazio.style.display = "none";
       } else {
         totalVal.textContent = "—";
@@ -2205,7 +2268,156 @@
     document.getElementById("med-fechar").addEventListener("click", sairMedicao);
     document.getElementById("med-desfazer").addEventListener("click", function () {
       medPontos.pop();
-      atualizarMedicao();
+      if (modoMedicao === "desenho") atualizarVerticesDesenho(); else atualizarMedicao();
+    });
+
+    // ---- Desenhar: feições temporárias (ponto/linha/polígono), exporta por
+    // WhatsApp. De propósito NÃO fica salvo (sem localStorage) — o corretor
+    // marca em campo e manda pro corretor-mestre converter em GeoJSON de
+    // verdade; ele não fica com uma base própria acumulada no aparelho dele.
+    function iniciarDesenho() {
+      if (modoMedicao === "desenho") { sairMedicao(); return; }
+      ficha.classList.remove("aberta");
+      modoMedicao = "desenho";
+      medPontos = [];
+      document.getElementById("med-dist").classList.remove("ativo");
+      document.getElementById("med-area").classList.remove("ativo");
+      document.getElementById("med-desenhar").classList.add("ativo");
+      document.getElementById("sec-medir").classList.add("medindo");
+      map.getContainer().style.cursor = "crosshair";
+      document.getElementById("desenho-tipos").style.display = "flex";
+      document.getElementById("desenho-nota").style.display = "block";
+      atualizarUiDesenho();
+    }
+
+    function resetarDesenho() {
+      desenhoConcluidoLayer.clearLayers();
+      desenhoTipo = null;
+      feicoesDesenhadas = [];
+      document.getElementById("desenho-tipos").style.display = "none";
+      document.querySelectorAll("#desenho-tipos .chip-f").forEach(function (c) { c.classList.remove("ativa"); });
+      document.getElementById("desenho-contador").style.display = "none";
+      document.getElementById("med-concluir").style.display = "none";
+      document.getElementById("desenho-wpp-grupo").style.display = "none";
+      document.getElementById("desenho-nota").style.display = "none";
+    }
+
+    function escolherTipoDesenho(tipo) {
+      desenhoTipo = tipo;
+      medPontos = [];
+      medLayer.clearLayers();
+      medLinha = null;
+      document.querySelectorAll("#desenho-tipos .chip-f").forEach(function (c) {
+        c.classList.toggle("ativa", c.dataset.tipo === tipo);
+      });
+      atualizarUiDesenho();
+    }
+
+    function cliqueDesenho(latlng) {
+      if (!desenhoTipo) { alert('Escolha o tipo (Ponto, Linha ou Polígono) antes de tocar no mapa.'); return; }
+      medPontos.push(latlng);
+      atualizarVerticesDesenho();
+      if (desenhoTipo === "Point") concluirFeicaoDesenho(); // ponto conclui sozinho, num toque só
+    }
+
+    function atualizarVerticesDesenho() {
+      medLayer.clearLayers();
+      medLinha = null;
+      const cor = cliente.corPrimaria || "#1b6e4b";
+      medPontos.forEach(function (ll, i) {
+        criarVerticeMarker(ll, i, cor, function (idx, novaLl) {
+          medPontos[idx] = novaLl;
+          redesenharLinhaDesenho();
+        });
+      });
+      redesenharLinhaDesenho();
+      atualizarUiDesenho();
+    }
+
+    function redesenharLinhaDesenho() {
+      if (medLinha) { medLayer.removeLayer(medLinha); medLinha = null; }
+      const cor = cliente.corPrimaria || "#1b6e4b";
+      if (desenhoTipo === "Polygon" && medPontos.length >= 3) {
+        medLinha = L.polygon(medPontos, { color: cor, weight: 2, fillOpacity: .2, dashArray: "6,6" }).addTo(medLayer);
+      } else if (medPontos.length >= 2) { // Polygon com 2 pontos ainda, ou LineString
+        medLinha = L.polyline(medPontos, { color: cor, weight: 3, dashArray: "6,6" }).addTo(medLayer);
+      }
+      if (medLinha) medLinha.bringToBack();
+    }
+
+    function concluirFeicaoDesenho() {
+      if (!desenhoTipo) return;
+      const minPts = desenhoTipo === "Polygon" ? 3 : (desenhoTipo === "LineString" ? 2 : 1);
+      if (medPontos.length < minPts) return;
+
+      const cor = cliente.corPrimaria || "#1b6e4b";
+      let geometry;
+      if (desenhoTipo === "Point") {
+        geometry = { type: "Point", coordinates: [medPontos[0].lng, medPontos[0].lat] };
+        L.circleMarker(medPontos[0], { radius: 6, color: "#fff", weight: 2, fillColor: cor, fillOpacity: 1 }).addTo(desenhoConcluidoLayer);
+      } else {
+        const coords = medPontos.map(function (ll) { return [ll.lng, ll.lat]; });
+        if (desenhoTipo === "LineString") {
+          geometry = { type: "LineString", coordinates: coords };
+          L.polyline(medPontos, { color: cor, weight: 3 }).addTo(desenhoConcluidoLayer);
+        } else {
+          coords.push(coords[0]);
+          geometry = { type: "Polygon", coordinates: [coords] };
+          L.polygon(medPontos, { color: cor, weight: 2, fillOpacity: .25 }).addTo(desenhoConcluidoLayer);
+        }
+      }
+
+      feicoesDesenhadas.push({
+        type: "Feature",
+        properties: { tipo: desenhoTipo, numero: feicoesDesenhadas.length + 1 },
+        geometry: geometry
+      });
+
+      // limpa só a feição EM ANDAMENTO — as já concluídas continuam visíveis
+      // (desenhoConcluidoLayer) e o tipo escolhido continua ativo pra marcar a próxima.
+      medLayer.clearLayers();
+      medLinha = null;
+      medPontos = [];
+      atualizarUiDesenho();
+    }
+
+    function atualizarUiDesenho() {
+      const minPts = desenhoTipo === "Polygon" ? 3 : (desenhoTipo === "LineString" ? 2 : 1);
+      const ehMultiPonto = desenhoTipo && desenhoTipo !== "Point";
+      const podeConcluir = ehMultiPonto && medPontos.length >= minPts;
+
+      const btnConcluir = document.getElementById("med-concluir");
+      btnConcluir.style.display = ehMultiPonto ? "block" : "none";
+      btnConcluir.disabled = !podeConcluir;
+
+      const contador = document.getElementById("desenho-contador");
+      if (feicoesDesenhadas.length) {
+        contador.style.display = "block";
+        contador.textContent = feicoesDesenhadas.length + " feição(ões) marcada(s) nesta sessão";
+      } else {
+        contador.style.display = "none";
+      }
+      document.getElementById("desenho-wpp-grupo").style.display = feicoesDesenhadas.length ? "flex" : "none";
+
+      document.querySelector("#med-total .rot").textContent = "";
+      document.querySelector("#med-total .val").textContent = "";
+      const vazio = document.getElementById("med-vazio");
+      vazio.style.display = "block";
+      if (!desenhoTipo) vazio.textContent = "Escolha o tipo da feição acima";
+      else if (desenhoTipo === "Point") vazio.textContent = "Toque no mapa pra marcar o ponto";
+      else if (medPontos.length >= minPts) vazio.style.display = "none";
+      else vazio.textContent = "Toque em " + minPts + "+ pontos e depois \"Concluir feição\"";
+    }
+
+    document.getElementById("med-desenhar").addEventListener("click", iniciarDesenho);
+    document.querySelectorAll("#desenho-tipos .chip-f").forEach(function (chip) {
+      chip.addEventListener("click", function () { escolherTipoDesenho(chip.dataset.tipo); });
+    });
+    document.getElementById("med-concluir").addEventListener("click", concluirFeicaoDesenho);
+    document.getElementById("desenho-whatsapp").addEventListener("click", function () {
+      if (!feicoesDesenhadas.length) return;
+      const fc = { type: "FeatureCollection", features: feicoesDesenhadas };
+      window.open("https://wa.me/?text=" + encodeURIComponent(JSON.stringify(fc)), "_blank");
     });
 
     // ---- 11. Exportar dados (backup): Excel/CSV e KML ----
