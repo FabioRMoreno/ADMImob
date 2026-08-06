@@ -782,8 +782,9 @@
           <div class="tool">
             <button class="tool-btn" id="btn-limpar-filtros" aria-label="Limpar filtros e camadas">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9"/>
-                <path d="M9 9l6 6M15 9l-6 6"/>
+                <line x1="18" y1="3" x2="11" y2="10.2"/>
+                <path d="M11 10.2 5 19.5M11 10.2 17 19.5M5 19.5 17 19.5"/>
+                <line x1="8.6" y1="14.6" x2="13.4" y2="14.6"/>
               </svg>
               <span>Limpar</span>
             </button>
@@ -1646,6 +1647,22 @@ NO 30°45' ; 143,10"></textarea>
       grupo._sel = lyr;
       grupo._selCor = corBase;
     }
+    // Tira o destaque neon de qualquer feição selecionada, em todas as camadas.
+    // Retorna true se havia alguma selecionada (e acabou de ser limpa agora).
+    function limparSelecoesRef() {
+      let tinhaSelecao = false;
+      Object.keys(refsCarregadas).forEach(function (i) {
+        const grupo = refsCarregadas[i];
+        if (grupo && grupo._sel) {
+          tinhaSelecao = true;
+          grupo._sel.setStyle({ color: grupo._selCor, weight: 2, fillOpacity: 0.12 });
+          if (grupo._sel._path) grupo._sel._path.classList.remove("ref-sel");
+          grupo._sel = null;
+          grupo._selCor = null;
+        }
+      });
+      return tinhaSelecao;
+    }
 
     const refsCarregadas = {};           // índice -> layer já baixada
     const camadasRef = cliente.camadas || [];
@@ -1861,9 +1878,16 @@ NO 30°45' ; 143,10"></textarea>
       });
     });
 
-    // limpar: volta os filtros para "Todos" E desliga as camadas de referencia ligadas
+    // Limpar em 2 estágios:
+    //  1º clique: se alguma feição de camada estiver selecionada (destaque
+    //     neon), só tira essa seleção — pra por ali, sem mexer em mais nada.
+    //  2º clique (ou 1º, se nada estava selecionado): reset completo — filtros
+    //     voltam pra "Todos", todas as camadas desligam, e os Imóveis também
+    //     somem do mapa.
     function limparFiltros() {
-      // 1) filtros (Negocio/Tipo) de volta para "Todos"
+      if (limparSelecoesRef()) return; // 1º estágio: só a seleção
+
+      // filtros (Negocio/Tipo) de volta para "Todos"
       document.querySelectorAll(".chips-filtro").forEach(function (grupo) {
         grupo.querySelectorAll(".chip-f").forEach(function (c) { c.classList.remove("ativa"); });
         const todos = grupo.querySelector('.chip-f[data-val=""]');
@@ -1871,14 +1895,19 @@ NO 30°45' ; 143,10"></textarea>
       });
       aplicarFiltros();
 
-      // 2) desliga todas as camadas de referencia ligadas (bairros, acessos, municipios...).
-      //    Os imoveis (#chk-imoveis) ficam de fora, para o mapa continuar mostrando o catalogo.
+      // desliga todas as camadas de referencia ligadas (bairros, acessos, municipios...)
       document.querySelectorAll("#ref-lista .ref-op input[type=checkbox]").forEach(function (chk) {
         if (chk.checked) {
           chk.checked = false;
           chk.dispatchEvent(new Event("change")); // reusa o handler que remove o layer e esconde os controles
         }
       });
+
+      // desliga os pins de imóveis também
+      if (chkImoveis && chkImoveis.checked) {
+        chkImoveis.checked = false;
+        chkImoveis.dispatchEvent(new Event("change"));
+      }
     }
     const btnLimparFiltros = document.getElementById("btn-limpar-filtros");
     if (btnLimparFiltros) btnLimparFiltros.addEventListener("click", limparFiltros);
