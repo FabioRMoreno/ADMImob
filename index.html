@@ -2401,14 +2401,30 @@
       }
       document.getElementById("desenho-wpp-grupo").style.display = feicoesDesenhadas.length ? "flex" : "none";
 
-      document.querySelector("#med-total .rot").textContent = "";
-      document.querySelector("#med-total .val").textContent = "";
+      const totalRot = document.querySelector("#med-total .rot");
+      const totalVal = document.querySelector("#med-total .val");
       const vazio = document.getElementById("med-vazio");
-      vazio.style.display = "block";
-      if (!desenhoTipo) vazio.textContent = "Escolha o tipo da feição acima";
-      else if (desenhoTipo === "Point") vazio.textContent = "Toque no mapa pra marcar o ponto";
-      else if (medPontos.length >= minPts) vazio.style.display = "none";
-      else vazio.textContent = "Toque em " + minPts + "+ pontos e depois \"Concluir feição\"";
+
+      // Igual ao Medir: mostra área (Polígono) ou comprimento (Linha) em tempo
+      // real enquanto os pontos vão sendo marcados/arrastados.
+      if (ehMultiPonto && medPontos.length >= minPts) {
+        const coords = medPontos.map(function (ll) { return [ll.lng, ll.lat]; });
+        if (desenhoTipo === "Polygon") {
+          totalRot.textContent = "Área";
+          totalVal.textContent = fmtArea(turf.area(turf.polygon([coords.concat([coords[0]])])));
+        } else {
+          totalRot.textContent = "Comprimento";
+          totalVal.textContent = fmtMetros(turf.length(turf.lineString(coords), { units: "kilometers" }) * 1000);
+        }
+        vazio.style.display = "none";
+      } else {
+        totalRot.textContent = "";
+        totalVal.textContent = "";
+        vazio.style.display = "block";
+        if (!desenhoTipo) vazio.textContent = "Escolha o tipo da feição acima";
+        else if (desenhoTipo === "Point") vazio.textContent = "Toque no mapa pra marcar o ponto";
+        else vazio.textContent = "Toque em " + minPts + "+ pontos e depois \"Concluir feição\"";
+      }
     }
 
     document.getElementById("med-desenhar").addEventListener("click", iniciarDesenho);
@@ -2416,10 +2432,67 @@
       chip.addEventListener("click", function () { escolherTipoDesenho(chip.dataset.tipo); });
     });
     document.getElementById("med-concluir").addEventListener("click", concluirFeicaoDesenho);
-    document.getElementById("desenho-whatsapp").addEventListener("click", function () {
+
+    // Nome + descrição de cada feição desenhada: Polígono leva área (ha e m²),
+    // Linha leva comprimento — os mesmos formatos usados no Medir (fmtArea/fmtMetros).
+    const rotuloTipoDesenho = { Point: "Ponto", LineString: "Linha", Polygon: "Polígono" };
+    function descricaoFeicaoDesenho(f) {
+      const g = f.geometry;
+      if (g.type === "Polygon") return "Área: " + fmtArea(turf.area(f));
+      if (g.type === "LineString") {
+        return "Comprimento: " + fmtMetros(turf.length(f, { units: "kilometers" }) * 1000);
+      }
+      return "Ponto marcado em campo";
+    }
+
+    function nomeArquivoDesenho() {
+      const d = new Date();
+      const data = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" +
+        String(d.getDate()).padStart(2, "0") + "_" + String(d.getHours()).padStart(2, "0") +
+        String(d.getMinutes()).padStart(2, "0");
+      return "ADMImob_desenho_" + slug + "_" + data + ".kml";
+    }
+
+    function gerarKmlDesenho() {
+      const marcas = feicoesDesenhadas.map(function (f) {
+        const p = f.properties || {};
+        const nome = (rotuloTipoDesenho[p.tipo] || "Feição") + " " + p.numero;
+        return "  <Placemark>\n" +
+          "    <name>" + escXml(nome) + "</name>\n" +
+          "    <description><![CDATA[" + descricaoFeicaoDesenho(f) + "]]></description>\n" +
+          "    " + geometriaKML(f.geometry || {}) + "\n" +
+          "  </Placemark>";
+      }).join("\n");
+      return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+        '<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n' +
+        "  <name>" + escXml((cliente.marca || "ADMImob") + " — Desenho de campo") + "</name>\n" +
+        marcas + "\n</Document>\n</kml>";
+    }
+
+    document.getElementById("desenho-whatsapp").addEventListener("click", async function () {
       if (!feicoesDesenhadas.length) return;
-      const fc = { type: "FeatureCollection", features: feicoesDesenhadas };
-      window.open("https://wa.me/?text=" + encodeURIComponent(JSON.stringify(fc)), "_blank");
+      const kml = gerarKmlDesenho();
+      const nome = nomeArquivoDesenho();
+      const blob = new Blob([kml], { type: "application/vnd.google-earth.kml+xml" });
+      const file = new File([blob], nome, { type: "application/vnd.google-earth.kml+xml" });
+
+      // No celular: abre o menu nativo de compartilhar com o arquivo KML já
+      // anexado (o corretor escolhe o WhatsApp na lista). No desktop (sem
+      // suporte a compartilhar arquivo), baixa o KML pra anexar manualmente.
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: "Feições desenhadas — " + (cliente.marca || "ADMImob"),
+            text: feicoesDesenhadas.length + " feição(ões) marcada(s) em campo."
+          });
+          return;
+        } catch (e) {
+          if (e && e.name === "AbortError") return; // usuário cancelou o compartilhamento
+        }
+      }
+      baixarArquivo(nome, kml, "application/vnd.google-earth.kml+xml");
+      alert('Baixamos o arquivo "' + nome + '". Abra o WhatsApp e anexe esse arquivo manualmente.');
     });
 
     // ---- 11. Exportar dados (backup): Excel/CSV e KML ----
@@ -2513,6 +2586,11 @@
     function geometriaKML(g) {
       if (g.type === "Point") {
         return "<Point><coordinates>" + g.coordinates[0] + "," + g.coordinates[1] + ",0</coordinates></Point>";
+      }
+      if (g.type === "LineString") {
+        return "<LineString><coordinates>" +
+          g.coordinates.map(function (c) { return c[0] + "," + c[1] + ",0"; }).join(" ") +
+          "</coordinates></LineString>";
       }
       if (g.type === "Polygon") {
         return "<Polygon><outerBoundaryIs><LinearRing><coordinates>" +
