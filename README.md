@@ -53,3 +53,4 @@ ADMImob/
 1. Adicione um bloco em `config.js` (copie o do `adriel`, troque o slug e os dados).
 2. Crie `dados/<slug>.geojson` com os imóveis dele.
 3. O link dele passa a ser `index.html?cliente=<slug>`.
+
