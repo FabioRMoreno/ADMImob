@@ -177,3 +177,14 @@ tira o app do "só roda no PC do Fabio" e coloca na mão do Adriel. Depende de
 autenticar o Git, que o Fabio quer fazer com calma. Sem pressa; quando ele topar,
 fazer junto explicando cada comando. **Antes disso**, vale um `git commit` das
 melhorias de 2026-07-23 (hoje elas só existem como arquivos alterados, sem commit).
+
+## Nota — instabilidade do GitHub Pages (2026-08-06, tarde)
+
+Os itens #1 (Medição/Desenhar) e #3 (botões Anotações) da v1.0 estão com o
+código pronto e commitado (`2dc93f9`, `a260205`, `8bf84e7`), mas a publicação
+no GitHub Pages está travada há horas — vários "runs" seguidos presos em
+"queued" ou cancelados sozinhos, sem nenhum erro real no código (confirmado
+pela própria página de erro do GitHub: "This page is taking too long to
+load"). É instabilidade da infraestrutura deles, não do app. Este commit é
+só pra forçar uma run nova do zero, já que a anterior ficou presa sem responder
+nem a cancel nem a rerun pela API.
