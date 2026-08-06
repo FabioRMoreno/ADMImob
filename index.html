@@ -561,57 +561,6 @@
     #medir-tools button:hover { background: #eaf0ea; }
     #medir-tools button.ativo { background: var(--selecao); color: #17191c; font-weight: 700; border-color: var(--selecao); }
 
-    /* Modal: planta por rumos/azimutes */
-    #planta-modal {
-      position: absolute; inset: 0; z-index: 1300; display: none;
-      background: rgba(0,0,0,.45); padding: 16px;
-      align-items: flex-start; justify-content: center; overflow-y: auto;
-    }
-    #planta-modal.aberto { display: flex; }
-    .planta-caixa {
-      background: #fff; border-radius: 14px; width: 100%; max-width: 430px;
-      box-shadow: 0 12px 40px rgba(0,0,0,.4); margin-top: 12px; overflow: hidden;
-    }
-    .planta-head {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 16px; background: var(--topo); color: #fff;
-    }
-    .planta-head h2 { margin: 0; font-size: 1rem; }
-    .planta-head .fechar {
-      background: rgba(255,255,255,.2); border: none; color: #fff;
-      width: 30px; height: 30px; border-radius: 50%; font-size: 1.1rem; cursor: pointer;
-    }
-    .planta-corpo { padding: 16px; }
-    .planta-corpo label { display: block; font-size: .8rem; color: #444; margin: 12px 0 5px; }
-    .planta-corpo label:first-child { margin-top: 0; }
-    .planta-linha { display: flex; gap: 8px; }
-    .planta-corpo input, .planta-corpo textarea {
-      width: 100%; padding: 9px 10px; border: 1px solid #ccc; border-radius: 8px;
-      font-size: .88rem; font-family: inherit;
-    }
-    .planta-corpo textarea {
-      font-family: ui-monospace, Consolas, monospace; font-size: .82rem; resize: vertical;
-    }
-    .planta-sec {
-      margin-top: 7px; background: #f1f3f1; border: 1px solid #e0e4e0; color: #333;
-      border-radius: 8px; padding: 7px 12px; font-size: .78rem; cursor: pointer;
-    }
-    .planta-sec:hover { background: #e7ebe7; }
-    .planta-dica { font-size: .72rem; color: #777; margin-top: 6px; line-height: 1.5; }
-    .planta-opc { font-weight: 400; color: #999; }
-    .planta-dica code { background: #f1f3f1; padding: 1px 4px; border-radius: 4px; }
-    .planta-acoes { display: flex; gap: 8px; margin-top: 14px; }
-    .planta-acoes button {
-      flex: 1; padding: 11px; border: none; border-radius: 9px;
-      font-size: .88rem; font-weight: 600; cursor: pointer;
-    }
-    #planta-limpar { background: #eee; color: #333; }
-    #planta-desenhar { background: var(--primaria); color: #fff; }
-    .planta-result:not(:empty) {
-      margin-top: 14px; padding: 12px; background: #f6f8f6; border-radius: 9px;
-      font-size: .84rem; line-height: 1.7; border: 1px solid #e6eae6;
-    }
-
     /* Medição — resultado ao vivo dentro do painel */
     #med-painel { display: none; margin-top: 4px; }
     /* Enquanto mede: some o título e os botões de ferramenta; aparece só o resultado */
@@ -924,14 +873,35 @@
           <div id="medir-tools">
             <button id="med-dist" type="button">📏 Medir distância</button>
             <button id="med-area" type="button">△ Medir área</button>
-            <button id="med-planta" type="button">📐 Planta (rumos/azimutes)</button>
+            <button id="med-desenhar" type="button">✏️ Desenhar</button>
           </div>
           <div id="med-painel">
+            <!-- só aparece no modo Desenhar: escolha o tipo da feição atual -->
+            <div id="desenho-tipos" class="chips-filtro" style="display:none">
+              <button type="button" class="chip-f" data-tipo="Point">Ponto</button>
+              <button type="button" class="chip-f" data-tipo="LineString">Linha</button>
+              <button type="button" class="chip-f" data-tipo="Polygon">Polígono</button>
+            </div>
             <div id="med-total"><div class="rot"></div><div class="val">—</div></div>
             <div id="med-vazio"></div>
+            <!-- só aparece no modo Desenhar: quantas feições já foram concluídas -->
+            <div id="desenho-contador" style="display:none"></div>
             <div class="med-acoes">
               <button id="med-desfazer">Desfazer</button>
+              <button id="med-concluir" style="display:none">Concluir feição</button>
               <button id="med-fechar">Fechar</button>
+            </div>
+            <!-- só aparece no modo Desenhar, com 1+ feição concluída -->
+            <div id="desenho-wpp-grupo" style="display:none">
+              <button id="desenho-whatsapp" title="Enviar por WhatsApp" aria-label="Enviar por WhatsApp">
+                <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true">
+                  <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.07-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm5.2 14.2c-.22.62-1.28 1.19-1.77 1.24-.45.05-1.02.07-1.65-.1-.38-.1-.87-.28-1.5-.55-2.64-1.14-4.36-3.8-4.5-3.98-.13-.18-1.08-1.44-1.08-2.74 0-1.3.68-1.94.92-2.2.24-.27.53-.33.7-.33.18 0 .35 0 .5.01.16.01.38-.06.6.46.22.53.75 1.83.82 1.96.07.13.11.29.02.47-.09.18-.13.29-.26.45-.13.16-.27.35-.39.47-.13.13-.26.27-.11.53.15.27.68 1.12 1.46 1.81 1 .89 1.85 1.17 2.11 1.3.27.13.43.11.58-.07.16-.18.66-.77.84-1.03.18-.27.35-.22.6-.13.24.09 1.55.73 1.82.87.27.13.44.2.51.31.07.13.07.71-.15 1.33z"/>
+                </svg>
+              </button>
+              <span class="anotacoes-legenda">Enviar por WhatsApp</span>
+            </div>
+            <div class="exp-nota" id="desenho-nota" style="display:none">
+              Temporário — some ao fechar. Envie por WhatsApp pra não perder.
             </div>
           </div>
         </div>
@@ -972,47 +942,6 @@
         <div id="painel-marca" aria-hidden="true"><img id="painel-marca-img" alt="" /></div>
       </aside>
 
-      <div id="planta-modal">
-        <div class="planta-caixa" role="dialog" aria-label="Planta por rumos e azimutes">
-          <div class="planta-head">
-            <h2>Planta por rumos / azimutes</h2>
-            <button class="fechar" id="planta-fechar" aria-label="Fechar">×</button>
-          </div>
-          <div class="planta-corpo">
-            <label>Ponto de partida (marco inicial)</label>
-            <div class="planta-linha">
-              <input type="text" id="planta-lat" placeholder="latitude  (ex.: -19,1125)" />
-              <input type="text" id="planta-lng" placeholder="longitude (ex.: -51,7350)" />
-            </div>
-            <button type="button" class="planta-sec" id="planta-centro">Usar o centro do mapa</button>
-
-            <label>Segmentos — um por linha: <b>rumo/azimute ; distância (m)</b></label>
-            <textarea id="planta-txt" rows="7" spellcheck="false" placeholder="NE 45°30' ; 150,00
-SE 12°10' ; 87,25
-SO 80°00' ; 210,00
-NO 30°45' ; 143,10"></textarea>
-            <div class="planta-dica">
-              Aceita <b>rumo</b> (NE, SE, SO/SW, NO/NW) ou <b>azimute</b> (0–360°).
-              Graus como <code>45°30'20"</code> ou <code>45,5</code>. Distância em metros.
-            </div>
-
-            <label>Declinação magnética <span class="planta-opc">(opcional)</span></label>
-            <input type="text" id="planta-decl" placeholder="ex.: -17°30'  ou  17°30' W" />
-            <div class="planta-dica">
-              Plantas antigas trazem <b>rumos magnéticos</b>. Informe a declinação da
-              <b>época da planta</b> para converter em rumos verdadeiros e o desenho
-              cair no lugar certo. No Brasil ela é <b>Oeste (negativa)</b> — pode escrever
-              <code>-17°30'</code> ou <code>17°30' W</code>. Em branco = usa como está.
-            </div>
-
-            <div class="planta-acoes">
-              <button type="button" id="planta-limpar">Limpar</button>
-              <button type="button" id="planta-desenhar">Desenhar no mapa</button>
-            </div>
-            <div class="planta-result" id="planta-result"></div>
-          </div>
-        </div>
-      </div>
 
 
       <div id="ficha">
@@ -1967,7 +1896,7 @@ NO 30°45' ; 143,10"></textarea>
       // Fechar o painel com uma medição em andamento tem que sair da medição
       // também (mesma função do botão "Fechar" de dentro do Medir) — senão,
       // ao reabrir "Medir" depois, ele voltava direto pro meio da medição
-      // anterior em vez da tela de seleção (Distância/Área/Planta).
+      // anterior em vez da tela de seleção (Distância/Área/Desenhar).
       if (modoMedicao) sairMedicao();
       painel.classList.remove("mostrando");
       document.body.classList.remove("painel-aberto");
@@ -2277,194 +2206,6 @@ NO 30°45' ; 143,10"></textarea>
     document.getElementById("med-desfazer").addEventListener("click", function () {
       medPontos.pop();
       atualizarMedicao();
-    });
-
-    // ---- Planta por rumos / azimutes ----
-    const plantaLayer = L.layerGroup().addTo(map);
-    const plantaModal = document.getElementById("planta-modal");
-    const COR_PLANTA = "#f0a500";
-
-    const EXEMPLO_PLANTA =
-      "NE 45°30' ; 150,00\n" +
-      "SE 12°10' ; 87,25\n" +
-      "SO 80°00' ; 210,00\n" +
-      "NO 30°45' ; 143,10";
-
-    function abrirPlanta() {
-      fecharPainel();
-      const c = map.getCenter();
-      const lat = document.getElementById("planta-lat");
-      const lng = document.getElementById("planta-lng");
-      const txt = document.getElementById("planta-txt");
-      if (!lat.value) lat.value = c.lat.toFixed(6).replace(".", ",");
-      if (!lng.value) lng.value = c.lng.toFixed(6).replace(".", ",");
-      // já vem com um exemplo de verdade: funciona de primeira e é só substituir
-      if (!txt.value.trim()) txt.value = EXEMPLO_PLANTA;
-      plantaModal.classList.add("aberto");
-    }
-    function fecharPlanta() { plantaModal.classList.remove("aberto"); }
-
-    document.getElementById("med-planta").addEventListener("click", abrirPlanta);
-    document.getElementById("planta-fechar").addEventListener("click", fecharPlanta);
-    plantaModal.addEventListener("click", function (e) {
-      if (e.target === plantaModal) fecharPlanta();
-    });
-    document.getElementById("planta-centro").addEventListener("click", function () {
-      const c = map.getCenter();
-      document.getElementById("planta-lat").value = c.lat.toFixed(6).replace(".", ",");
-      document.getElementById("planta-lng").value = c.lng.toFixed(6).replace(".", ",");
-    });
-
-    function numerosDe(txt) {
-      return (String(txt).replace(/,/g, ".").match(/\d+(?:\.\d+)?/g) || []).map(Number);
-    }
-
-    // graus/minutos/segundos -> graus decimais
-    function paraDecimal(n) {
-      return (n[0] || 0) + (n[1] || 0) / 60 + (n[2] || 0) / 3600;
-    }
-
-    // "NE 45°30' ; 150,00"  ou  "135°20'15\" ; 87,5"
-    function lerSegmento(linha) {
-      const txt = linha.trim();
-      if (!txt) return null;
-
-      const q = (txt.match(/\b(NE|SE|SO|SW|NO|NW)\b/i) || [])[1];
-
-      let angTxt = txt, distTxt = null;
-      if (txt.indexOf(";") > -1) {
-        const p = txt.split(";");
-        angTxt = p[0];
-        distTxt = p.slice(1).join(";");
-      }
-
-      let dist, angNums;
-      if (distTxt !== null) {
-        dist = numerosDe(distTxt)[0];
-        angNums = numerosDe(angTxt);
-      } else {
-        const todos = numerosDe(txt);      // sem ";": o último número é a distância
-        dist = todos[todos.length - 1];
-        angNums = todos.slice(0, -1);
-      }
-      if (!dist || !angNums.length) return null;
-
-      const ang = paraDecimal(angNums);
-      let az;
-      if (q) {
-        const Q = q.toUpperCase();
-        if (Q === "NE") az = ang;
-        else if (Q === "SE") az = 180 - ang;
-        else if (Q === "SO" || Q === "SW") az = 180 + ang;
-        else az = 360 - ang;               // NO / NW
-      } else {
-        az = ang;                          // já é azimute
-      }
-      return { azimute: ((az % 360) + 360) % 360, distancia: dist };
-    }
-
-    function fmtNum(v, casas) {
-      return v.toLocaleString("pt-BR", { maximumFractionDigits: casas });
-    }
-
-    // Declinação magnética: "-17°30'", "17°30' W" (Oeste = negativa), "17,5 E"
-    function lerDeclinacao(txt) {
-      const t = String(txt || "").trim();
-      if (!t) return 0;
-      const n = numerosDe(t);
-      if (!n.length) return 0;
-      const v = Math.abs(paraDecimal(n));
-      const oeste = /^-/.test(t) || /\b(W|O|OESTE|WEST)\b/i.test(t);
-      const leste = /\b(E|L|LESTE|EAST)\b/i.test(t);
-      if (leste && !oeste) return v;
-      if (oeste) return -v;
-      return v; // sem indicação: usa como veio
-    }
-
-    function desenharPlanta() {
-      const lat = parseFloat(String(document.getElementById("planta-lat").value).replace(",", "."));
-      const lng = parseFloat(String(document.getElementById("planta-lng").value).replace(",", "."));
-      if (isNaN(lat) || isNaN(lng)) {
-        alert("Informe o ponto de partida (latitude e longitude).");
-        return;
-      }
-
-      const bruto = document.getElementById("planta-txt").value;
-      if (!bruto.trim()) {
-        alert("O campo de segmentos está vazio.\n\n" +
-              "Digite ou cole os segmentos da planta, um por linha, assim:\n" +
-              "NE 45°30' ; 150,00");
-        return;
-      }
-
-      const linhas = bruto.split("\n");
-      const segs = [], ignoradas = [];
-      linhas.forEach(function (l, i) {
-        if (!l.trim()) return;
-        const s = lerSegmento(l);
-        if (s) segs.push(s); else ignoradas.push(i + 1);
-      });
-      if (!segs.length) {
-        alert("Não consegui ler nenhuma linha.\n\n" +
-              "Cada linha precisa ter o rumo/azimute e a distância, assim:\n" +
-              "NE 45°30' ; 150,00\n88°33' SE ; 3720,00\n135,5 ; 87,25");
-        return;
-      }
-
-      plantaLayer.clearLayers();
-
-      // rumos magnéticos -> verdadeiros (rotaciona a poligonal inteira)
-      const decl = lerDeclinacao(document.getElementById("planta-decl").value);
-
-      let atual = [lng, lat];              // turf trabalha em [lng, lat]
-      const pontos = [atual];
-      let perimetro = 0;
-      segs.forEach(function (s) {
-        const az = ((s.azimute + decl) % 360 + 360) % 360;
-        atual = turf.destination(turf.point(atual), s.distancia / 1000, az,
-                                 { units: "kilometers" }).geometry.coordinates;
-        pontos.push(atual);
-        perimetro += s.distancia;
-      });
-
-      const latlngs = pontos.map(function (c) { return [c[1], c[0]]; });
-
-      let areaHa = 0;
-      if (pontos.length >= 3) {
-        try { areaHa = turf.area(turf.polygon([pontos.concat([pontos[0]])])) / 10000; } catch (e) {}
-        L.polygon(latlngs, { color: COR_PLANTA, weight: 2, fillOpacity: .18 }).addTo(plantaLayer);
-      }
-      L.polyline(latlngs, { color: COR_PLANTA, weight: 3 }).addTo(plantaLayer);
-      latlngs.forEach(function (ll, i) {
-        L.circleMarker(ll, {
-          radius: 4, color: "#fff", weight: 2, fillColor: COR_PLANTA, fillOpacity: 1
-        }).bindTooltip("P" + i, { direction: "top" }).addTo(plantaLayer);
-      });
-
-      // erro de fechamento: distância do último vértice de volta ao marco inicial
-      const erro = turf.distance(turf.point(pontos[pontos.length - 1]),
-                                 turf.point(pontos[0]), { units: "kilometers" }) * 1000;
-
-      map.fitBounds(L.polyline(latlngs).getBounds(), { padding: [50, 50] });
-
-      document.getElementById("planta-result").innerHTML =
-        "<div><b>" + segs.length + "</b> segmento(s) lido(s)" +
-        (ignoradas.length
-          ? ' · <span style="color:#c0392b">linha(s) ignorada(s): ' + ignoradas.join(", ") + "</span>"
-          : "") + "</div>" +
-        (decl ? "<div>Declinação aplicada: <b>" + fmtNum(decl, 4) + "°</b> (" +
-                (decl < 0 ? "Oeste" : "Leste") + ") — rumos convertidos p/ verdadeiros</div>" : "") +
-        "<div>Perímetro: <b>" + fmtNum(perimetro, 2) + " m</b></div>" +
-        (areaHa ? "<div>Área: <b>" + fmtNum(areaHa, 4) + " ha</b> (" +
-                  fmtNum(areaHa * 10000, 2) + " m²)</div>" : "") +
-        "<div>Erro de fechamento: <b>" + fmtNum(erro, 2) + " m</b></div>";
-    }
-
-    document.getElementById("planta-desenhar").addEventListener("click", desenharPlanta);
-    document.getElementById("planta-limpar").addEventListener("click", function () {
-      plantaLayer.clearLayers();
-      document.getElementById("planta-txt").value = "";
-      document.getElementById("planta-result").innerHTML = "";
     });
 
     // ---- 11. Exportar dados (backup): Excel/CSV e KML ----
