@@ -1,21 +1,33 @@
 # RESUMO DO PROJETO — ADMImob
 
-_Última atualização: 2026-07-28_
+_Última atualização: 2026-08-06_
 
 Este é o "aqui estamos" do projeto. Se voltar depois de um tempo, comece por aqui.
 
 ## Onde estamos
 
 Produto **NO AR** 🎉 — repositório **público** `FabioRMoreno/ADMImob`, publicado no
-**GitHub Pages** em 2026-07-28:
+**GitHub Pages**:
 `https://fabiormoreno.github.io/ADMImob/?cliente=adriel` (login `Adriel`). Já abre
-no **celular** (testado no Android), com HTTPS, login e cofre funcionando. Nesse
-mesmo dia entraram **login por corretor + cofre** (dados criptografados; ver abaixo).
+no **celular** (testado no Android), com HTTPS, login e cofre funcionando.
 
-**FOCO ATUAL: adaptar o layout ao celular.** Hoje o cabeçalho e o painel lateral
-(largura fixa de 236px, feita pra desktop) ficam **desconfigurados na tela do
-celular** — o painel ocupa ~metade da largura. É a próxima frente de trabalho.
-Falta também trocar os dados de exemplo pelos reais.
+**Decisão estratégica (2026-08-06): fechar uma v1.0 curta e lançar.** Em vez de
+polir infinitamente, definimos uma lista fechada de 6 tarefas pra v1.0 (ver
+`IDEIAS.md`/conversa com a IA) e, ao terminar, oferecer teste grátis pra 3
+corretores-alvo (Adriel, Giovani, Mislene) antes de cobrar.
+
+**Layout mobile refeito** (era o foco anterior): 3 painéis de botões
+reorganizados por função, barra inferior fixa (escala + cidade + logado),
+cores e ícones consistentes em verde-limão neon.
+
+**Nova camada: Municípios GO**, somada à de MS na barra inferior e no mapa.
+
+**Ferramenta de Medir reformulada**: vértices agora são arrastáveis; a função
+Planta (rumos/azimutes) saiu do escopo; entrou "Desenhar" (ponto/linha/polígono,
+temporário, exporta por WhatsApp como GeoJSON — de propósito não persiste).
+
+Falta ainda: trocar os dados de exemplo pelos reais, contatos reais do Adriel,
+fotos (Cloudinary), e as tarefas 2–6 da lista da v1.0.
 
 ## Novidades de 2026-07-28 — Login + Cofre
 
