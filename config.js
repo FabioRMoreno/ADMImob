@@ -111,6 +111,36 @@ const CLIENTES = {
         bounds: [[-20.475520189355343, -53.76486000338676], [-20.46776000509357, -53.75333962159885]]
       }
     ]
+  },
+
+  // --- Cliente de TESTE (dados abertos, aleatórios) ---
+  // Não é um corretor real. Serve pra testar recursos do app (ex.: painel de
+  // resumo por cidade) sem mexer no cofre do Adriel. dados/teste.geojson é
+  // gerado por script, não é catálogo de verdade — pode apagar quando quiser.
+  teste: {
+    marca: "ADMImob — Teste",
+    corretor: "Dados de teste",
+    creci: "",
+    logo: "",
+    corTopo: "#17191c",
+    corPrimaria: "#87cb33",
+    corSecundaria: "#2b2f33",
+    logoUsuario: "",
+    logoIcone: "",
+
+    centro: [-19.1129, -51.7342],
+    zoom: 12,
+
+    cidadesFoco: { arquivo: "dados/ref/cidades_zoom.geojson", rotulo: "Name" },
+    municipioAtual: [
+      { arquivo: "dados/ref/ms_municipios.geojson", rotulo: "NM_MUN", uf: "MS" },
+      { arquivo: "dados/ref/go_municipios.geojson", rotulo: "NM_MUN", uf: "GO" }
+    ],
+
+    contatos: { whatsapp: "", telefone: "", email: "", instagram: "" },
+
+    // Sem cofre: dados abertos direto (só pra teste).
+    dados: "dados/teste.geojson"
   }
 
   // ,exemplo: { ...copie o bloco acima para o próximo corretor... }

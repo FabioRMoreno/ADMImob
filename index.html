@@ -693,11 +693,11 @@
       box-shadow: 0 6px 24px rgba(0,0,0,.45);
       animation: resumoCidadeFade 5s ease forwards;
     }
-    #resumo-cidade.aberto { display: flex; gap: 18px; }
-    .resumo-item { display: flex; flex-direction: column; align-items: center; gap: 2px; color: #fff; }
-    .resumo-item svg { width: 22px; height: 22px; color: #87cb33; filter: drop-shadow(0 0 4px #87cb33); }
+    #resumo-cidade.aberto { display: flex; flex-direction: column; gap: 10px; min-width: 168px; }
+    .resumo-item { display: flex; flex-direction: row; align-items: center; gap: 10px; color: #fff; }
+    .resumo-item svg { flex: none; width: 22px; height: 22px; color: #87cb33; filter: drop-shadow(0 0 4px #87cb33); }
     .resumo-item b { font-size: 1rem; font-weight: 800; line-height: 1; }
-    .resumo-item span { font-size: .62rem; color: #b9bec4; text-transform: uppercase; letter-spacing: .03em; }
+    .resumo-item span { font-size: .68rem; color: #b9bec4; text-transform: uppercase; letter-spacing: .03em; margin-left: auto; padding-left: 10px; }
 
     /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
     .leaflet-control-scale { margin-bottom: 12px !important; margin-left: 12px !important; }
@@ -1081,7 +1081,7 @@
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
        para o navegador do corretor pegar a versão nova em vez do cache. -->
-  <script src="config.js?v=13"></script>
+  <script src="config.js?v=14"></script>
   <script>
   (function () {
     "use strict";
