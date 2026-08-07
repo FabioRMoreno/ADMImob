@@ -966,6 +966,13 @@
           <div class="ref-div"></div>
           <div class="ref-lista" id="ref-lista"></div>
           <div class="exp-nota" id="ref-vazio">Nenhuma camada de referência configurada</div>
+
+          <!-- só aparece se o corretor tiver planta(s) georreferenciada(s) no config.js -->
+          <div id="plantas-bloco" style="display:none">
+            <div class="ref-div"></div>
+            <h3>Plantas</h3>
+            <div class="ref-lista" id="plantas-lista"></div>
+          </div>
         </div>
 
         <div id="painel-marca" aria-hidden="true"><img id="painel-marca-img" alt="" /></div>
@@ -1767,6 +1774,67 @@
       });
     });
 
+    // Plantas georreferenciadas (imagem ancorada por 2 cantos, tipo "basemap"
+    // de uma área específica — loteamento, condomínio). Mesmo padrão visual
+    // das camadas de referência acima (liga/desliga + transparência).
+    const plantasRef = cliente.plantas || [];
+    const plantasCarregadas = {};
+    if (plantasRef.length) {
+      document.getElementById("plantas-bloco").style.display = "block";
+      const plantasLista = document.getElementById("plantas-lista");
+
+      plantasRef.forEach(function (pl, i) {
+        const linha = document.createElement("label");
+        linha.className = "ref-op";
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        const bolinha = document.createElement("span");
+        bolinha.className = "ref-cor";
+        bolinha.style.background = "#9aa5ad";
+        const nome = document.createElement("span");
+        nome.className = "ref-nome";
+        nome.textContent = pl.nome || ("Planta " + (i + 1));
+        const status = document.createElement("span");
+        status.className = "ref-status";
+        linha.appendChild(chk); linha.appendChild(bolinha);
+        linha.appendChild(nome); linha.appendChild(status);
+        plantasLista.appendChild(linha);
+
+        const ctrl = document.createElement("div");
+        ctrl.className = "ref-ctrl";
+        const slider = document.createElement("input");
+        slider.type = "range"; slider.min = "10"; slider.max = "100";
+        slider.value = "80"; slider.title = "Transparência";
+        ctrl.appendChild(slider);
+        plantasLista.appendChild(ctrl);
+
+        slider.addEventListener("input", function () {
+          if (plantasCarregadas[i]) plantasCarregadas[i].setOpacity((+slider.value) / 100);
+        });
+        chk.addEventListener("change", function () { ctrl.style.display = chk.checked ? "flex" : "none"; });
+
+        chk.addEventListener("change", function () {
+          if (!chk.checked) {
+            if (plantasCarregadas[i]) map.removeLayer(plantasCarregadas[i]);
+            return;
+          }
+          if (plantasCarregadas[i]) { plantasCarregadas[i].addTo(map); return; }
+          status.textContent = "carregando…";
+          const img = L.imageOverlay(pl.arquivo, pl.bounds, { opacity: (+slider.value) / 100 });
+          img.on("load", function () { status.textContent = ""; });
+          img.on("error", function () {
+            status.textContent = "erro";
+            chk.checked = false; ctrl.style.display = "none";
+            alert('Não consegui carregar a planta "' + (pl.nome || "") + '".\n' +
+                  "Confira o caminho no config.js (" + pl.arquivo + ").");
+          });
+          img.addTo(map);
+          plantasCarregadas[i] = img;
+          map.flyToBounds(pl.bounds, { maxZoom: 17 });
+        });
+      });
+    }
+
     // ---- 4. Estado ----
     let todasFeatures = [];
     const layerImoveis = L.layerGroup().addTo(map);
@@ -1893,7 +1961,8 @@
       aplicarFiltros();
 
       // desliga todas as camadas de referencia ligadas (bairros, acessos, municipios...)
-      document.querySelectorAll("#ref-lista .ref-op input[type=checkbox]").forEach(function (chk) {
+      // e as plantas georreferenciadas também
+      document.querySelectorAll("#ref-lista .ref-op input[type=checkbox], #plantas-lista .ref-op input[type=checkbox]").forEach(function (chk) {
         if (chk.checked) {
           chk.checked = false;
           chk.dispatchEvent(new Event("change")); // reusa o handler que remove o layer e esconde os controles

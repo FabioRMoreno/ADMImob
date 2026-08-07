@@ -91,6 +91,20 @@ const CLIENTES = {
       { nome: "Municípios GO", arquivo: "dados/ref/go_municipios.geojson", cor: "#3ca7f2", rotulo: "NM_MUN", rotuloModo: "longe" },
       { nome: "Acessos", arquivo: "dados/ref/cassilandia_acessos.geojson", cor: "#ffd23f", rotulo: "name", rotuloModo: "hover" },
       { nome: "Pontos de referência", arquivo: "dados/ref/pontos.geojson", cor: "#e3452f", rotulo: "nome" }
+    ],
+
+    // --- Plantas georreferenciadas (opcional) ---
+    // Imagem (PNG/JPG) de uma planta/loteamento, ancorada no mapa por 2 cantos
+    // (canto inferior-esquerdo e superior-direito, em lat/lng). Pra gerar:
+    // exporte do QGIS como "PDF georreferenciado (OGC)" e recorte/converta a
+    // página em imagem já cortada na área útil (sem a moldura) — os cantos
+    // (GPTS) ficam no próprio PDF, é só copiar aqui.
+    plantas: [
+      {
+        nome: "Loteamento Talismã",
+        arquivo: "dados/plantas/talisma.png",
+        bounds: [[-19.1187928752248304, -51.8911041074302446], [-19.0804220474923412, -51.8363589154822435]]
+      }
     ]
   }
 
