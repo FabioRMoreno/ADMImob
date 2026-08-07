@@ -104,6 +104,11 @@ const CLIENTES = {
         nome: "Loteamento Talismã",
         arquivo: "dados/plantas/talisma.png",
         bounds: [[-19.1187928752248304, -51.8911041074302446], [-19.0804220474923412, -51.8363589154822435]]
+      },
+      {
+        nome: "Altos do Estoril — Setor Sul",
+        arquivo: "dados/plantas/altos_do_estoril.png",
+        bounds: [[-20.475520189355343, -53.76486000338676], [-20.46776000509357, -53.75333962159885]]
       }
     ]
   }
