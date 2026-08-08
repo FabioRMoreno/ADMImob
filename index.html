@@ -647,10 +647,10 @@
        mesmo lugar da tela, não importa onde o marcador esteja). Reaproveita
        as mesmas classes de conteúdo (.balao-titulo, .balao-foto etc.). */
     #balao-fixo {
-      position: fixed; z-index: 1600; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      position: fixed; z-index: 1600; left: 50%; bottom: 64px; transform: translateX(-50%);
       display: none; background: var(--topo); color: #fff; border-radius: 14px;
       box-shadow: 0 10px 40px rgba(0,0,0,.55); padding: 12px 14px;
-      width: 270px; max-width: 86vw; max-height: 76vh; overflow-y: auto;
+      width: 270px; max-width: 86vw; max-height: 50vh; overflow-y: auto;
     }
     #balao-fixo.aberto { display: block; }
     #balao-fixo-fechar {
