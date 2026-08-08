@@ -643,6 +643,23 @@
     .balao-specs li span { color: #8a9096; display: block; font-size: .6rem; text-transform: uppercase; letter-spacing: .02em; }
     .balao-imovel .ref { display: block; font-family: ui-monospace, monospace; font-size: .68rem; color: #8a9096; margin-top: 6px; }
 
+    /* Balão do imóvel em posição FIXA (não tethered ao pino — sempre no
+       mesmo lugar da tela, não importa onde o marcador esteja). Reaproveita
+       as mesmas classes de conteúdo (.balao-titulo, .balao-foto etc.). */
+    #balao-fixo {
+      position: fixed; z-index: 1600; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      display: none; background: var(--topo); color: #fff; border-radius: 14px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.55); padding: 12px 14px;
+      width: 270px; max-width: 86vw; max-height: 76vh; overflow-y: auto;
+    }
+    #balao-fixo.aberto { display: block; }
+    #balao-fixo-fechar {
+      position: absolute; top: 8px; right: 10px; width: 26px; height: 26px;
+      background: rgba(255,255,255,.1); border: none; border-radius: 50%;
+      color: #b9bec4; font-size: 1.1rem; line-height: 1; cursor: pointer;
+    }
+    #balao-fixo .ref { display: block; font-family: ui-monospace, monospace; font-size: .68rem; color: #8a9096; margin-top: 6px; }
+
     /* Botão de recentralizar (na barra do zoom) */
     .btn-recentrar {
       display: flex !important; align-items: center; justify-content: center;
@@ -910,6 +927,12 @@
 
     <!-- Resumo ilustrativo: ícone + contagem por tipo, ~5s ao entrar numa cidade -->
     <div id="resumo-cidade"></div>
+
+    <!-- Balão do imóvel: posição FIXA na tela (não segue o pino) -->
+    <div id="balao-fixo">
+      <button id="balao-fixo-fechar" aria-label="Fechar">×</button>
+      <div id="balao-fixo-corpo"></div>
+    </div>
 
     <div id="conteudo">
       <div id="map"></div>
@@ -1965,6 +1988,19 @@
       );
     }
 
+    // Balão em posição FIXA na tela (não segue o pino — sempre no mesmo
+    // lugar, resolve o balão "pulando" de lugar conforme o marcador clicado).
+    const balaoFixo = document.getElementById("balao-fixo");
+    const balaoFixoCorpo = document.getElementById("balao-fixo-corpo");
+    function abrirBalaoFixo(html) {
+      balaoFixoCorpo.innerHTML = html;
+      balaoFixo.classList.add("aberto");
+    }
+    function fecharBalaoFixo() {
+      balaoFixo.classList.remove("aberto");
+    }
+    document.getElementById("balao-fixo-fechar").addEventListener("click", fecharBalaoFixo);
+
     // ---- Resumo ilustrativo por cidade (ícone + contagem, ~5s ao focar uma cidade) ----
     const ICONE_TIPO = {
       casa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/><path d="M10 20v-5h4v5"/></svg>',
@@ -2032,13 +2068,19 @@
         if (g.type === "Point") {
           const ll = [g.coordinates[1], g.coordinates[0]];
           const m = L.marker(ll, { icon: iconeImovel(p.negocio) }).addTo(layerImoveis);
-          m.bindPopup(conteudoBalao(p), { className: "balao-imovel", maxWidth: 240 });
+          m.on("click", function () {
+            map.flyTo(ll, Math.max(map.getZoom(), 16), { duration: .4 });
+            abrirBalaoFixo(conteudoBalao(p));
+          });
         } else if (g.type === "Polygon" || g.type === "MultiPolygon") {
           const poly = L.geoJSON(f, {
             style: { color: COR_RURAL, weight: 2, fillOpacity: 0.25 }
           }).addTo(layerImoveis);
           const ha = areaHectares(f);
-          poly.bindPopup(conteudoBalao(p, ha), { className: "balao-imovel", maxWidth: 240 });
+          poly.on("click", function () {
+            map.flyToBounds(poly.getBounds(), { padding: [40, 40], duration: .4 });
+            abrirBalaoFixo(conteudoBalao(p, ha));
+          });
         }
       });
     }
