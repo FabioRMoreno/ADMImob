@@ -974,6 +974,13 @@
                 <button type="button" class="chip-f" data-val="chacara">Chácara</button>
               </div>
             </div>
+            <div class="chip-grupo">
+              <div class="chip-rot">Cidade</div>
+              <!-- Botões por cidade entram aqui em runtime (mesma lista da mira azul) -->
+              <div class="chips-filtro" id="filtro-cidade">
+                <button type="button" class="chip-f ativa" data-val="">Todas</button>
+              </div>
+            </div>
             <div class="contador" id="contador"></div>
           </div>
         </div>
@@ -1512,6 +1519,22 @@
                 mostrarResumoCidade(c.feature);
               });
               menuCidades.appendChild(b);
+            });
+
+            // Mesmas cidades como chip de filtro: clicar filtra os imóveis
+            // pra dentro daquela cidade E dá o mesmo zoom da mira azul.
+            const filtroCidadeGrupo = document.getElementById("filtro-cidade");
+            cidades.forEach(function (c) {
+              const chip = document.createElement("button");
+              chip.type = "button"; chip.className = "chip-f"; chip.dataset.val = c.nome;
+              chip.textContent = c.nome;
+              chip.addEventListener("click", function () {
+                filtroCidadeGrupo.querySelectorAll(".chip-f").forEach(function (x) { x.classList.remove("ativa"); });
+                chip.classList.add("ativa");
+                map.fitBounds(c.bounds, { padding: [28, 28] });
+                aplicarFiltros();
+              });
+              filtroCidadeGrupo.appendChild(chip);
             });
           })
           .catch(function () {
@@ -2102,11 +2125,22 @@
     function aplicarFiltros() {
       const negocio = filtroAtivo("filtro-negocio");
       const tipo = filtroAtivo("filtro-tipo");
+      const nomeCidade = filtroAtivo("filtro-cidade");
+      const cidadeSel = nomeCidade ? listaCidades.find(function (c) { return c.nome === nomeCidade; }) : null;
 
       const filtradas = todasFeatures.filter(function (f) {
         const p = f.properties || {};
         if (negocio && p.negocio !== negocio) return false;
         if (tipo && p.tipo !== tipo) return false;
+        if (cidadeSel) {
+          const g = f.geometry || {};
+          let pt = null;
+          try { pt = g.type === "Point" ? turf.point(g.coordinates) : turf.centroid(f); }
+          catch (e) { return false; }
+          let dentro = false;
+          try { dentro = turf.booleanPointInPolygon(pt, cidadeSel.feature); } catch (e) { dentro = false; }
+          if (!dentro) return false;
+        }
         return true;
       });
 
