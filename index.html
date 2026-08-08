@@ -623,9 +623,13 @@
       background: var(--topo); color: #fff; border-radius: 12px;
       box-shadow: 0 6px 24px rgba(0,0,0,.5);
     }
-    .balao-imovel .leaflet-popup-content { margin: 12px 14px; min-width: 168px; }
+    .balao-imovel .leaflet-popup-content { margin: 12px 14px; min-width: 180px; }
     .balao-imovel .leaflet-popup-tip { background: var(--topo); }
     .balao-imovel .leaflet-popup-close-button { color: #b9bec4 !important; }
+    .balao-foto {
+      width: calc(100% + 28px); margin: -12px -14px 8px; display: block;
+      max-height: 130px; object-fit: cover; border-radius: 12px 12px 0 0;
+    }
     .balao-titulo { font-weight: 800; font-size: .92rem; margin-bottom: 4px; }
     .balao-preco { color: var(--primaria); font-weight: 800; font-size: 1.02rem; }
     .balao-badges { margin: 6px 0 2px; display: flex; gap: 6px; flex-wrap: wrap; }
@@ -633,7 +637,11 @@
       font-size: .64rem; padding: 2px 8px; border-radius: 20px;
       background: rgba(255,255,255,.12); text-transform: uppercase; letter-spacing: .03em;
     }
-    .balao-imovel .ref { display: block; font-family: ui-monospace, monospace; font-size: .68rem; color: #8a9096; margin-top: 4px; }
+    .balao-endereco { font-size: .74rem; color: #b9bec4; margin-top: 6px; }
+    .balao-specs { list-style: none; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+    .balao-specs li { font-size: .72rem; color: #ddd; }
+    .balao-specs li span { color: #8a9096; display: block; font-size: .6rem; text-transform: uppercase; letter-spacing: .02em; }
+    .balao-imovel .ref { display: block; font-family: ui-monospace, monospace; font-size: .68rem; color: #8a9096; margin-top: 6px; }
 
     /* Botão de recentralizar (na barra do zoom) */
     .btn-recentrar {
@@ -1931,15 +1939,28 @@
     }
 
     // Conteúdo do balão flutuante (troca o popup branco padrão do Leaflet).
-    function conteudoBalao(p, extraLinha) {
+    // Reúne tudo que antes ficava na ficha embaixo: foto, badges, endereço,
+    // specs (spec_*) e área (ha, quando é polígono) — a ficha branca não abre
+    // mais, os dados aparecem só aqui.
+    function conteudoBalao(p, ha) {
+      const specs = Object.keys(p)
+        .filter(function (k) { return k.indexOf("spec_") === 0 && p[k]; })
+        .map(function (k) {
+          const rotulo = k.replace("spec_", "").replace(/_/g, " ");
+          return '<li><span>' + rotulo + '</span>' + p[k] + '</li>';
+        });
+      if (ha) specs.unshift('<li><span>área</span>' + ha.toFixed(1) + ' ha</li>');
+
       return (
+        (p.foto ? '<img class="balao-foto" src="' + p.foto + '" alt="">' : '') +
         '<div class="balao-titulo">' + (p.titulo || "Imóvel") + "</div>" +
         '<div class="balao-preco">' + fmtBRL(p.preco) + (p.negocio === "aluguel" ? " /mês" : "") + "</div>" +
         '<div class="balao-badges">' +
           '<span class="balao-badge">' + rotuloTipo(p.tipo) + "</span>" +
           '<span class="balao-badge">' + rotuloNegocio(p.negocio) + "</span>" +
         "</div>" +
-        (extraLinha || "") +
+        (p.endereco ? '<div class="balao-endereco">' + p.endereco + "</div>" : "") +
+        (specs.length ? '<ul class="balao-specs">' + specs.join("") + "</ul>" : "") +
         refPopup(p)
       );
     }
@@ -2011,15 +2032,13 @@
         if (g.type === "Point") {
           const ll = [g.coordinates[1], g.coordinates[0]];
           const m = L.marker(ll, { icon: iconeImovel(p.negocio) }).addTo(layerImoveis);
-          m.bindPopup(conteudoBalao(p), { className: "balao-imovel" });
-          m.on("click", function () { abrirFicha(f); });
+          m.bindPopup(conteudoBalao(p), { className: "balao-imovel", maxWidth: 240 });
         } else if (g.type === "Polygon" || g.type === "MultiPolygon") {
           const poly = L.geoJSON(f, {
             style: { color: COR_RURAL, weight: 2, fillOpacity: 0.25 }
           }).addTo(layerImoveis);
           const ha = areaHectares(f);
-          poly.bindPopup(conteudoBalao(p, '<div class="ref">' + ha.toFixed(1) + " ha</div>"), { className: "balao-imovel" });
-          poly.on("click", function () { abrirFicha(f, ha); });
+          poly.bindPopup(conteudoBalao(p, ha), { className: "balao-imovel", maxWidth: 240 });
         }
       });
     }
