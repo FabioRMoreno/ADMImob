@@ -608,6 +608,33 @@
       border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.5);
     }
 
+    /* Marcador de imóvel: bolinha colorida + ícone de casa (cor por instância,
+       inline: verde/vermelho conforme negócio — ver iconeImovel() no JS). */
+    .leaflet-div-icon.marcador-imovel-icon { background: transparent; border: none; }
+    .pin-imovel {
+      width: 28px; height: 28px; border-radius: 50%; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,.55);
+    }
+    .pin-imovel svg { width: 15px; height: 15px; }
+
+    /* Balão flutuante do imóvel (troca o popup branco padrão do Leaflet) */
+    .balao-imovel .leaflet-popup-content-wrapper {
+      background: var(--topo); color: #fff; border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.5);
+    }
+    .balao-imovel .leaflet-popup-content { margin: 12px 14px; min-width: 168px; }
+    .balao-imovel .leaflet-popup-tip { background: var(--topo); }
+    .balao-imovel .leaflet-popup-close-button { color: #b9bec4 !important; }
+    .balao-titulo { font-weight: 800; font-size: .92rem; margin-bottom: 4px; }
+    .balao-preco { color: var(--primaria); font-weight: 800; font-size: 1.02rem; }
+    .balao-badges { margin: 6px 0 2px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .balao-badge {
+      font-size: .64rem; padding: 2px 8px; border-radius: 20px;
+      background: rgba(255,255,255,.12); text-transform: uppercase; letter-spacing: .03em;
+    }
+    .balao-imovel .ref { display: block; font-family: ui-monospace, monospace; font-size: .68rem; color: #8a9096; margin-top: 4px; }
+
     /* Botão de recentralizar (na barra do zoom) */
     .btn-recentrar {
       display: flex !important; align-items: center; justify-content: center;
@@ -1883,6 +1910,40 @@
       return n === "venda" ? "Venda" : n === "aluguel" ? "Aluguel" : (n || "");
     };
 
+    // ---- Marcadores e balão dos imóveis ----
+    // Venda usa a cor de marca (--primaria); aluguel e polígono rural têm cor
+    // fixa própria, pra não depender da marca do corretor nem repetir o verde
+    // neon já usado no resto da interface (flash de cidade, resumo, etc.).
+    const COR_ALUGUEL = "#2f8fd1";
+    const COR_RURAL = "#b9772e";
+    const SVG_CASA =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
+      'stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/></svg>';
+
+    function iconeImovel(negocio) {
+      const cor = negocio === "aluguel" ? COR_ALUGUEL : "var(--primaria)";
+      return L.divIcon({
+        className: "marcador-imovel-icon",
+        html: '<div class="pin-imovel" style="background:' + cor + '">' + SVG_CASA + "</div>",
+        iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -16]
+      });
+    }
+
+    // Conteúdo do balão flutuante (troca o popup branco padrão do Leaflet).
+    function conteudoBalao(p, extraLinha) {
+      return (
+        '<div class="balao-titulo">' + (p.titulo || "Imóvel") + "</div>" +
+        '<div class="balao-preco">' + fmtBRL(p.preco) + (p.negocio === "aluguel" ? " /mês" : "") + "</div>" +
+        '<div class="balao-badges">' +
+          '<span class="balao-badge">' + rotuloTipo(p.tipo) + "</span>" +
+          '<span class="balao-badge">' + rotuloNegocio(p.negocio) + "</span>" +
+        "</div>" +
+        (extraLinha || "") +
+        refPopup(p)
+      );
+    }
+
     // ---- Resumo ilustrativo por cidade (ícone + contagem, ~5s ao focar uma cidade) ----
     const ICONE_TIPO = {
       casa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/><path d="M10 20v-5h4v5"/></svg>',
@@ -1932,9 +1993,7 @@
 
     // linha do código do imóvel no popup (só se houver)
     const refPopup = function (p) {
-      return p.codigo
-        ? '<br><span style="font-family:monospace;font-size:.68rem;color:#888">' + p.codigo + '</span>'
-        : '';
+      return p.codigo ? '<span class="ref">' + p.codigo + '</span>' : '';
     };
 
     // ---- 5. Carregar GeoJSON do corretor ----
@@ -1951,19 +2010,15 @@
 
         if (g.type === "Point") {
           const ll = [g.coordinates[1], g.coordinates[0]];
-          const m = L.marker(ll).addTo(layerImoveis);
-          m.bindPopup("<b>" + (p.titulo || "Imóvel") + "</b><br>" + fmtBRL(p.preco) + refPopup(p));
+          const m = L.marker(ll, { icon: iconeImovel(p.negocio) }).addTo(layerImoveis);
+          m.bindPopup(conteudoBalao(p), { className: "balao-imovel" });
           m.on("click", function () { abrirFicha(f); });
         } else if (g.type === "Polygon" || g.type === "MultiPolygon") {
           const poly = L.geoJSON(f, {
-            style: {
-              color: cliente.corPrimaria || "#1b6e4b",
-              weight: 2, fillOpacity: 0.25
-            }
+            style: { color: COR_RURAL, weight: 2, fillOpacity: 0.25 }
           }).addTo(layerImoveis);
           const ha = areaHectares(f);
-          poly.bindPopup("<b>" + (p.titulo || "Área") + "</b><br>" +
-            fmtBRL(p.preco) + "<br>" + ha.toFixed(1) + " ha" + refPopup(p));
+          poly.bindPopup(conteudoBalao(p, '<div class="ref">' + ha.toFixed(1) + " ha</div>"), { className: "balao-imovel" });
           poly.on("click", function () { abrirFicha(f, ha); });
         }
       });
