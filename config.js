@@ -34,14 +34,12 @@ const CLIENTES = {
     logoIcone: "img/logo_adriel.png?v=1",
 
     // --- Acesso (COFRE: login + senha que desembaralha os dados) ---
-    // TEMPORARIAMENTE DESLIGADO: ainda não há catálogo oficial do Adriel, só
-    // dados de exemplo (dados/adriel.geojson, aleatórios, pra testar o app).
-    // Sem nada sensível ainda, não faz sentido pedir senha. Quando o catálogo
-    // real entrar (pendência 6), reativa o cofre: dadosEnc + gerar senha nova
-    // com `node ferramentas/encriptar.js <geojson> <senha> dados/adriel.enc`,
-    // remove a linha "dados:" abaixo e apaga dados/adriel.geojson do repo.
+    // O corretor repassa login+senha a quem ele quiser. A SENHA NÃO fica aqui:
+    // ela é a chave que decripta o dados/adriel.enc. Sem ela, os dados são lixo.
+    // Trocar a senha = re-gerar o .enc e distribuir a nova senha (revoga a antiga).
+    // Gerar/atualizar: node ferramentas/encriptar.js <geojson> <senha> <saida.enc>
     login: "Adriel",
-    dados: "dados/adriel.geojson",
+    dadosEnc: "dados/adriel.enc",
 
     // --- Onde o mapa abre (lat, lng) e zoom inicial ---
     // Cassilândia-MS por padrão. Ajuste para a cidade do corretor.
@@ -113,6 +111,36 @@ const CLIENTES = {
         bounds: [[-20.475520189355343, -53.76486000338676], [-20.46776000509357, -53.75333962159885]]
       }
     ]
+  },
+
+  // --- Cliente de TESTE (dados abertos, aleatórios) ---
+  // Não é um corretor real. Serve pra testar recursos do app (ex.: painel de
+  // resumo por cidade) sem mexer no cofre do Adriel. dados/teste.geojson é
+  // gerado por script, não é catálogo de verdade — pode apagar quando quiser.
+  teste: {
+    marca: "ADMImob — Teste",
+    corretor: "Dados de teste",
+    creci: "",
+    logo: "",
+    corTopo: "#17191c",
+    corPrimaria: "#87cb33",
+    corSecundaria: "#2b2f33",
+    logoUsuario: "",
+    logoIcone: "",
+
+    centro: [-19.1129, -51.7342],
+    zoom: 12,
+
+    cidadesFoco: { arquivo: "dados/ref/cidades_zoom.geojson", rotulo: "Name" },
+    municipioAtual: [
+      { arquivo: "dados/ref/ms_municipios.geojson", rotulo: "NM_MUN", uf: "MS" },
+      { arquivo: "dados/ref/go_municipios.geojson", rotulo: "NM_MUN", uf: "GO" }
+    ],
+
+    contatos: { whatsapp: "", telefone: "", email: "", instagram: "" },
+
+    // Sem cofre: dados abertos direto (só pra teste).
+    dados: "dados/teste.geojson"
   }
 
   // ,exemplo: { ...copie o bloco acima para o próximo corretor... }
