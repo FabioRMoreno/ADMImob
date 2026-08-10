@@ -19,6 +19,9 @@ const CLIENTES = {
     marca: "ADMImob — Adriel Imóveis",
     corretor: "Adriel Andrade",
     creci: "CRECI-MS 10101",
+    // Mostra "Período de teste" em vermelho embaixo de "Logado" (barra
+    // inferior). Tira essa linha (ou põe false) quando fechar a assinatura.
+    periodoTeste: true,
     // Logo do cabeçalho (caminho da imagem). Deixe "" para não mostrar.
     // O ?v=1 fura o cache do navegador; aumente pra v=2, v=3... ao trocar o logo.
     logo: "img/logo.png?v=4",
@@ -121,6 +124,7 @@ const CLIENTES = {
     marca: "ADMImob — Teste",
     corretor: "Dados de teste",
     creci: "",
+    periodoTeste: true,
     logo: "",
     corTopo: "#17191c",
     corPrimaria: "#87cb33",

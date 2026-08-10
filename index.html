@@ -86,6 +86,12 @@
       width: 8px; height: 8px; border-radius: 50%; background: #87cb33;
       box-shadow: 0 0 0 3px rgba(135,203,51,.28), 0 0 6px #87cb33;
     }
+    /* Aviso de período de teste (config: cliente.periodoTeste = true) */
+    #user-badge .u-teste {
+      font-size: .64rem; font-weight: 800; color: #ff4d4f; margin-top: 2px;
+      letter-spacing: .02em; white-space: nowrap;
+    }
+    #user-badge .u-teste[hidden] { display: none; }
     /* Atalhos do cabeçalho (Filtros / Medir / Dados / Fundo / Camadas) */
     .hdr-tools { display: flex; gap: 6px; }
     .tool { position: relative; }
@@ -125,8 +131,16 @@
       }
       #user-badge .u-nome, #user-badge .u-creci { display: none; } /* mantém só "● Logado" */
       #user-badge .u-status { margin-top: 0; }
+      #user-badge .u-teste { font-size: .52rem; margin-top: 1px; white-space: normal; text-align: center; line-height: 1.1; }
       #bi-escala { width: 92px; height: 30px; }
       #bi-escala .leaflet-control-scale-line { width: 92px !important; height: 30px !important; padding: 0; }
+      /* Com aviso de teste, o badge cresce um pouco (e a escala junto, pra
+         continuar espelhando o mesmo tamanho dos dois lados). Classe aplicada
+         via JS no <body> (ver "cliente.periodoTeste"), não via :has() —
+         suporte de navegador mais garantido no celular do corretor. */
+      body.tem-periodo-teste #user-badge { height: 40px; }
+      body.tem-periodo-teste #bi-escala,
+      body.tem-periodo-teste #bi-escala .leaflet-control-scale-line { height: 40px !important; }
 
       /* Trilho único: os 3 painéis (Mapa / Navegação / Imóveis-pessoal) viram
          filhos flex NORMAIS deste contêiner — o navegador empilha e espaça
@@ -1107,6 +1121,7 @@
           <div class="u-nome" id="user-nome">Usuário</div>
           <div class="u-creci" id="user-creci"></div>
           <div class="u-status"><span class="dot"></span>Logado</div>
+          <div class="u-teste" id="user-teste" hidden>Período de teste</div>
         </div>
       </div>
     </footer>
@@ -1146,7 +1161,7 @@
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
        para o navegador do corretor pegar a versão nova em vez do cache. -->
-  <script src="config.js?v=16"></script>
+  <script src="config.js?v=17"></script>
   <script>
   (function () {
     "use strict";
@@ -1175,6 +1190,13 @@
     // marca d'água no painel, não fica mais no avatar).
     const nomeUsuario = cliente.corretor || "Usuário";
     document.getElementById("user-nome").textContent = nomeUsuario;
+
+    // Aviso "Período de teste" (config: cliente.periodoTeste = true). Some
+    // sozinho quando a assinatura for fechada — é só tirar do config.js.
+    if (cliente.periodoTeste) {
+      document.getElementById("user-teste").hidden = false;
+      document.body.classList.add("tem-periodo-teste");
+    }
 
     // Logo do cabeçalho: só aparece se o arquivo carregar
     if (cliente.logo) {
