@@ -2019,10 +2019,14 @@
         });
       if (ha) specs.unshift('<li><span>área</span>' + ha.toFixed(1) + ' ha</li>');
 
+      const preco = p.preco
+        ? fmtBRL(p.preco) + (p.negocio === "aluguel" ? " /mês" : "")
+        : "Consulte o corretor";
+
       return (
         (p.foto ? '<img class="balao-foto" src="' + p.foto + '" alt="">' : '') +
         '<div class="balao-titulo">' + (p.titulo || "Imóvel") + "</div>" +
-        '<div class="balao-preco">' + fmtBRL(p.preco) + (p.negocio === "aluguel" ? " /mês" : "") + "</div>" +
+        '<div class="balao-preco">' + preco + "</div>" +
         '<div class="balao-badges">' +
           '<span class="balao-badge">' + rotuloTipo(p.tipo) + "</span>" +
           '<span class="balao-badge">' + rotuloNegocio(p.negocio) + "</span>" +
