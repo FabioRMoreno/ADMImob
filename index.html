@@ -2146,7 +2146,12 @@
 
     // Etapa 1: lista de cidades (total por cidade). Clicar numa cidade abre
     // a etapa 2 (mostrarClassesCidadeCorretor), com a quebra por tipo.
+    // Controla o que o × faz: na etapa 2 (classes de uma cidade) só volta
+    // pra etapa 1 (lista de cidades); na etapa 1, aí sim fecha tudo.
+    let painelCorretorEtapa = 1;
+
     function abrirPainelCorretor() {
+      painelCorretorEtapa = 1;
       document.getElementById("painel-corretor-titulo").textContent = "Catálogo — " + (cliente.corretor || "Corretor");
 
       const total = todasFeatures.length;
@@ -2183,6 +2188,7 @@
     // Etapa 2: classes (tipo) de UMA cidade, reaproveitando o mesmo cálculo
     // do balão de resumo (ICONE_TIPO/ORDEM_TIPOS/contarImoveisPorTipo).
     function mostrarClassesCidadeCorretor(nomeCidade) {
+      painelCorretorEtapa = 2;
       document.getElementById("painel-corretor-titulo").textContent = nomeCidade;
       const corpo = document.getElementById("painel-corretor-corpo");
 
@@ -2215,7 +2221,8 @@
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrirPainelCorretor(); }
     });
     document.getElementById("painel-corretor-fechar").addEventListener("click", function () {
-      document.getElementById("painel-corretor").classList.remove("aberto");
+      if (painelCorretorEtapa === 2) { abrirPainelCorretor(); return; } // 1º ×: só volta pra lista
+      document.getElementById("painel-corretor").classList.remove("aberto"); // 2º ×: fecha tudo
     });
 
     // ---- Resumo ilustrativo por cidade (ícone + contagem, ~5s ao focar uma cidade) ----
