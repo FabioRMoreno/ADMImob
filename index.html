@@ -670,6 +670,7 @@
       border: 1.5px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.55);
     }
     .pin-imovel svg { width: 11px; height: 11px; }
+    .pin-imovel-quadrado { border-radius: 4px; }
 
     /* Balão flutuante do imóvel (troca o popup branco padrão do Leaflet) */
     .balao-imovel .leaflet-popup-content-wrapper {
@@ -2042,9 +2043,10 @@
     // pra dar pra diferenciar de longe no mapa sem abrir o balão. Fazenda não
     // usa marcador (é polígono) — o contorno dela é branco, ver render().
     const COR_ALUGUEL = "#2f8fd1";
+    const COR_TERRENO = "#3fae4a";
     const CORES_TIPO = {
       casa: { venda: "var(--primaria)", aluguel: COR_ALUGUEL },
-      terreno: "#e0a72e",
+      terreno: COR_TERRENO,
       comercial: "#2fb8a6",
       chacara: "#d6336c"
     };
@@ -2060,9 +2062,14 @@
 
     function iconeImovel(tipo, negocio) {
       const cor = corMarcador(tipo, negocio);
+      // Terreno: quadradinho verde liso (sem ícone dentro), pra diferenciar
+      // de longe dos outros tipos (bolinha com casinha).
+      const quadrado = tipo === "terreno";
+      const classe = "pin-imovel" + (quadrado ? " pin-imovel-quadrado" : "");
+      const conteudo = quadrado ? "" : SVG_CASA;
       return L.divIcon({
         className: "marcador-imovel-icon",
-        html: '<div class="pin-imovel" style="background:' + cor + '">' + SVG_CASA + "</div>",
+        html: '<div class="' + classe + '" style="background:' + cor + '">' + conteudo + "</div>",
         iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -12]
       });
     }
@@ -2215,7 +2222,7 @@
     const ICONE_TIPO = {
       casa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/><path d="M10 20v-5h4v5"/></svg>',
       comercial: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18"/><rect x="8" y="6.5" width="2.5" height="2.5"/><rect x="13.5" y="6.5" width="2.5" height="2.5"/><rect x="8" y="11" width="2.5" height="2.5"/><rect x="13.5" y="11" width="2.5" height="2.5"/><path d="M10 21v-4h4v4"/></svg>',
-      terreno: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8 12 4l8 4v10l-8 4-8-4Z"/><path d="M4 8l8 4 8-4M12 12v8"/></svg>',
+      terreno: '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor"/></svg>',
       fazenda: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M12 4v7M5 10h14"/><path d="M10 20v-6h4v6"/></svg>',
       chacara: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/></svg>'
     };
