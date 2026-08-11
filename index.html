@@ -665,12 +665,12 @@
        inline: verde/vermelho conforme negócio — ver iconeImovel() no JS). */
     .leaflet-div-icon.marcador-imovel-icon { background: transparent; border: none; }
     .pin-imovel {
-      width: 20px; height: 20px; border-radius: 50%; color: #fff;
+      width: 15px; height: 15px; border-radius: 50%; color: #fff;
       display: flex; align-items: center; justify-content: center;
-      border: 1.5px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.55);
+      border: 1.2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.55);
     }
-    .pin-imovel svg { width: 11px; height: 11px; }
-    .pin-imovel-quadrado { border-radius: 4px; }
+    .pin-imovel svg { width: 8px; height: 8px; }
+    .pin-imovel-quadrado { border-radius: 3px; opacity: .68; }
 
     /* Balão flutuante do imóvel (troca o popup branco padrão do Leaflet) */
     .balao-imovel .leaflet-popup-content-wrapper {
@@ -2070,7 +2070,7 @@
       return L.divIcon({
         className: "marcador-imovel-icon",
         html: '<div class="' + classe + '" style="background:' + cor + '">' + conteudo + "</div>",
-        iconSize: [20, 20], iconAnchor: [10, 10], popupAnchor: [0, -12]
+        iconSize: [15, 15], iconAnchor: [7, 7], popupAnchor: [0, -9]
       });
     }
 
