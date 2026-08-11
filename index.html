@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>ADMImob</title>
 
+  <!-- PWA: instalável (ícone próprio, tela cheia). O manifest é trocado
+       dinamicamente por corretor mais abaixo (marca/cores/ícone de cada
+       cliente); este aqui é só o padrão genérico. -->
+  <link rel="manifest" id="link-manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" id="meta-theme-color" content="#17191c" />
+  <link rel="icon" href="img/icons/icon-generic-192.png" />
+  <link rel="apple-touch-icon" id="link-apple-icon" href="img/icons/icon-generic-192.png" />
+
   <!-- Leaflet (cdnjs — CDN travado do projeto) -->
   <link rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -1214,7 +1222,7 @@
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
        para o navegador do corretor pegar a versão nova em vez do cache. -->
-  <script src="config.js?v=19"></script>
+  <script src="config.js?v=20"></script>
   <script>
   (function () {
     "use strict";
@@ -1238,6 +1246,37 @@
     raiz.setProperty("--secundaria", cliente.corSecundaria || "#0f4d33");
     document.title = cliente.marca || "ADMImob";
     document.getElementById("user-creci").textContent = cliente.creci || "";
+
+    // ---- 2b. PWA: manifest, cor da barra e ícone específicos do corretor ----
+    // Cada corretor tem seu próprio link (?cliente=slug); ao instalar
+    // ("Adicionar à tela inicial"), o ícone e o nome do app devem ser os
+    // dele, não um genérico do ADMImob. Como o manifest é um arquivo
+    // estático por natureza, geramos um na hora (Blob) com os dados desse
+    // cliente e trocamos o <link rel="manifest"> por ele.
+    (function aplicarManifestDoCliente() {
+      const icones192 = (cliente.iconePwa && cliente.iconePwa[192]) || "img/icons/icon-generic-192.png";
+      const icones512 = (cliente.iconePwa && cliente.iconePwa[512]) || "img/icons/icon-generic-512.png";
+      const cor = cliente.corTopo || cliente.corPrimaria || "#17191c";
+      const manifestCliente = {
+        name: cliente.marca || "ADMImob",
+        short_name: cliente.corretor || "ADMImob",
+        start_url: location.pathname + location.search,
+        scope: ".",
+        display: "standalone",
+        background_color: cor,
+        theme_color: cor,
+        icons: [
+          { src: icones192, sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: icones192, sizes: "192x192", type: "image/png", purpose: "maskable" },
+          { src: icones512, sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: icones512, sizes: "512x512", type: "image/png", purpose: "maskable" }
+        ]
+      };
+      const blob = new Blob([JSON.stringify(manifestCliente)], { type: "application/manifest+json" });
+      document.getElementById("link-manifest").href = URL.createObjectURL(blob);
+      document.getElementById("meta-theme-color").content = cor;
+      document.getElementById("link-apple-icon").href = icones192;
+    })();
 
     // Quadro de usuário logado (apenas nome + CRECI; o logo do corretor virou
     // marca d'água no painel, não fica mais no avatar).
@@ -3225,6 +3264,17 @@
     })();
 
   })();
+
+  // ---- PWA: registra o service worker (deixa o app instalável / com cache
+  // do "casco"). Fora da IIFE principal — roda mesmo se o ?cliente= vier
+  // inválido. Dados (config.js e dados/) nunca passam pelo cache do SW,
+  // então uma atualização de catálogo aparece normal na próxima abertura
+  // com internet (ver comentário no topo do sw.js). ----
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
   </script>
 </body>
 </html>
