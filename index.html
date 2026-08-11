@@ -1214,7 +1214,7 @@
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
        para o navegador do corretor pegar a versão nova em vez do cache. -->
-  <script src="config.js?v=17"></script>
+  <script src="config.js?v=18"></script>
   <script>
   (function () {
     "use strict";
@@ -1914,6 +1914,7 @@
         if (refsCarregadas[i]) { refsCarregadas[i].addTo(map); return; }
 
         status.textContent = "carregando…";
+        const selecionavel = c.selecionavel !== false; // padrão: true (só as de base têm selecionavel:false)
         fetch(c.arquivo, { cache: "no-cache" })
           .then(function (r) {
             if (!r.ok) throw new Error("HTTP " + r.status);
@@ -1940,7 +1941,9 @@
                     });
                   }
                 }
-                lyr.on("click", function () { selecionarRef(refsCarregadas[i], lyr, estiloRef.cor); });
+                if (selecionavel) {
+                  lyr.on("click", function () { selecionarRef(refsCarregadas[i], lyr, estiloRef.cor); });
+                }
               }
             }).addTo(map);
             atualizaRotulosRef();   // aplica a regra de escala assim que a camada entra

@@ -91,11 +91,14 @@ const CLIENTES = {
     // Contexto pro corretor: bairros, ruas, fazendas conhecidas, pontos da cidade.
     // Exporte do QGIS como GeoJSON (WGS84/EPSG:4326) e coloque em dados/ref/.
     // "rotulo" = nome do campo que aparece ao passar o mouse/tocar.
+    // "selecionavel: false" = camada só de base (bairro/município/rua): não
+    // reage a clique, sem destaque neon. Sem essa linha, é selecionável
+    // (padrão) — é o caso de "Pontos de referência".
     camadas: [
-      { nome: "Bairros Cassilândia", arquivo: "dados/ref/bairros_cassilandia.geojson", cor: "#7a5af5", rotulo: "name" },
-      { nome: "Municípios MS", arquivo: "dados/ref/ms_municipios.geojson", cor: "#f2a33c", rotulo: "NM_MUN", rotuloModo: "longe" },
-      { nome: "Municípios GO", arquivo: "dados/ref/go_municipios.geojson", cor: "#3ca7f2", rotulo: "NM_MUN", rotuloModo: "longe" },
-      { nome: "Acessos", arquivo: "dados/ref/cassilandia_acessos.geojson", cor: "#ffd23f", rotulo: "name", rotuloModo: "hover" },
+      { nome: "Bairros Cassilândia", arquivo: "dados/ref/bairros_cassilandia.geojson", cor: "#7a5af5", rotulo: "name", selecionavel: false },
+      { nome: "Municípios MS", arquivo: "dados/ref/ms_municipios.geojson", cor: "#f2a33c", rotulo: "NM_MUN", rotuloModo: "longe", selecionavel: false },
+      { nome: "Municípios GO", arquivo: "dados/ref/go_municipios.geojson", cor: "#3ca7f2", rotulo: "NM_MUN", rotuloModo: "longe", selecionavel: false },
+      { nome: "Acessos", arquivo: "dados/ref/cassilandia_acessos.geojson", cor: "#ffd23f", rotulo: "name", rotuloModo: "hover", selecionavel: false },
       { nome: "Pontos de referência", arquivo: "dados/ref/pontos.geojson", cor: "#e3452f", rotulo: "nome" }
     ],
 
