@@ -661,7 +661,7 @@
        mesmo lugar da tela, não importa onde o marcador esteja). Reaproveita
        as mesmas classes de conteúdo (.balao-titulo, .balao-foto etc.). */
     #balao-fixo {
-      position: fixed; z-index: 1600; left: 50%; bottom: 64px; transform: translateX(-50%);
+      position: fixed; z-index: 1600; left: 50%; bottom: 92px; transform: translateX(-50%);
       display: none; background: var(--topo); color: #fff; border-radius: 14px;
       box-shadow: 0 10px 40px rgba(0,0,0,.55); padding: 12px 14px;
       width: 270px; max-width: 86vw; max-height: 50vh; overflow-y: auto;
@@ -745,25 +745,22 @@
       text-shadow: 0 0 6px #87cb33, 0 0 12px #87cb33, 0 1px 3px rgba(0,0,0,.7);
     }
 
-    /* Resumo ilustrativo por cidade: ícone + número por tipo, some sozinho em ~5s */
-    @keyframes resumoCidadeFade {
-      0% { opacity: 0; transform: translate(-50%, -6px); }
-      8% { opacity: 1; transform: translate(-50%, 0); }
-      88% { opacity: 1; transform: translate(-50%, 0); }
-      100% { opacity: 0; transform: translate(-50%, -6px); }
-    }
+    /* Resumo ilustrativo por cidade: ícone + número por tipo, faixa horizontal
+       FIXA (não some sozinha) logo acima da barra inferior. Atualiza sozinha
+       conforme a cidade atual (mesmo ponto-em-polígono da barra inferior) —
+       fica escondida quando a cidade não tem nada, aparece quando tem. */
     #resumo-cidade {
-      position: fixed; z-index: 1300; left: 50%; top: 64px;
+      position: fixed; z-index: 1300; left: 10px; right: 10px; bottom: 46px;
       display: none; pointer-events: none;
-      background: var(--topo); border-radius: 14px; padding: 10px 16px;
+      background: var(--topo); border-radius: 12px; padding: 8px 14px;
       box-shadow: 0 6px 24px rgba(0,0,0,.45);
-      animation: resumoCidadeFade 5s ease forwards;
+      overflow-x: auto;
     }
-    #resumo-cidade.aberto { display: flex; flex-direction: column; gap: 10px; min-width: 168px; }
-    .resumo-item { display: flex; flex-direction: row; align-items: center; gap: 10px; color: #fff; }
-    .resumo-item svg { flex: none; width: 22px; height: 22px; color: #87cb33; filter: drop-shadow(0 0 4px #87cb33); }
-    .resumo-item b { font-size: 1rem; font-weight: 800; line-height: 1; }
-    .resumo-item span { font-size: .68rem; color: #b9bec4; text-transform: uppercase; letter-spacing: .03em; margin-left: auto; padding-left: 10px; }
+    #resumo-cidade.aberto { display: flex; flex-direction: row; align-items: center; gap: 18px; }
+    .resumo-item { display: flex; flex: none; flex-direction: row; align-items: center; gap: 7px; color: #fff; }
+    .resumo-item svg { flex: none; width: 18px; height: 18px; color: #87cb33; filter: drop-shadow(0 0 4px #87cb33); }
+    .resumo-item b { font-size: .92rem; font-weight: 800; line-height: 1; }
+    .resumo-item span { font-size: .6rem; color: #b9bec4; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
 
     /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
     .leaflet-control-scale { margin-bottom: 12px !important; margin-left: 12px !important; }
@@ -1224,6 +1221,7 @@
     function usarDados(gj) {
       todasFeatures = (gj && gj.features) || [];
       aplicarFiltros();
+      atualizarBarraInferior(); // reflete a contagem certa na faixa de resumo, mesmo sem o usuário mexer no mapa
     }
     function erroDados(msg) {
       const div = document.createElement("div");
@@ -1725,6 +1723,8 @@
       if (elPin) elPin.style.visibility = nome ? "visible" : "hidden"; // sem cidade, sem alfinete
       const elUf = document.getElementById("bi-uf");
       if (elUf) elUf.textContent = uf; // vazio = some sozinho (:empty no CSS)
+
+      mostrarResumoCidade(nome);
     }
     map.on("moveend zoomend", atualizarBarraInferior);
     atualizarBarraInferior();
@@ -2108,9 +2108,16 @@
       return contagem;
     }
 
+    // Faixa fixa (não some sozinha): chamada tanto pelo clique na mira azul
+    // quanto, ao vivo, pelo atualizarBarraInferior() a cada pan/zoom — por
+    // isso "nomeCidade" pode vir vazio (fora de qualquer cidade conhecida),
+    // caso em que a faixa simplesmente fica escondida. Poucas dezenas de
+    // feições no máximo, então recalcular a cada chamada sai barato — sem
+    // cache por nome (um cache assim atrasaria o primeiro contador certo,
+    // já que os imóveis podem carregar depois da 1ª checagem de cidade).
     function mostrarResumoCidade(nomeCidade) {
       const painel = document.getElementById("resumo-cidade");
-      const cidadeFeature = poligonoDaCidade(nomeCidade);
+      const cidadeFeature = nomeCidade ? poligonoDaCidade(nomeCidade) : null;
       if (!cidadeFeature) { painel.classList.remove("aberto"); return; }
       const contagem = contarImoveisPorTipo(cidadeFeature);
       const itens = ORDEM_TIPOS.filter(function (t) { return contagem[t] > 0; });
@@ -2119,9 +2126,6 @@
         return '<div class="resumo-item">' + (ICONE_TIPO[t] || "") +
           "<b>" + contagem[t] + "</b><span>" + rotuloTipo(t) + "</span></div>";
       }).join("");
-      // reinicia a animação (senão o CSS não re-anima ao trocar de cidade rápido)
-      painel.classList.remove("aberto");
-      void painel.offsetWidth; // força reflow
       painel.classList.add("aberto");
     }
 
