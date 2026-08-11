@@ -825,11 +825,14 @@
     .leaflet-pane path.ref-sel {
       filter: drop-shadow(0 0 4px #19e6ff) drop-shadow(0 0 10px #19e6ff);
     }
-    /* Rótulo do bairro (permanente, no centro da feição) */
+    /* Rótulo do bairro (permanente, acima da feição). Sem fundo/contorno —
+       só texto branco com sombra suave pra continuar legível sobre o
+       satélite, sem aquele "quadrado preto" atrás. */
     .rotulo-bairro {
-      background: rgba(12,14,18,.6); color: #fff; border: 0;
-      font-weight: 600; font-size: 9px; padding: 1px 6px; border-radius: 6px;
+      background: transparent; color: #fff; border: 0;
+      font-weight: 700; font-size: 9px; padding: 0; border-radius: 0;
       box-shadow: none; white-space: normal; max-width: 88px; text-align: center; line-height: 1.2;
+      text-shadow: 0 1px 2px rgba(0,0,0,.9), 0 0 4px rgba(0,0,0,.75);
     }
     .rotulo-bairro::before { display: none; }         /* remove a setinha do balão */
     /* Rótulos "perto" (bairros): somem quando o mapa afasta (~além de 1:20.000) */
@@ -1932,7 +1935,7 @@
                     lyr.bindTooltip(String(txt), { sticky: true, direction: "top", className: "rotulo-bairro" });
                   } else {
                     lyr.bindTooltip(String(txt), {
-                      permanent: true, direction: "center", opacity: 1,
+                      permanent: true, direction: "top", offset: [0, -16], opacity: 1,
                       className: "rotulo-bairro " + (c.rotuloModo === "longe" ? "rot-longe" : "rot-perto")
                     });
                   }
