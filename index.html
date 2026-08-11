@@ -2182,6 +2182,7 @@
       const cidadeFeature = poligonoDaCidade(nomeCidade);
       const contagem = cidadeFeature ? contarImoveisPorTipo(cidadeFeature) : {};
       const itens = ORDEM_TIPOS.filter(function (t) { return contagem[t] > 0; });
+      const totalCidade = itens.reduce(function (soma, t) { return soma + contagem[t]; }, 0);
 
       corpo.innerHTML =
         '<button type="button" class="pc-voltar">' +
@@ -2192,7 +2193,8 @@
           ? itens.map(function (t) {
               return '<div class="pc-classe-linha">' + (ICONE_TIPO[t] || "") +
                 "<b>" + contagem[t] + "</b><span>" + rotuloTipo(t) + "</span></div>";
-            }).join("")
+            }).join("") +
+            '<div class="pc-cidade-linha" style="cursor:default"><span>Total</span><b>' + totalCidade + "</b></div>"
           : '<div class="pc-vazio">Nenhum imóvel nessa cidade.</div>');
 
       corpo.querySelector(".pc-voltar").addEventListener("click", abrirPainelCorretor);
