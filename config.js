@@ -37,15 +37,14 @@ const CLIENTES = {
     logoIcone: "img/logo_adriel.png?v=1",
 
     // --- Acesso (COFRE: login + senha que desembaralha os dados) ---
-    // TEMPORARIAMENTE DESLIGADO: dados/adriel.geojson agora tem o catalogo
-    // real (imoveis + fazendas), mas ainda em aberto (sem senha) enquanto
-    // validamos a tematizacao. dados/adriel.enc (cofre antigo, com o
-    // placeholder de antes) fica parado, sem uso. Quando fechar a assinatura:
-    // gera senha nova com `node ferramentas/encriptar.js dados/adriel.geojson
-    // <senha> dados/adriel.enc`, tira a linha "dados:" abaixo e devolve
-    // "dadosEnc: dados/adriel.enc" aqui.
+    // O corretor repassa login+senha só a quem deve ver os dados. A SENHA
+    // NÃO fica aqui (nem em lugar nenhum do repositório) — só o arquivo
+    // .enc (embaralhado). Pra gerar/atualizar o cofre depois de editar os
+    // dados: `node ferramentas/encriptar.js dados/fonte/adriel.geojson
+    // <senha> dados/adriel.enc` (o GeoJSON aberto fica só em dados/fonte/,
+    // que é ignorado pelo git — nunca comitar ele).
     login: "Adriel",
-    dados: "dados/adriel.geojson",
+    dadosEnc: "dados/adriel.enc",
 
     // --- Onde o mapa abre (lat, lng) e zoom inicial ---
     // Cassilândia-MS por padrão. Ajuste para a cidade do corretor.
