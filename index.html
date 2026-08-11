@@ -38,8 +38,16 @@
       --selecao: #87cb33;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    #app { display: flex; flex-direction: column; height: 100%; height: 100dvh; }
+    /* overflow:hidden + overscroll-behavior:none = trava a página inteira
+       (sem "puxar"/bounce nativo do navegador). Sem isso, arrastar o mapa
+       perto da borda podia vazar pro scroll da página por trás e mostrar
+       uma faixa preta (fundo do body) — bug reportado em celular. */
+    html, body {
+      margin: 0; height: 100%; overflow: hidden; overscroll-behavior: none;
+      background: var(--topo);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    #app { display: flex; flex-direction: column; height: 100%; height: 100dvh; overscroll-behavior: none; }
     #painel3-mobile { display: none; } /* só existe no celular; a media query mais abaixo troca pra flex */
     #rail-mobile { display: none; } /* trilho único dos 3 painéis; só existe no celular */
 
@@ -431,7 +439,7 @@
     #anotacoes-limpar svg { width: 17px; height: 17px; }
 
     #conteudo { flex: 1; position: relative; min-height: 0; }
-    #map { position: absolute; inset: 0; }
+    #map { position: absolute; inset: 0; overscroll-behavior: none; }
 
     /* Painel lateral esquerdo (drawer) */
     #painel-overlay {
