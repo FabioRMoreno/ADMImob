@@ -754,9 +754,10 @@
       display: none; pointer-events: none;
       background: var(--topo); border-radius: 12px; padding: 8px 14px;
       box-shadow: 0 6px 24px rgba(0,0,0,.45);
-      overflow-x: auto;
     }
-    #resumo-cidade.aberto { display: flex; flex-direction: row; align-items: center; gap: 18px; }
+    /* "bottom" fixo + altura livre: se não cabe numa linha só, cresce pra
+       cima (quebra linha) em vez de cortar ou rolar de lado. */
+    #resumo-cidade.aberto { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
     .resumo-item { display: flex; flex: none; flex-direction: row; align-items: center; gap: 7px; color: #fff; }
     .resumo-item svg { flex: none; width: 18px; height: 18px; color: #87cb33; filter: drop-shadow(0 0 4px #87cb33); }
     .resumo-item b { font-size: .92rem; font-weight: 800; line-height: 1; }
@@ -1221,7 +1222,6 @@
     function usarDados(gj) {
       todasFeatures = (gj && gj.features) || [];
       aplicarFiltros();
-      atualizarBarraInferior(); // reflete a contagem certa na faixa de resumo, mesmo sem o usuário mexer no mapa
     }
     function erroDados(msg) {
       const div = document.createElement("div");
@@ -1553,6 +1553,7 @@
                 chip.classList.add("ativa");
                 map.fitBounds(c.bounds, { padding: [28, 28] });
                 aplicarFiltros();
+                mostrarResumoCidade(c.nome);
               });
               filtroCidadeGrupo.appendChild(chip);
             });
@@ -1723,8 +1724,6 @@
       if (elPin) elPin.style.visibility = nome ? "visible" : "hidden"; // sem cidade, sem alfinete
       const elUf = document.getElementById("bi-uf");
       if (elUf) elUf.textContent = uf; // vazio = some sozinho (:empty no CSS)
-
-      mostrarResumoCidade(nome);
     }
     map.on("moveend zoomend", atualizarBarraInferior);
     atualizarBarraInferior();
@@ -2108,13 +2107,10 @@
       return contagem;
     }
 
-    // Faixa fixa (não some sozinha): chamada tanto pelo clique na mira azul
-    // quanto, ao vivo, pelo atualizarBarraInferior() a cada pan/zoom — por
-    // isso "nomeCidade" pode vir vazio (fora de qualquer cidade conhecida),
-    // caso em que a faixa simplesmente fica escondida. Poucas dezenas de
-    // feições no máximo, então recalcular a cada chamada sai barato — sem
-    // cache por nome (um cache assim atrasaria o primeiro contador certo,
-    // já que os imóveis podem carregar depois da 1ª checagem de cidade).
+    // Faixa fixa (não some sozinha, não muda sozinha): só é chamada em
+    // escolha DELIBERADA de cidade (clique na mira azul ou no chip de
+    // filtro) — de propósito NÃO fica ligada ao pan/zoom do mapa, senão
+    // muda de conteúdo a cada mexida, mesmo dentro do mesmo município.
     function mostrarResumoCidade(nomeCidade) {
       const painel = document.getElementById("resumo-cidade");
       const cidadeFeature = nomeCidade ? poligonoDaCidade(nomeCidade) : null;
