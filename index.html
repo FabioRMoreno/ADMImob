@@ -1247,21 +1247,20 @@
     document.title = cliente.marca || "ADMImob";
     document.getElementById("user-creci").textContent = cliente.creci || "";
 
-    // ---- 2b. PWA: manifest e cor da barra para o corretor atual ----
+    // ---- 2b. PWA: manifest para o corretor atual ----
     // Cada corretor tem seu próprio link (?cliente=slug); ao instalar
-    // ("Adicionar à tela inicial"), nome e cor seguem a marca dele, mas o
-    // ÍCONE é sempre o emblema do ADMImob — é o produto que deve ficar
-    // reconhecível, não a marca de cada corretor individual. Como o
-    // manifest é um arquivo estático por natureza, geramos um na hora
-    // (Blob) com os dados desse cliente e trocamos o <link rel="manifest">
-    // por ele.
+    // ("Adicionar à tela inicial"), NOME e ÍCONE ficam sempre "ADMImob" —
+    // é o produto que deve ficar reconhecível na tela inicial do celular,
+    // não a marca de cada corretor individual. Só a cor da barra muda por
+    // cliente. Como o manifest é um arquivo estático por natureza, geramos
+    // um na hora (Blob) e trocamos o <link rel="manifest"> por ele.
     (function aplicarManifestDoCliente() {
       const icones192 = "img/icons/icon-generic-192.png";
       const icones512 = "img/icons/icon-generic-512.png";
       const cor = cliente.corTopo || cliente.corPrimaria || "#17191c";
       const manifestCliente = {
-        name: cliente.marca || "ADMImob",
-        short_name: cliente.corretor || "ADMImob",
+        name: "ADMImob",
+        short_name: "ADMImob",
         start_url: location.pathname + location.search,
         scope: ".",
         display: "standalone",
