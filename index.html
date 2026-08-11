@@ -59,9 +59,38 @@
       position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
       display: flex; align-items: center; gap: 4px;
     }
-    .hdr-cliente-txt { text-align: right; line-height: 1.2; }
+    .hdr-cliente-txt { text-align: right; line-height: 1.2; cursor: pointer; }
+    .hdr-cliente-txt:hover .hdr-cliente-nome { text-decoration: underline; }
     .hdr-cliente-nome { font-weight: 700; font-size: .85rem; white-space: nowrap; color: #fff; }
     .hdr-cliente-creci { font-size: .68rem; opacity: .78; white-space: nowrap; }
+
+    /* Painel do corretor: catálogo por cidade + total, abre ao clicar no
+       nome/CRECI do cabeçalho. */
+    #painel-corretor {
+      position: fixed; inset: 0; z-index: 2100; display: none;
+      align-items: center; justify-content: center;
+      background: rgba(0,0,0,.55); padding: 20px;
+    }
+    #painel-corretor.aberto { display: flex; }
+    #painel-corretor-caixa {
+      position: relative; background: var(--topo); color: #fff; border-radius: 16px;
+      padding: 20px 22px; width: 340px; max-width: 92vw; max-height: 80vh; overflow-y: auto;
+      box-shadow: 0 12px 50px rgba(0,0,0,.6);
+    }
+    #painel-corretor-fechar {
+      position: absolute; top: 12px; right: 12px; width: 30px; height: 30px;
+      border-radius: 50%; background: rgba(255,255,255,.12); border: none;
+      color: #fff; font-size: 1.2rem; line-height: 1; cursor: pointer;
+    }
+    #painel-corretor-titulo { font-size: 1.05rem; font-weight: 800; margin: 0 20px 4px 0; }
+    .pc-total { color: var(--primaria); font-weight: 800; font-size: 1.4rem; margin: 4px 0 16px; }
+    .pc-cidade-linha {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.1); font-size: .86rem;
+    }
+    .pc-cidade-linha:last-child { border-bottom: none; }
+    .pc-cidade-linha b { font-weight: 800; color: var(--primaria); }
+    .pc-vazio { color: #b9bec4; font-size: .82rem; padding: 10px 0; }
     .hdr-icone-wrap {
       display: none; /* aparece só quando o ícone carrega */
       width: 54px; height: 54px; border-radius: 8px;
@@ -661,7 +690,7 @@
        mesmo lugar da tela, não importa onde o marcador esteja). Reaproveita
        as mesmas classes de conteúdo (.balao-titulo, .balao-foto etc.). */
     #balao-fixo {
-      position: fixed; z-index: 1600; left: 50%; bottom: 92px; transform: translateX(-50%);
+      position: fixed; z-index: 1600; left: 50%; bottom: 64px; transform: translateX(-50%);
       display: none; background: var(--topo); color: #fff; border-radius: 14px;
       box-shadow: 0 10px 40px rgba(0,0,0,.55); padding: 12px 14px;
       width: 270px; max-width: 86vw; max-height: 50vh; overflow-y: auto;
@@ -745,23 +774,27 @@
       text-shadow: 0 0 6px #87cb33, 0 0 12px #87cb33, 0 1px 3px rgba(0,0,0,.7);
     }
 
-    /* Resumo ilustrativo por cidade: ícone + número por tipo, faixa horizontal
-       FIXA (não some sozinha) logo acima da barra inferior. Atualiza sozinha
-       conforme a cidade atual (mesmo ponto-em-polígono da barra inferior) —
-       fica escondida quando a cidade não tem nada, aparece quando tem. */
-    #resumo-cidade {
-      position: fixed; z-index: 1300; left: 10px; right: 10px; bottom: 46px;
-      display: none; pointer-events: none;
-      background: var(--topo); border-radius: 12px; padding: 8px 14px;
-      box-shadow: 0 6px 24px rgba(0,0,0,.45);
+    /* Resumo ilustrativo por cidade: balão com ícone + número por tipo,
+       aparece ~6s ao escolher uma cidade (mira azul ou filtro) e some
+       sozinho — voltou a ser temporário depois do teste com a versão fixa. */
+    @keyframes resumoCidadeFade {
+      0% { opacity: 0; transform: translate(-50%, -6px); }
+      7% { opacity: 1; transform: translate(-50%, 0); }
+      90% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -6px); }
     }
-    /* "bottom" fixo + altura livre: se não cabe numa linha só, cresce pra
-       cima (quebra linha) em vez de cortar ou rolar de lado. */
-    #resumo-cidade.aberto { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
-    .resumo-item { display: flex; flex: none; flex-direction: row; align-items: center; gap: 7px; color: #fff; }
-    .resumo-item svg { flex: none; width: 18px; height: 18px; color: #87cb33; filter: drop-shadow(0 0 4px #87cb33); }
-    .resumo-item b { font-size: .92rem; font-weight: 800; line-height: 1; }
-    .resumo-item span { font-size: .6rem; color: #b9bec4; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+    #resumo-cidade {
+      position: fixed; z-index: 1300; left: 50%; top: 64px;
+      display: none; pointer-events: none;
+      background: var(--topo); border-radius: 14px; padding: 10px 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.45);
+      animation: resumoCidadeFade 6s ease forwards;
+    }
+    #resumo-cidade.aberto { display: flex; flex-direction: column; gap: 10px; min-width: 168px; }
+    .resumo-item { display: flex; flex-direction: row; align-items: center; gap: 10px; color: #fff; }
+    .resumo-item svg { flex: none; width: 22px; height: 22px; color: #87cb33; filter: drop-shadow(0 0 4px #87cb33); }
+    .resumo-item b { font-size: 1rem; font-weight: 800; line-height: 1; }
+    .resumo-item span { font-size: .68rem; color: #b9bec4; text-transform: uppercase; letter-spacing: .03em; margin-left: auto; padding-left: 10px; }
 
     /* Barra de escala: discreta, legível sobre satélite e sobre fundo claro */
     .leaflet-control-scale { margin-bottom: 12px !important; margin-left: 12px !important; }
@@ -944,6 +977,15 @@
     <div id="balao-fixo">
       <button id="balao-fixo-fechar" aria-label="Fechar">×</button>
       <div id="balao-fixo-corpo"></div>
+    </div>
+
+    <!-- Painel do corretor: abre ao clicar no nome/CRECI no cabeçalho -->
+    <div id="painel-corretor">
+      <div id="painel-corretor-caixa">
+        <button id="painel-corretor-fechar" aria-label="Fechar">×</button>
+        <h2 id="painel-corretor-titulo"></h2>
+        <div id="painel-corretor-corpo"></div>
+      </div>
     </div>
 
     <div id="conteudo">
@@ -2060,6 +2102,73 @@
     }
     document.getElementById("balao-fixo-fechar").addEventListener("click", fecharBalaoFixo);
 
+    // ---- Painel do corretor: catálogo por cidade + total ----
+    // Pra cada imóvel, acha em qual município ele cai (mesmo ponto-em-polígono
+    // já usado na barra inferior/resumo) e soma por nome. O que não cair em
+    // nenhum município conhecido entra em "Outras localidades", pra o total
+    // sempre bater com todasFeatures.length.
+    function contarPorCidadeTodas() {
+      const fonte = listaMunicipios.length ? listaMunicipios : listaCidades;
+      const porCidade = {};
+      let semCidade = 0;
+      todasFeatures.forEach(function (f) {
+        const g = f.geometry || {};
+        let pt = null;
+        try { pt = g.type === "Point" ? turf.point(g.coordinates) : turf.centroid(f); }
+        catch (e) { semCidade++; return; }
+        let nomeAchado = null;
+        for (let i = 0; i < fonte.length; i++) {
+          try {
+            if (turf.booleanPointInPolygon(pt, fonte[i].feature)) { nomeAchado = fonte[i].nome; break; }
+          } catch (e) {}
+        }
+        if (nomeAchado) porCidade[nomeAchado] = (porCidade[nomeAchado] || 0) + 1;
+        else semCidade++;
+      });
+      return { porCidade: porCidade, semCidade: semCidade };
+    }
+
+    function abrirPainelCorretor() {
+      document.getElementById("painel-corretor-titulo").textContent = "Catálogo — " + (cliente.corretor || "Corretor");
+
+      const total = todasFeatures.length;
+      const corpo = document.getElementById("painel-corretor-corpo");
+
+      if (!total) {
+        corpo.innerHTML = '<div class="pc-total">0 imóveis</div><div class="pc-vazio">Nenhum imóvel cadastrado ainda.</div>';
+        document.getElementById("painel-corretor").classList.add("aberto");
+        return;
+      }
+
+      const r = contarPorCidadeTodas();
+      const linhas = Object.keys(r.porCidade)
+        .map(function (nome) { return { nome: nome, n: r.porCidade[nome] }; })
+        .sort(function (a, b) { return b.n - a.n || a.nome.localeCompare(b.nome, "pt-BR"); });
+      if (r.semCidade > 0) linhas.push({ nome: "Outras localidades", n: r.semCidade });
+
+      corpo.innerHTML =
+        '<div class="pc-total">' + total + (total === 1 ? " imóvel" : " imóveis") + "</div>" +
+        linhas.map(function (l) {
+          return '<div class="pc-cidade-linha"><span>' + l.nome + '</span><b>' + l.n + '</b></div>';
+        }).join("");
+
+      document.getElementById("painel-corretor").classList.add("aberto");
+    }
+
+    const hdrClienteTxt = document.getElementById("hdr-cliente-txt");
+    hdrClienteTxt.setAttribute("role", "button");
+    hdrClienteTxt.setAttribute("tabindex", "0");
+    hdrClienteTxt.addEventListener("click", abrirPainelCorretor);
+    hdrClienteTxt.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); abrirPainelCorretor(); }
+    });
+    document.getElementById("painel-corretor-fechar").addEventListener("click", function () {
+      document.getElementById("painel-corretor").classList.remove("aberto");
+    });
+    document.getElementById("painel-corretor").addEventListener("click", function (e) {
+      if (e.target.id === "painel-corretor") document.getElementById("painel-corretor").classList.remove("aberto");
+    });
+
     // ---- Resumo ilustrativo por cidade (ícone + contagem, ~5s ao focar uma cidade) ----
     const ICONE_TIPO = {
       casa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/><path d="M10 20v-5h4v5"/></svg>',
@@ -2107,10 +2216,8 @@
       return contagem;
     }
 
-    // Faixa fixa (não some sozinha, não muda sozinha): só é chamada em
-    // escolha DELIBERADA de cidade (clique na mira azul ou no chip de
-    // filtro) — de propósito NÃO fica ligada ao pan/zoom do mapa, senão
-    // muda de conteúdo a cada mexida, mesmo dentro do mesmo município.
+    // Balão temporário (~6s): só é chamado em escolha DELIBERADA de cidade
+    // (clique na mira azul ou no chip de filtro), não fica ligado ao pan/zoom.
     function mostrarResumoCidade(nomeCidade) {
       const painel = document.getElementById("resumo-cidade");
       const cidadeFeature = nomeCidade ? poligonoDaCidade(nomeCidade) : null;
@@ -2122,6 +2229,9 @@
         return '<div class="resumo-item">' + (ICONE_TIPO[t] || "") +
           "<b>" + contagem[t] + "</b><span>" + rotuloTipo(t) + "</span></div>";
       }).join("");
+      // reinicia a animação (senão o CSS não re-anima ao trocar de cidade rápido)
+      painel.classList.remove("aberto");
+      void painel.offsetWidth; // força reflow
       painel.classList.add("aberto");
     }
 
