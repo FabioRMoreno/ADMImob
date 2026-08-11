@@ -6,10 +6,16 @@
   <title>ADMImob</title>
 
   <!-- PWA: instalável (ícone próprio, tela cheia). O manifest é trocado
-       dinamicamente por corretor mais abaixo (marca/cores/ícone de cada
-       cliente); este aqui é só o padrão genérico. -->
+       dinamicamente por corretor mais abaixo (cor de cada cliente); este
+       aqui é só o padrão genérico. Nome do app instalado é sempre
+       "ADMImob" — no Android vem do manifest (name/short_name), mas o
+       iPhone (Safari) IGNORA o manifest pra isso e usa a tag abaixo, por
+       isso ela também fica fixa (nunca por cliente). -->
   <link rel="manifest" id="link-manifest" href="manifest.webmanifest" />
   <meta name="theme-color" id="meta-theme-color" content="#17191c" />
+  <meta name="apple-mobile-web-app-title" content="ADMImob" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="ADMImob" />
   <link rel="icon" href="img/icons/icon-generic-192.png" />
   <link rel="apple-touch-icon" id="link-apple-icon" href="img/icons/icon-generic-192.png" />
 
