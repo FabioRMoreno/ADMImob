@@ -66,17 +66,17 @@
 
     /* Painel do corretor: catálogo por cidade + total, abre ao clicar no
        nome/CRECI do cabeçalho. */
+    /* Mesma posição (fixa, sem cobrir a tela toda) do balão de resumo —
+       "onde está o retângulo vermelho": sobre o mapa, acima da barra
+       inferior, não mais um modal escurecendo tudo. */
     #painel-corretor {
-      position: fixed; inset: 0; z-index: 2100; display: none;
-      align-items: center; justify-content: center;
-      background: rgba(0,0,0,.55); padding: 20px;
-    }
-    #painel-corretor.aberto { display: flex; }
-    #painel-corretor-caixa {
-      position: relative; background: var(--topo); color: #fff; border-radius: 16px;
-      padding: 20px 22px; width: 340px; max-width: 92vw; max-height: 80vh; overflow-y: auto;
+      position: fixed; z-index: 2100; left: 50%; bottom: 140px; transform: translateX(-50%);
+      display: none;
+      background: var(--topo); color: #fff; border-radius: 16px;
+      padding: 18px 20px; width: 300px; max-width: 88vw; max-height: 45vh; overflow-y: auto;
       box-shadow: 0 12px 50px rgba(0,0,0,.6);
     }
+    #painel-corretor.aberto { display: block; }
     #painel-corretor-fechar {
       position: absolute; top: 12px; right: 12px; width: 30px; height: 30px;
       border-radius: 50%; background: rgba(255,255,255,.12); border: none;
@@ -86,11 +86,21 @@
     .pc-total { color: var(--primaria); font-weight: 800; font-size: 1.4rem; margin: 4px 0 16px; }
     .pc-cidade-linha {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.1); font-size: .86rem;
+      width: 100%; background: transparent; border: none; text-align: left; cursor: pointer;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.1); font-size: .86rem; color: #fff;
     }
     .pc-cidade-linha:last-child { border-bottom: none; }
     .pc-cidade-linha b { font-weight: 800; color: var(--primaria); }
     .pc-vazio { color: #b9bec4; font-size: .82rem; padding: 10px 0; }
+    .pc-voltar {
+      display: flex; align-items: center; gap: 6px; background: transparent; border: none;
+      color: #b9bec4; font-size: .78rem; cursor: pointer; padding: 0 0 12px; font-weight: 600;
+    }
+    .pc-voltar:hover { color: #fff; }
+    .pc-classe-linha { display: flex; align-items: center; gap: 10px; padding: 7px 0; color: #fff; }
+    .pc-classe-linha svg { flex: none; width: 20px; height: 20px; color: #87cb33; filter: drop-shadow(0 0 4px #87cb33); }
+    .pc-classe-linha b { font-size: .95rem; font-weight: 800; }
+    .pc-classe-linha span { font-size: .7rem; color: #b9bec4; text-transform: uppercase; letter-spacing: .02em; margin-left: auto; }
     .hdr-icone-wrap {
       display: none; /* aparece só quando o ícone carrega */
       width: 54px; height: 54px; border-radius: 8px;
@@ -784,7 +794,7 @@
       100% { opacity: 0; transform: translate(-50%, -6px); }
     }
     #resumo-cidade {
-      position: fixed; z-index: 1300; left: 50%; top: 64px;
+      position: fixed; z-index: 1300; left: 50%; bottom: 140px; transform: translateX(-50%);
       display: none; pointer-events: none;
       background: var(--topo); border-radius: 14px; padding: 10px 16px;
       box-shadow: 0 6px 24px rgba(0,0,0,.45);
@@ -979,13 +989,12 @@
       <div id="balao-fixo-corpo"></div>
     </div>
 
-    <!-- Painel do corretor: abre ao clicar no nome/CRECI no cabeçalho -->
+    <!-- Painel do corretor: abre ao clicar no nome/CRECI no cabeçalho.
+         Lista de cidades -> clique numa cidade -> classes daquela cidade. -->
     <div id="painel-corretor">
-      <div id="painel-corretor-caixa">
-        <button id="painel-corretor-fechar" aria-label="Fechar">×</button>
-        <h2 id="painel-corretor-titulo"></h2>
-        <div id="painel-corretor-corpo"></div>
-      </div>
+      <button id="painel-corretor-fechar" aria-label="Fechar">×</button>
+      <h2 id="painel-corretor-titulo"></h2>
+      <div id="painel-corretor-corpo"></div>
     </div>
 
     <div id="conteudo">
@@ -2128,6 +2137,8 @@
       return { porCidade: porCidade, semCidade: semCidade };
     }
 
+    // Etapa 1: lista de cidades (total por cidade). Clicar numa cidade abre
+    // a etapa 2 (mostrarClassesCidadeCorretor), com a quebra por tipo.
     function abrirPainelCorretor() {
       document.getElementById("painel-corretor-titulo").textContent = "Catálogo — " + (cliente.corretor || "Corretor");
 
@@ -2149,10 +2160,42 @@
       corpo.innerHTML =
         '<div class="pc-total">' + total + (total === 1 ? " imóvel" : " imóveis") + "</div>" +
         linhas.map(function (l) {
-          return '<div class="pc-cidade-linha"><span>' + l.nome + '</span><b>' + l.n + '</b></div>';
+          return '<button type="button" class="pc-cidade-linha" data-cidade="' + l.nome + '">' +
+            "<span>" + l.nome + "</span><b>" + l.n + "</b></button>";
         }).join("");
 
+      corpo.querySelectorAll(".pc-cidade-linha").forEach(function (btn) {
+        // "Outras localidades" não tem polígono pra contar por classe — só as cidades de verdade
+        if (btn.dataset.cidade === "Outras localidades") { btn.style.cursor = "default"; return; }
+        btn.addEventListener("click", function () { mostrarClassesCidadeCorretor(btn.dataset.cidade); });
+      });
+
       document.getElementById("painel-corretor").classList.add("aberto");
+    }
+
+    // Etapa 2: classes (tipo) de UMA cidade, reaproveitando o mesmo cálculo
+    // do balão de resumo (ICONE_TIPO/ORDEM_TIPOS/contarImoveisPorTipo).
+    function mostrarClassesCidadeCorretor(nomeCidade) {
+      document.getElementById("painel-corretor-titulo").textContent = nomeCidade;
+      const corpo = document.getElementById("painel-corretor-corpo");
+
+      const cidadeFeature = poligonoDaCidade(nomeCidade);
+      const contagem = cidadeFeature ? contarImoveisPorTipo(cidadeFeature) : {};
+      const itens = ORDEM_TIPOS.filter(function (t) { return contagem[t] > 0; });
+
+      corpo.innerHTML =
+        '<button type="button" class="pc-voltar">' +
+          '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" ' +
+          'stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Todas as cidades' +
+        "</button>" +
+        (itens.length
+          ? itens.map(function (t) {
+              return '<div class="pc-classe-linha">' + (ICONE_TIPO[t] || "") +
+                "<b>" + contagem[t] + "</b><span>" + rotuloTipo(t) + "</span></div>";
+            }).join("")
+          : '<div class="pc-vazio">Nenhum imóvel nessa cidade.</div>');
+
+      corpo.querySelector(".pc-voltar").addEventListener("click", abrirPainelCorretor);
     }
 
     const hdrClienteTxt = document.getElementById("hdr-cliente-txt");
@@ -2164,9 +2207,6 @@
     });
     document.getElementById("painel-corretor-fechar").addEventListener("click", function () {
       document.getElementById("painel-corretor").classList.remove("aberto");
-    });
-    document.getElementById("painel-corretor").addEventListener("click", function (e) {
-      if (e.target.id === "painel-corretor") document.getElementById("painel-corretor").classList.remove("aberto");
     });
 
     // ---- Resumo ilustrativo por cidade (ícone + contagem, ~5s ao focar uma cidade) ----
