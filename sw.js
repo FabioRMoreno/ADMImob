@@ -13,7 +13,7 @@
  * primeiro), aumente o CACHE_VERSION abaixo.
  * ========================================================================== */
 
-const CACHE_VERSION = "admimob-shell-v1";
+const CACHE_VERSION = "admimob-shell-v2";
 
 const APP_SHELL = [
   "./",
@@ -23,9 +23,7 @@ const APP_SHELL = [
   "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/Turf.js/6.5.0/turf.min.js",
   "img/icons/icon-generic-192.png",
-  "img/icons/icon-generic-512.png",
-  "img/icons/icon-adriel-192.png",
-  "img/icons/icon-adriel-512.png"
+  "img/icons/icon-generic-512.png"
 ];
 
 // Nunca cachear: dados do corretor (config.js e tudo dentro de dados/).

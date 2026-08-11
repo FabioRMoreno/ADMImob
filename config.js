@@ -36,12 +36,6 @@ const CLIENTES = {
     // do cabeçalho, espelhando o logo ADMImob à esquerda. "" = não mostra.
     logoIcone: "img/logo_adriel.png?v=1",
 
-    // Ícones do app instalável (PWA) — usados quando o corretor faz
-    // "Adicionar à tela inicial" no celular: ícone quadrado 192x192 e
-    // 512x512, gerados a partir do logoIcone. Sem isso, cai no ícone
-    // genérico do ADMImob (img/icons/icon-generic-*.png).
-    iconePwa: { 192: "img/icons/icon-adriel-192.png", 512: "img/icons/icon-adriel-512.png" },
-
     // --- Acesso (COFRE: login + senha que desembaralha os dados) ---
     // O corretor repassa login+senha só a quem deve ver os dados. A SENHA
     // NÃO fica aqui (nem em lugar nenhum do repositório) — só o arquivo

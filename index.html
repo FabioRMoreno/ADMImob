@@ -1222,7 +1222,7 @@
 
   <!-- Ao editar o config.js (contatos, camadas, novo corretor), aumente o ?v=
        para o navegador do corretor pegar a versão nova em vez do cache. -->
-  <script src="config.js?v=20"></script>
+  <script src="config.js?v=21"></script>
   <script>
   (function () {
     "use strict";
@@ -1247,15 +1247,17 @@
     document.title = cliente.marca || "ADMImob";
     document.getElementById("user-creci").textContent = cliente.creci || "";
 
-    // ---- 2b. PWA: manifest, cor da barra e ícone específicos do corretor ----
+    // ---- 2b. PWA: manifest e cor da barra para o corretor atual ----
     // Cada corretor tem seu próprio link (?cliente=slug); ao instalar
-    // ("Adicionar à tela inicial"), o ícone e o nome do app devem ser os
-    // dele, não um genérico do ADMImob. Como o manifest é um arquivo
-    // estático por natureza, geramos um na hora (Blob) com os dados desse
-    // cliente e trocamos o <link rel="manifest"> por ele.
+    // ("Adicionar à tela inicial"), nome e cor seguem a marca dele, mas o
+    // ÍCONE é sempre o emblema do ADMImob — é o produto que deve ficar
+    // reconhecível, não a marca de cada corretor individual. Como o
+    // manifest é um arquivo estático por natureza, geramos um na hora
+    // (Blob) com os dados desse cliente e trocamos o <link rel="manifest">
+    // por ele.
     (function aplicarManifestDoCliente() {
-      const icones192 = (cliente.iconePwa && cliente.iconePwa[192]) || "img/icons/icon-generic-192.png";
-      const icones512 = (cliente.iconePwa && cliente.iconePwa[512]) || "img/icons/icon-generic-512.png";
+      const icones192 = "img/icons/icon-generic-192.png";
+      const icones512 = "img/icons/icon-generic-512.png";
       const cor = cliente.corTopo || cliente.corPrimaria || "#17191c";
       const manifestCliente = {
         name: cliente.marca || "ADMImob",
